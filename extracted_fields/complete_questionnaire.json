@@ -1,0 +1,1196 @@
+{
+  "id": "x12-270-271-complete",
+  "title": "X12 270/271 Implementation Questionnaire - Complete",
+  "description": "Comprehensive digital questionnaire for X12 270/271 HIPAA transaction implementation with all PDF fields",
+  "version": "2.0.0",
+  "transactionType": "270/271",
+  "sections": [
+    {
+      "id": "organization-info",
+      "title": "Organization Information",
+      "description": "Basic information about your organization",
+      "order": 1,
+      "questions": [
+        {
+          "id": "organization-name",
+          "type": "text",
+          "title": "Organization Name",
+          "required": true,
+          "validation": {
+            "maxLength": 100
+          }
+        },
+        {
+          "id": "required-return-date",
+          "type": "date",
+          "title": "Required Return Date",
+          "description": "When do you need this implementation completed?",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "implementation-mode",
+      "title": "Implementation Mode Selection",
+      "description": "Select the transaction mode you are implementing",
+      "order": 2,
+      "questions": [
+        {
+          "id": "implementation-mode-selection",
+          "type": "radio",
+          "title": "Please indicate the mode type you are implementing for the 270/271 transaction:",
+          "description": "Please only complete the sections relevant to your selected mode",
+          "required": true,
+          "options": [
+            {
+              "value": "real_time_web",
+              "label": "Real-time Web"
+            },
+            {
+              "value": "real_time_b2b",
+              "label": "Real-time B2B"
+            },
+            {
+              "value": "edi_batch",
+              "label": "EDI Batch"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact-information",
+      "title": "Contact Information",
+      "description": "Primary and secondary contacts for this implementation",
+      "order": 3,
+      "questions": [
+        {
+          "id": "trading-partner-technical-header",
+          "type": "display",
+          "title": "Trading Partner Technical Contact",
+          "description": "Technical contact from your organization",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "trading-partner-technical-name",
+          "type": "text",
+          "title": "Trading Partner Technical Contact - Name",
+          "required": true,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "Name1",
+          "defaultValue": "John doe"
+        },
+        {
+          "id": "trading-partner-technical-phone",
+          "type": "text",
+          "title": "Trading Partner Technical Contact - Phone",
+          "required": true,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "Phone1",
+          "defaultValue": "3855603306"
+        },
+        {
+          "id": "trading-partner-technical-email",
+          "type": "email",
+          "title": "Trading Partner Technical Contact - Email",
+          "required": true,
+          "attachmentRequired": false,
+          "readonly": false,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "Email1",
+          "defaultValue": "ramki27123@gmail.com"
+        },
+        {
+          "id": "availity-technical-header",
+          "type": "display",
+          "title": "Availity Technical Contact",
+          "description": "Technical contact from Availity (to be completed by Availity)",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "availity-technical-name",
+          "type": "text",
+          "title": "Availity Technical Contact - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "AVName1",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-technical-phone",
+          "type": "text",
+          "title": "Availity Technical Contact - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "AVPhone1",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-technical-email",
+          "type": "email",
+          "title": "Availity Technical Contact - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "AVEmail1",
+          "defaultValue": ""
+        },
+        {
+          "id": "trading-partner-account-manager-header",
+          "type": "display",
+          "title": "Trading Partner Account/Program Manager",
+          "description": "Account or program manager from your organization",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "trading-partner-account-manager-name",
+          "type": "text",
+          "title": "Trading Partner Account/Program Manager - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "Name2",
+          "defaultValue": ""
+        },
+        {
+          "id": "trading-partner-account-manager-phone",
+          "type": "text",
+          "title": "Trading Partner Account/Program Manager - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "Phone2",
+          "defaultValue": ""
+        },
+        {
+          "id": "trading-partner-account-manager-email",
+          "type": "email",
+          "title": "Trading Partner Account/Program Manager - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "Email2",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-account-manager-header",
+          "type": "display",
+          "title": "Availity Account/Program Manager",
+          "description": "Account or program manager from Availity",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "availity-account-manager-name",
+          "type": "text",
+          "title": "Availity Account/Program Manager - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "AVName2",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-account-manager-phone",
+          "type": "text",
+          "title": "Availity Account/Program Manager - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "AVPhone2",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-account-manager-email",
+          "type": "email",
+          "title": "Availity Account/Program Manager - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "AVEmail2",
+          "defaultValue": ""
+        },
+        {
+          "id": "trading-partner-escalation-header",
+          "type": "display",
+          "title": "Trading Partner Escalation Contact",
+          "description": "Escalation contact from your organization",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "trading-partner-escalation-name",
+          "type": "text",
+          "title": "Trading Partner Escalation Contact - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "Name3",
+          "defaultValue": ""
+        },
+        {
+          "id": "trading-partner-escalation-phone",
+          "type": "text",
+          "title": "Trading Partner Escalation Contact - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "Phone3",
+          "defaultValue": ""
+        },
+        {
+          "id": "trading-partner-escalation-email",
+          "type": "email",
+          "title": "Trading Partner Escalation Contact - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "Email3",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-escalation-header",
+          "type": "display",
+          "title": "Availity Escalation Contact",
+          "description": "Escalation contact from Availity",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "availity-escalation-name",
+          "type": "text",
+          "title": "Availity Escalation Contact - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "AVName3",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-escalation-phone",
+          "type": "text",
+          "title": "Availity Escalation Contact - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "AVPhone3",
+          "defaultValue": ""
+        },
+        {
+          "id": "availity-escalation-email",
+          "type": "email",
+          "title": "Availity Escalation Contact - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "AVEmail3",
+          "defaultValue": ""
+        },
+        {
+          "id": "additional-trading-partner-header",
+          "type": "display",
+          "title": "Additional Trading Partner Contact",
+          "description": "Additional contact from your organization",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "additional-trading-partner-name",
+          "type": "text",
+          "title": "Additional Trading Partner Contact - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "Name4",
+          "defaultValue": ""
+        },
+        {
+          "id": "additional-trading-partner-phone",
+          "type": "text",
+          "title": "Additional Trading Partner Contact - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "Phone4",
+          "defaultValue": ""
+        },
+        {
+          "id": "additional-trading-partner-email",
+          "type": "email",
+          "title": "Additional Trading Partner Contact - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": false,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "Email4",
+          "defaultValue": ""
+        },
+        {
+          "id": "other-availity-header",
+          "type": "display",
+          "title": "Other Availity Contact",
+          "description": "Other contact from Availity",
+          "required": false,
+          "attachmentRequired": false,
+          "isHeader": true
+        },
+        {
+          "id": "other-availity-name",
+          "type": "text",
+          "title": "Other Availity Contact - Name",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "maxLength": 100
+          },
+          "originalField": "AVName4",
+          "defaultValue": ""
+        },
+        {
+          "id": "other-availity-phone",
+          "type": "text",
+          "title": "Other Availity Contact - Phone",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "validation": {
+            "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+          },
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+          },
+          "originalField": "AVPhone4",
+          "defaultValue": ""
+        },
+        {
+          "id": "other-availity-email",
+          "type": "email",
+          "title": "Other Availity Contact - Email",
+          "required": false,
+          "attachmentRequired": false,
+          "readonly": true,
+          "x12Field": {
+            "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+          },
+          "originalField": "AVEmail4",
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "id": "enveloping-requirements",
+      "title": "Enveloping Requirements",
+      "description": "ISA and GS segment configuration requirements",
+      "order": 4,
+      "questions": [
+        {
+          "id": "isa06-270",
+          "type": "radio",
+          "title": "ISA06 - Interchange Sender ID (270)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "isa06-270-custom",
+          "type": "text",
+          "title": "ISA06 - Interchange Sender ID (270) - Custom Value",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "isa06-270",
+            "showWhen": [
+              "custom"
+            ]
+          }
+        },
+        {
+          "id": "isa06-271",
+          "type": "radio",
+          "title": "ISA06 - Interchange Sender ID (271)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "isa06-271-custom",
+          "type": "text",
+          "title": "ISA06 - Interchange Sender ID (271) - Custom Value",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "isa06-271",
+            "showWhen": [
+              "custom"
+            ]
+          }
+        },
+        {
+          "id": "isa07-271",
+          "type": "radio",
+          "title": "ISA07 - Interchange Receiver ID (271)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "isa07-271-custom",
+          "type": "text",
+          "title": "ISA07 - Interchange Receiver ID (271) - Custom Value",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "isa07-271",
+            "showWhen": [
+              "custom"
+            ]
+          }
+        },
+        {
+          "id": "isa08-270",
+          "type": "radio",
+          "title": "ISA08 - Interchange Receiver ID (270)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "isa08-270-custom",
+          "type": "text",
+          "title": "ISA08 - Interchange Receiver ID (270) - Custom Value",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "isa08-270",
+            "showWhen": [
+              "custom"
+            ]
+          }
+        },
+        {
+          "id": "gs02-270",
+          "type": "radio",
+          "title": "GS02 - Application Sender's Code (270)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "availity_defines",
+              "label": "Availity defines"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "gs02-271",
+          "type": "radio",
+          "title": "GS02 - Application Sender's Code (271)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "availity_defines",
+              "label": "Availity defines"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "gs03-270",
+          "type": "radio",
+          "title": "GS03 - Application Receiver's Code (270)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "availity_defines",
+              "label": "Availity defines"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "gs03-271",
+          "type": "radio",
+          "title": "GS03 - Application Receiver's Code (271)",
+          "required": false,
+          "options": [
+            {
+              "value": "030240928",
+              "label": "030240928 (Availity defines)"
+            },
+            {
+              "value": "availity_defines",
+              "label": "Availity defines"
+            },
+            {
+              "value": "custom",
+              "label": "Other (please specify)"
+            }
+          ]
+        },
+        {
+          "id": "uppercase-characters-acceptable",
+          "type": "radio",
+          "title": "Availity's standard is to send uppercase characters. Is this acceptable?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "x12-basic-character-set",
+          "type": "radio",
+          "title": "A space is part of the X12 basic character set. Does your system accept spaces?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "x12-extended-character-set",
+          "type": "radio",
+          "title": "Do you accept characters from the X12 extended character set?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "patient-information",
+      "title": "Patient Information Requirements",
+      "description": "Requirements for patient identification and data formatting",
+      "order": 5,
+      "questions": [
+        {
+          "id": "patient-id-formatting-requirements",
+          "type": "textarea",
+          "title": "Please describe the requirements for the formatting of the patient ID on the 270 request",
+          "required": false,
+          "x12Field": {
+            "segment": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}"
+          }
+        },
+        {
+          "id": "patient-last-name-requirements",
+          "type": "textarea",
+          "title": "Patient last name requirements",
+          "required": false
+        },
+        {
+          "id": "patient-first-name-requirements",
+          "type": "textarea",
+          "title": "Patient first name requirements",
+          "required": false
+        },
+        {
+          "id": "date-of-birth-requirements",
+          "type": "textarea",
+          "title": "Date of birth requirements",
+          "required": false,
+          "x12Field": {
+            "segment": "DMG*D8*{DateOfBirth}"
+          }
+        },
+        {
+          "id": "gender-code-requirements",
+          "type": "textarea",
+          "title": "Gender code requirements",
+          "required": false
+        },
+        {
+          "id": "test-files-valid-membership",
+          "type": "radio",
+          "title": "Do test files require valid membership records?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "provider-information",
+      "title": "Provider Information Requirements",
+      "description": "Requirements for provider identification and data",
+      "order": 6,
+      "questions": [
+        {
+          "id": "provider-express-entry-requirements",
+          "type": "textarea",
+          "title": "Provider Express Entry requirements",
+          "required": false
+        },
+        {
+          "id": "provider-identifiers-nm108-requirements",
+          "type": "textarea",
+          "title": "Provider Identifiers NM108 requirements",
+          "required": false
+        },
+        {
+          "id": "provider-identifiers-nm109-requirements",
+          "type": "textarea",
+          "title": "Provider Identifiers NM109 requirements",
+          "required": false
+        },
+        {
+          "id": "test-files-valid-provider-data",
+          "type": "radio",
+          "title": "Do test files require valid provider data?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "availity-essentials-state-dropdown",
+          "type": "radio",
+          "title": "In Availity Essentials, providers select payers by first selecting their state in a dropdown list. Is your payer ID the same for all states?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ],
+          "x12Field": {
+            "segment": "REF*EI*{TaxID}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "service-information",
+      "title": "Service Information",
+      "description": "Service type codes and benefit information",
+      "order": 7,
+      "questions": [
+        {
+          "id": "support-all-service-type-codes",
+          "type": "radio",
+          "title": "Can you support all service type codes?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "exclude-eb-benefit-types-testing",
+          "type": "radio",
+          "title": "Do you exclude any E&B benefit types from testing?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "excluded-eb-benefit-types-specify",
+          "type": "textarea",
+          "title": "If yes, please specify which E&B benefit types you exclude from testing:",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "exclude-eb-benefit-types-testing",
+            "showWhen": [
+              "yes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "testing-requirements",
+      "title": "Testing Requirements",
+      "description": "Testing environment and requirements",
+      "order": 8,
+      "questions": [
+        {
+          "id": "specific-testing-requirements",
+          "type": "radio",
+          "title": "Does your organization have specific testing requirements?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "specific-testing-requirements-details",
+          "type": "textarea",
+          "title": "If yes, please specify your testing requirements:",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "specific-testing-requirements",
+            "showWhen": [
+              "yes"
+            ]
+          }
+        },
+        {
+          "id": "designated-payer-id-testing",
+          "type": "radio",
+          "title": "Do you have a designated payer ID you would like Availity to use in testing?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "designated-payer-id-specify",
+          "type": "textarea",
+          "title": "If yes, please specify the payer ID (include separate attachment if you require different IDs for different lines of business):",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "designated-payer-id-testing",
+            "showWhen": [
+              "yes"
+            ]
+          }
+        },
+        {
+          "id": "min-max-test-transactions",
+          "type": "radio",
+          "title": "Do you have a minimum or maximum number of test transactions you will accept?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "min-max-test-transactions-specify",
+          "type": "textarea",
+          "title": "If yes, please specify the minimum/maximum number:",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "min-max-test-transactions",
+            "showWhen": [
+              "yes"
+            ]
+          }
+        },
+        {
+          "id": "other-testing-restrictions",
+          "type": "radio",
+          "title": "Do you have any other testing or test transaction restrictions?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "other-testing-restrictions-specify",
+          "type": "textarea",
+          "title": "If yes, please specify the restrictions:",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "other-testing-restrictions",
+            "showWhen": [
+              "yes"
+            ]
+          }
+        },
+        {
+          "id": "test-file-ready-date",
+          "type": "date",
+          "title": "When will you be prepared to receive a test file?",
+          "description": "Please specify a date or date range",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "connectivity-requirements",
+      "title": "Connectivity Requirements",
+      "description": "Technical connectivity and system requirements",
+      "order": 9,
+      "questions": [
+        {
+          "id": "xml-envelope-structure",
+          "type": "radio",
+          "title": "Availity supports XML envelope structure. Do you require an XML wrapper?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "differing-connectivity-by-state",
+          "type": "radio",
+          "title": "Do you have differing connectivity requirements for each state?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "test-url",
+          "type": "url",
+          "title": "Test URL",
+          "required": false
+        },
+        {
+          "id": "test-user-ids",
+          "type": "textarea",
+          "title": "Test User IDs",
+          "required": false
+        },
+        {
+          "id": "prod-url",
+          "type": "url",
+          "title": "Production URL",
+          "required": false
+        },
+        {
+          "id": "prod-user-ids",
+          "type": "textarea",
+          "title": "Production User IDs",
+          "required": false
+        },
+        {
+          "id": "system-hours-availability",
+          "type": "textarea",
+          "title": "What are your system's hours of availability?",
+          "required": false
+        },
+        {
+          "id": "continuous-threads-support",
+          "type": "number",
+          "title": "How many continuous threads can you support?",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "edi-batch-specific",
+      "title": "EDI Batch Specific Requirements",
+      "description": "Requirements specific to EDI batch processing",
+      "order": 10,
+      "questions": [
+        {
+          "id": "naming-convention-inbound-files",
+          "type": "textarea",
+          "title": "Please define your naming convention for inbound files",
+          "required": false
+        },
+        {
+          "id": "separate-test-environment-edi",
+          "type": "radio",
+          "title": "Does your organization have a separate test environment for EDI transactions?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "id": "separate-test-environment-describe",
+          "type": "textarea",
+          "title": "If yes, please describe your separate test environment:",
+          "required": false,
+          "conditionalLogic": {
+            "dependsOn": "separate-test-environment-edi",
+            "showWhen": [
+              "yes"
+            ]
+          }
+        }
+      ],
+      "conditionalLogic": {
+        "dependsOn": "implementation-mode-selection",
+        "showWhen": [
+          "edi_batch"
+        ]
+      }
+    },
+    {
+      "id": "production-approval",
+      "title": "Production Approval Process",
+      "description": "Production approval and go-live requirements",
+      "order": 11,
+      "questions": [
+        {
+          "id": "production-approval-process",
+          "type": "textarea",
+          "title": "Please describe your production approval process",
+          "required": false
+        },
+        {
+          "id": "test-environment-continue-available",
+          "type": "radio",
+          "title": "After you receive production approval, will your test environment continue to be available?",
+          "required": true,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

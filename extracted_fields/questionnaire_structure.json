@@ -1,0 +1,1504 @@
+{
+  "title": "X12 270/271 Implementation Questionnaire",
+  "description": "Generated from IMP_QRE_270_E&B_CombinedModes.pdf",
+  "sections": [
+    {
+      "id": "patient_info",
+      "title": "Patient Info",
+      "questions": [
+        {
+          "id": "Patient ID  DOB",
+          "text": "Patient Id  Dob",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Patient ID First Name  Last Name",
+          "text": "Patient Id First Name  Last Name",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Patient ID First Name Last Name  DOB",
+          "text": "Patient Id First Name Last Name  Dob",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Patient ID First Name DOB",
+          "text": "Patient Id First Name Dob",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Patient ID Last Name DOB",
+          "text": "Patient Id Last Name Dob",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Patient ID  First Name",
+          "text": "Patient Id  First Name",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "requirements for the formatting of the patient ID on the 270 request",
+          "text": "Requirements For The Formatting Of The Patient Id On The 270 Request",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Do test files require valid membership records?",
+          "text": "Do Test Files Require Valid Membership Records?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Patient ID_12",
+          "text": "Patient Id 12",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        },
+        {
+          "id": "Patient last name requirements_13",
+          "text": "Patient Last Name Requirements 13",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Patient first name requirements_13",
+          "text": "Patient First Name Requirements 13",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Patient rel2subscriber_13",
+          "text": "Patient Rel2Subscriber 13",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do test files require valid membership records",
+          "text": "Do Test Files Require Valid Membership Records",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "10 Do test files require valid membership records",
+          "text": "10 Do Test Files Require Valid Membership Records",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "patient_id",
+          "text": "Patient ID",
+          "type": "text",
+          "required": false,
+          "x12_field": "NM1*IL*1*{LastName}*{FirstName}***MI*{MemberID}",
+          "validation": []
+        }
+      ]
+    },
+    {
+      "id": "provider_info",
+      "title": "Provider Info",
+      "questions": [
+        {
+          "id": "In Availity Essentials providers select payers by first selecting their state in a dropdown list Is your",
+          "text": "In Availity Essentials Providers Select Payers By First Selecting Their State In A Dropdown List Is Your",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do test files require valid provider data",
+          "text": "Do Test Files Require Valid Provider Data",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Provider Express Entry_12_requirements",
+          "text": "Provider Express Entry 12 Requirements",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Provider Identifiers NM108 requirements_12",
+          "text": "Provider Identifiers Nm108 Requirements 12",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Provider Identifiers NM109 requirements_12",
+          "text": "Provider Identifiers Nm109 Requirements 12",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do test files require valid provider data_2",
+          "text": "Do Test Files Require Valid Provider Data 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do test files require valid provider data_3",
+          "text": "Do Test Files Require Valid Provider Data 3",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        }
+      ]
+    },
+    {
+      "id": "insurance_info",
+      "title": "Insurance Info",
+      "questions": [
+        {
+          "id": "Availitys standard deployment process is to publish your payer IDs in the Availity Health Plan",
+          "text": "Availitys Standard Deployment Process Is To Publish Your Payer Ids In The Availity Health Plan",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        }
+      ]
+    },
+    {
+      "id": "service_info",
+      "title": "Service Info",
+      "questions": [
+        {
+          "id": "Can you support all service type codes",
+          "text": "Can You Support All Service Type Codes",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Can you support all service types?",
+          "text": "Can You Support All Service Types?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        }
+      ]
+    },
+    {
+      "id": "authorization",
+      "title": "Authorization",
+      "questions": [
+        {
+          "id": "Please describe your production approval process",
+          "text": "Please Describe Your Production Approval Process",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "After you receive production approval will your test environment continue to be available_2",
+          "text": "After You Receive Production Approval Will Your Test Environment Continue To Be Available 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Please describe your production approval process_2",
+          "text": "Please Describe Your Production Approval Process 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "After you receive production approval will your test environment continue to be available_3",
+          "text": "After You Receive Production Approval Will Your Test Environment Continue To Be Available 3",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        }
+      ]
+    },
+    {
+      "id": "other",
+      "title": "Other",
+      "questions": [
+        {
+          "id": "Organization name",
+          "text": "Organization Name",
+          "type": "text",
+          "required": true,
+          "x12_field": "",
+          "validation": [
+            "required"
+          ]
+        },
+        {
+          "id": "Required return date",
+          "text": "Required Return Date",
+          "type": "text",
+          "required": true,
+          "x12_field": "",
+          "validation": [
+            "required",
+            "date_format"
+          ]
+        },
+        {
+          "id": "Name1",
+          "text": "Name1",
+          "type": "text",
+          "required": true,
+          "x12_field": "",
+          "validation": [
+            "required"
+          ]
+        },
+        {
+          "id": "Phone1",
+          "text": "Phone1",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "required",
+            "phone_format"
+          ]
+        },
+        {
+          "id": "Email1",
+          "text": "Email1",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "required",
+            "email_format"
+          ]
+        },
+        {
+          "id": "Name2",
+          "text": "Name2",
+          "type": "text",
+          "required": true,
+          "x12_field": "",
+          "validation": [
+            "required"
+          ]
+        },
+        {
+          "id": "Phone2",
+          "text": "Phone2",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "required",
+            "phone_format"
+          ]
+        },
+        {
+          "id": "Email2",
+          "text": "Email2",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "required",
+            "email_format"
+          ]
+        },
+        {
+          "id": "Name3",
+          "text": "Name3",
+          "type": "text",
+          "required": true,
+          "x12_field": "",
+          "validation": [
+            "required"
+          ]
+        },
+        {
+          "id": "Phone3",
+          "text": "Phone3",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "required",
+            "phone_format"
+          ]
+        },
+        {
+          "id": "Email3",
+          "text": "Email3",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "required",
+            "email_format"
+          ]
+        },
+        {
+          "id": "Name4",
+          "text": "Name4",
+          "type": "text",
+          "required": true,
+          "x12_field": "",
+          "validation": [
+            "required"
+          ]
+        },
+        {
+          "id": "Phone4",
+          "text": "Phone4",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "required",
+            "phone_format"
+          ]
+        },
+        {
+          "id": "Email4",
+          "text": "Email4",
+          "type": "text",
+          "required": true,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "required",
+            "email_format"
+          ]
+        },
+        {
+          "id": "AVName1",
+          "text": "Avname1",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "AVPhone1",
+          "text": "Avphone1",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "phone_format"
+          ]
+        },
+        {
+          "id": "AVEmail1",
+          "text": "Avemail1",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "email_format"
+          ]
+        },
+        {
+          "id": "AVName2",
+          "text": "Avname2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "AVPhone2",
+          "text": "Avphone2",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "phone_format"
+          ]
+        },
+        {
+          "id": "AVEmail2",
+          "text": "Avemail2",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "email_format"
+          ]
+        },
+        {
+          "id": "AVName3",
+          "text": "Avname3",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "AVPhone3",
+          "text": "Avphone3",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "phone_format"
+          ]
+        },
+        {
+          "id": "AVEmail3",
+          "text": "Avemail3",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "email_format"
+          ]
+        },
+        {
+          "id": "AVName4",
+          "text": "Avname4",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "AVPhone4",
+          "text": "Avphone4",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*TE*{PhoneNumber}",
+          "validation": [
+            "phone_format"
+          ]
+        },
+        {
+          "id": "AVEmail4",
+          "text": "Avemail4",
+          "type": "text",
+          "required": false,
+          "x12_field": "PER*IC*{ContactName}*EM*{EmailAddress}",
+          "validation": [
+            "email_format"
+          ]
+        },
+        {
+          "id": "Do you require Availity to enroll prior to submitting 270 transactions",
+          "text": "Do You Require Availity To Enroll Prior To Submitting 270 Transactions",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Real-time web",
+          "text": "Real-Time Web",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Real-time B2B",
+          "text": "Real-Time B2B",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "EDI batch",
+          "text": "Edi Batch",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA06_270",
+          "text": "Isa06 270",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA06_270_define value",
+          "text": "Isa06 270 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA06_271",
+          "text": "Isa06 271",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA06_271_define value",
+          "text": "Isa06 271 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA07_271",
+          "text": "Isa07 271",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA07_271_define value",
+          "text": "Isa07 271 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA08_270",
+          "text": "Isa08 270",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA08_270_define value",
+          "text": "Isa08 270 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "ISA16 Component Element Separator_3",
+          "text": "Isa16 Component Element Separator 3",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS02_270",
+          "text": "Gs02 270",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS02_270_define value",
+          "text": "Gs02 270 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS02_271",
+          "text": "Gs02 271",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS02_271_define value",
+          "text": "Gs02 271 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS03_270",
+          "text": "Gs03 270",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS03_270_define value",
+          "text": "Gs03 270 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS03_271",
+          "text": "Gs03 271",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "GS03_271_define value",
+          "text": "Gs03 271 Define Value",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "270_2100A_NM103",
+          "text": "270 2100A Nm103",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "271_2100A_NM103",
+          "text": "271 2100A Nm103",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "270_2100A_NM109",
+          "text": "270 2100A Nm109",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "271_2100A_NM109",
+          "text": "271 2100A Nm109",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Availitys standard is to send uppercase characters Is this acceptable",
+          "text": "Availitys Standard Is To Send Uppercase Characters Is This Acceptable",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "A space is part of the X12 basic character set Does your system accept spaces",
+          "text": "A Space Is Part Of The X12 Basic Character Set Does Your System Accept Spaces",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you accept characters from the X12 extended character set",
+          "text": "Do You Accept Characters From The X12 Extended Character Set",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "How do you reject the transaction?",
+          "text": "How Do You Reject The Transaction?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "If your ANSI translator detects a syntax error within the ANSI X12 transmission file, how will you reject the transaction?  Other. Please explain:",
+          "text": "If Your Ansi Translator Detects A Syntax Error Within The Ansi X12 Transmission File, How Will You Reject The Transaction?  Other. Please Explain:",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you support the TA1 response?",
+          "text": "Do You Support The Ta1 Response?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Is the TA1 response driven by ISA14?",
+          "text": "Is The Ta1 Response Driven By Isa14?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Will you reject transactions that contain not used segments",
+          "text": "Will You Reject Transactions That Contain Not Used Segments",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Will you return additional data not reported in the standard 271 response",
+          "text": "Will You Return Additional Data Not Reported In The Standard 271 Response",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer_ID_8",
+          "text": "Payer Id 8",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Is this a controlled deployment?",
+          "text": "Is This A Controlled Deployment?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer_Name_8",
+          "text": "Payer Name 8",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.0.0",
+          "text": "Specify The States.0.0",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.1.0",
+          "text": "Specify The States.1.0",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.2.0",
+          "text": "Specify The States.2.0",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.3.0",
+          "text": "Specify The States.3.0",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.4.0",
+          "text": "Specify The States.4.0",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.0.1",
+          "text": "Specify The States.0.1",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.1.1",
+          "text": "Specify The States.1.1",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.2.1",
+          "text": "Specify The States.2.1",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.3.1",
+          "text": "Specify The States.3.1",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.4.1",
+          "text": "Specify The States.4.1",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.0.2",
+          "text": "Specify The States.0.2",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.1.2",
+          "text": "Specify The States.1.2",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.2.2",
+          "text": "Specify The States.2.2",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.3.2",
+          "text": "Specify The States.3.2",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Specify the states.4.2",
+          "text": "Specify The States.4.2",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Availity supports XML envelope structure Do you require an XML wrapper",
+          "text": "Availity Supports Xml Envelope Structure Do You Require An Xml Wrapper",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have differing connectivity requirements for each state?",
+          "text": "Do You Have Differing Connectivity Requirements For Each State?",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Test URL",
+          "text": "Test Url",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Test user IDs",
+          "text": "Test User Ids",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Prod URL",
+          "text": "Prod Url",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Prod user IDs",
+          "text": "Prod User Ids",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "What are your system's hours of availability?",
+          "text": "What Are Your System'S Hours Of Availability?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "How many continuous threads can you support?",
+          "text": "How Many Continuous Threads Can You Support?",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Will your test environment remain available?",
+          "text": "Will Your Test Environment Remain Available?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have specific testing requirements",
+          "text": "Does Your Organization Have Specific Testing Requirements",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have specific testing requirements? If Yes, please specify:",
+          "text": "Does Your Organization Have Specific Testing Requirements? If Yes, Please Specify:",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you exclude any E&B benefit types from testing?",
+          "text": "Do You Exclude Any E&B Benefit Types From Testing?",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "4.Do you exclude any E&B benefit types from testing?",
+          "text": "4.Do You Exclude Any E&B Benefit Types From Testing?",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you have a designated payer ID you would like Availity to use in testing",
+          "text": "Do You Have A Designated Payer Id You Would Like Availity To Use In Testing",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "If Yes, please specify (please include a separate attachment if you require different IDs for different lines of business):",
+          "text": "If Yes, Please Specify (Please Include A Separate Attachment If You Require Different Ids For Different Lines Of Business):",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have a minimum or maximum number of test transactions you will accept",
+          "text": "Do You Have A Minimum Or Maximum Number Of Test Transactions You Will Accept",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have a minimum or maximum number of test transactions you will accept?",
+          "text": "Do You Have A Minimum Or Maximum Number Of Test Transactions You Will Accept?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have any other testing or test transaction restrictions",
+          "text": "Do You Have Any Other Testing Or Test Transaction Restrictions",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you have any other testing or test transaction restrictions?",
+          "text": "Do You Have Any Other Testing Or Test Transaction Restrictions?",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "When will you be prepared to receive a test file?",
+          "text": "When Will You Be Prepared To Receive A Test File?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer name_11",
+          "text": "Payer Name 11",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer ID qualifier_11",
+          "text": "Payer Id Qualifier 11",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer ID qualifier_11_define",
+          "text": "Payer Id Qualifier 11 Define",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer ID_11",
+          "text": "Payer Id 11",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Payer ID_11_define",
+          "text": "Payer Id 11 Define",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Date of birth requirements_13",
+          "text": "Date Of Birth Requirements 13",
+          "type": "text",
+          "required": false,
+          "x12_field": "DMG*D8*{DateOfBirth}",
+          "validation": [
+            "date_format"
+          ]
+        },
+        {
+          "id": "Gender code requirements_13",
+          "text": "Gender Code Requirements 13",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "As of date requirements_14",
+          "text": "As Of Date Requirements 14",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": [
+            "date_format"
+          ]
+        },
+        {
+          "id": "2. Availity supports XML envelope structure Do you require an XML wrapper",
+          "text": "2. Availity Supports Xml Envelope Structure Do You Require An Xml Wrapper",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have differing connectivity requirements for each state?2",
+          "text": "Do You Have Differing Connectivity Requirements For Each State?2",
+          "type": "text",
+          "required": false,
+          "x12_field": "N4*{City}*{State}*{ZipCode}",
+          "validation": []
+        },
+        {
+          "id": "Test URL2",
+          "text": "Test Url2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Test user IDs2",
+          "text": "Test User Ids2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Prod URL2",
+          "text": "Prod Url2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Prod user IDs2",
+          "text": "Prod User Ids2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "What are your system's hours of availability?2",
+          "text": "What Are Your System'S Hours Of Availability?2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "How many continuous threads can you support?2",
+          "text": "How Many Continuous Threads Can You Support?2",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have specific testing requirements_2",
+          "text": "Does Your Organization Have Specific Testing Requirements 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have specific testing requirements? If Yes please specify",
+          "text": "Does Your Organization Have Specific Testing Requirements? If Yes Please Specify",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you exclude any EB benefit types from testing",
+          "text": "Do You Exclude Any Eb Benefit Types From Testing",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you exclude any E&B benefit types from testing? If Yes please specify",
+          "text": "Do You Exclude Any E&B Benefit Types From Testing? If Yes Please Specify",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you have a designated payer ID you would like Availity to use in testing_2",
+          "text": "Do You Have A Designated Payer Id You Would Like Availity To Use In Testing 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "different lines of business",
+          "text": "Different Lines Of Business",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have a minimum or maximum number of test transactions you will accept_2",
+          "text": "Do You Have A Minimum Or Maximum Number Of Test Transactions You Will Accept 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have a minimum or maximum number of test transactions you will accept? If Yes please specify",
+          "text": "Do You Have A Minimum Or Maximum Number Of Test Transactions You Will Accept? If Yes Please Specify",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Do you have any other testing or test transaction restrictions_2",
+          "text": "Do You Have Any Other Testing Or Test Transaction Restrictions 2",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you have any other testing or test transaction restrictions? If Yes please specify",
+          "text": "Do You Have Any Other Testing Or Test Transaction Restrictions? If Yes Please Specify",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "10 When will you be prepared to receive a test file Please specify a date or date range",
+          "text": "10 When Will You Be Prepared To Receive A Test File Please Specify A Date Or Date Range",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": [
+            "date_format"
+          ]
+        },
+        {
+          "id": "Please define your naming convention for inbound files",
+          "text": "Please Define Your Naming Convention For Inbound Files",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have a separate test environment for EDI transactions",
+          "text": "Does Your Organization Have A Separate Test Environment For Edi Transactions",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have a separate test environment for EDI transactions? If Yes please describe",
+          "text": "Does Your Organization Have A Separate Test Environment For Edi Transactions? If Yes Please Describe",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "If you answered Yes to 2 which reports will be returned in the endtoend test process",
+          "text": "If You Answered Yes To 2 Which Reports Will Be Returned In The Endtoend Test Process",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "If you answered Yes to #2, which reports will be returned in the end-to-end test process?",
+          "text": "If You Answered Yes To #2, Which Reports Will Be Returned In The End-To-End Test Process?",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have specific testing requirements_3",
+          "text": "Does Your Organization Have Specific Testing Requirements 3",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Does your organization have specific testing requirements? If Yes please specify_5",
+          "text": "Does Your Organization Have Specific Testing Requirements? If Yes Please Specify 5",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "How many test files will you accept during testing?",
+          "text": "How Many Test Files Will You Accept During Testing?",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you exclude any types of EB benefits from testing",
+          "text": "Do You Exclude Any Types Of Eb Benefits From Testing",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you exclude any types of E&B benefits from testing? If Yes please specify",
+          "text": "Do You Exclude Any Types Of E&B Benefits From Testing? If Yes Please Specify",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "11 Do you have a designated Payer ID that you would like Availity to use in testing",
+          "text": "11 Do You Have A Designated Payer Id That You Would Like Availity To Use In Testing",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "Do you have a designated Payer ID that you would like Availity to use in testing? If Yes, please specify (please include a separate attachment if you require different IDs for different lines of business):",
+          "text": "Do You Have A Designated Payer Id That You Would Like Availity To Use In Testing? If Yes, Please Specify (Please Include A Separate Attachment If You Require Different Ids For Different Lines Of Business):",
+          "type": "text",
+          "required": false,
+          "x12_field": "REF*EI*{TaxID}",
+          "validation": []
+        },
+        {
+          "id": "12 When will you be prepared to receive a test file Please specify a date or date range",
+          "text": "12 When Will You Be Prepared To Receive A Test File Please Specify A Date Or Date Range",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": [
+            "date_format"
+          ]
+        },
+        {
+          "id": "real",
+          "text": "Real",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "edi_batch_please_only_complete_this_questionnaire",
+          "text": "EDI batch\nPlease only complete this questionnaire",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "030240928",
+          "text": "030240928",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "or_define_value",
+          "text": "or define\nvalue",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "availity_defines",
+          "text": "Availity defines",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "01",
+          "text": "01",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "yes",
+          "text": "Yes",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": []
+        },
+        {
+          "id": "no_if_no",
+          "text": "No \nIf No",
+          "type": "text",
+          "required": false,
+          "x12_field": "",
+          "validation": [],
+          "conditional": "Conditional field based on: No \nIf No"
+        }
+      ]
+    }
+  ]
+}

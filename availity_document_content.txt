@@ -1,0 +1,544 @@
+
+=== PAGE 1 ===
+Where Healthcare Connects 
+2025
+Scalability Discovery
+
+
+=== PAGE 2 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+2
+Sr. Director, Client Engagement 
+& Delivery
+VP Strategic Operations & 
+Delivery
+Bala Sekaran
+• Training
+• Documentation
+• Analysis
+• Communications
+• Market Development
+Provider Engagement 
+Services
+• Project/ Program 
+Management
+• Implementation Coordinator
+• Implementation Analyst
+Provider 
+Implementations
+• Project/ Program 
+Management
+• Solutions Engineers, 
+component level SME
+• Implementation Analysts, 
+Technical configuration
+Health Plan 
+Implementations
+Organization
+Health Plan Implementations
+2
+Elaine Putman
+Trading Partner 
+Implementations
+• Project Management
+• Implementation Coordinator
+Product Launch 
+Services
+• Project Management
+Sr. Director Clinical & 
+PDM Implementations
+Director Technical Auth. 
+Implementations
+Manager Strategic 
+Operations
+Principal 
+Transformation & 
+Change 
+Management
+Focus:
+
+
+=== PAGE 3 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+3
+Health Plan Implementation Roles
+Each of the roles are client facing requiring a consultative approach
+Role
+Key responsibilities
+Primary Tasks 
+Health Plan 
+Implementation 
+Analyst
+Program/Project 
+Management 
+Health Plan Delivery Services
+Responsible for managing all of the 
+workstreams associated with an 
+implementation delivery
+• Serves as the primary point of contact for the implementation
+• Coordinates delivery across all internal Availity stakeholders and 
+aligns dates with clients
+• Tracks project progress
+• Addresses risks and barriers associated with delivery
+• Customer coordination across all deliverables
+Responsible for implementing product using 
+configuration tools and as detailed by 
+Solutions Engineers
+• Acts validate requirements, completes configuration, 
+functional testing activities, go-live support, etc. (i.e. HIPAA 
+and configurable API transactions)
+• Works with solution engineer and business analysts to 
+implement the solution detailed in approach.
+• Works with technical resources on client-side as needed.
+Health Plan 
+Solutions Engineer
+Responsible for understanding client 
+requirements based on configuration options 
+and proposing exact build 
+• Acts with a consultative approach to gather and align on 
+requirements, testing recommended practices, go-live support
+• Acts as the critical conduit between client and implementation 
+analysts to identify and implement the right build needed
+• Coordinates with Product for any additional development 
+associated with standard/custom implementations
+3
+
+
+=== PAGE 4 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+44
+Implementation Goals
+Successful implementations should be measured against three success criteria
+Clock speed
+Shorten timelines, 
+both target and actual
+Efficiency
+Reduce the internal 
+work effort and cost 
+Client satisfaction
+Manage and meet 
+customer expectations
+
+
+=== PAGE 5 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+5
+Goals
+Effective Success Criteria
+1.
+Improve Health Plan Implementation Experience
+2.
+Accelerate Implementation Delivery within our influence
+3.
+Reduce customer dependency & customer driven delays
+4.
+Improve stability 
+5.
+Increase automations within our process
+6.
+Reduce manual work and resulting errors
+7.
+Reduce late new requirements/ rework
+
+
+=== PAGE 6 ===
+Implementation Cross Functional Workflow
+High-level workflow by team
+6
+Tier 2/3
+A
+D
+E
+F
+G
+H
+B
+C
+D
+E
+D
+C
+F
+I
+G
+E
+F
+J
+
+
+=== PAGE 7 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+7
+7
+o The below RACI outlines the responsibility throughout the process
+RACI
+Client
+Implementa
+tion Analyst
+Solutions 
+Engineer
+Program 
+Manager
+Impl. 
+Leadership
+Task
+Letter
+Phase
+I
+I
+Sales - Opportunity validation, coordination of initial demonstrations, tier 
+identification, opportunity scope, etc. Complete the Sale.
+Growth
+I
+I
+R
+I
+A
+Lead Discovery, begin charter draft, support SOW review.
+I
+I
+I
+I
+Complete sale and hand off
+I
+C
+C
+C
+New client CR & triage 1) additional information needed, 2) in contract, 
+3) regulatory requirement, 4) core capability
+I
+I
+I
+I
+A/R
+Resources assignment
+Intake & 
+Initial 
+Assessment
+C
+C
+C
+A/R
+I
+Implementation Kick off, work CR creation, team coordination, project 
+plan creation, issue tracking, risk monitoring, client sign off, etc.
+C
+I
+R
+A
+Demos, guide to standards, requirements collection, and UAT support
+C
+I
+A
+I
+Custom work requirements, LOE, delivery, and UAT support
+I
+R
+I
+A
+Configuration, connectivity, development, functional testing, release.
+C
+C
+R
+I
+I
+New CR triage 1) additional information 2) standard or custom *
+C
+C/I
+C
+R
+I
+Client communication and next steps when accepted and within 
+contract. Work LOE initiated, align on delivery, update project plan.
+I
+I
+A/R
+I
+Client communication and next steps when outside of contract. Work is 
+LOE initiated. *
+I
+C
+I
+I
+If outside of core capabilities, CR will be reviewed with relevant 
+functional areas to determine sizing, viability, and if roadmap item.
+Product 
+Assessment 
+& Ideation
+I
+I
+I
+I
+If work is added to roadmap, CR will need to go through Product 
+Development lifecycle, starting with ideation.
+I
+I
+I
+I
+Continued updates to client on product ideation and launch plan *
+I
+R
+R
+A
+I
+Warranty support and Hand off to Account Management
+Completion
+A - Accountable
+R - Responsible
+C - Contributes
+I - Informed 
+*Post implementation, these tasks will shift to Account Management
+A
+C
+B
+D
+J
+E
+G
+H
+B
+L
+H
+E
+F
+F
+J
+K
+J
+I
+
+
+=== PAGE 8 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+8
+•
+Delays due to customer struggles to 
+generate test data.
+•
+Some Payers do not have strong resources 
+to know how to test or generate use cases.
+•
+Customers must pass Questionnaires to 
+multiple internal department contacts 
+causing delays.
+•
+Questionnaires retuned with missing data or 
+based on responses we need additional 
+data.
+•
+Ensuring the most recent questionnaire 
+version is used.
+•
+Inability to test GSD tickets that impact 
+EPDM prior to pushing to production.
+•
+Delays and defects related to internal 
+dependencies such as Data Power and 
+Security teams.
+•
+Inconsistent template standards across 
+products. Some products can enhance 
+outbound PID and some cannot.
+•
+Some product templates do not support 
+the implementation delivery process. Ex. 
+Some products can be delivered by region 
+and some cannot.
+•
+Need the ability to copy a prior 
+configuration to a new PID for a customer.
+•
+Customers implemented prior to 
+configuration template are not in the tool 
+to enable maintenance updates.
+•
+Lack of ownership for product templates 
+once they are in the EPDM tool.
+•
+Lack of product documentation 
+consistency.
+•
+Complexity of configurations growing with 
+varying nomenclature and technical terms.
+•
+Inconsistent ability to validate varies 
+greatly.
+•
+Significant defects persist. Ex. Pushing to 
+environment doesn’t always push. 
+•
+No Standards or tool guidelines.
+•
+No version history or change log.
+•
+No confirmation of changes made or 
+warnings if they didn’t save.
+•
+No confirmation of environment 
+promotions or warning if they don’t push 
+properly.
+•
+Logos require development work.
+•
+Basic setups require a lot of clicks.
+•
+Manual, error prone process.
+•
+Tool does not advise if a required field is 
+missing or should not be editable.
+•
+No ability to search, filter, or export data
+PROCESS
+PRODUCT STANDARDS
+EPDM TOOL
+Pain Points
+Understanding where we are at currently.
+AH
+
+
+=== PAGE 9 ===
+Slide 8
+AH1 
+[@Madeleine Bogard]  Please add point with the dev tickets testing in lower env.
+Mandy Hunt, 2025-07-21T13:36:26.864
+
+
+=== PAGE 10 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+9
+Effect
+Solution
+Target
+Value
+•
+Stability for existing solutions
+•
+Error reduction
+•
+Reduced time researching issues
+•
+Enhance the Existing tool
+•
+Implement basic standards for EPDM configuration tool
+•
+Resolve critical defects
+Enhance Existing 
+Tools
+•
+Stability for existing solutions
+•
+Error reduction
+•
+Reduced time researching issues
+• Enhance the Existing templates
+• Update configuration product templates with delivery standards 
+• Defined ownership of product templates
+• Resolve critical defects
+Enhance Existing 
+Product Configs.
+•
+Improved HP experience
+•
+Improved intake timing & accuracy
+•
+Automated final document submission
+• Develop Digital Questionnaire solution
+• Incorporate Avery for Questionnaire support
+• Leading towards potential for  Self-Service Implementation model
+Digital Intake
+•
+Accelerated delivery
+•
+Reduction of manual work
+•
+Re-focus team on complex work
+•
+Reduced internal dependency
+• Automation of requirements using AI
+• Configuration automation
+• Automation of connectivity or dependency tickets
+• Process / automation efficiencies internally; ex. DataPower, SSO Security
+Streamline 
+Delivery
+•
+Reduced customer dependency
+•
+Improved HP experience
+•
+Accelerated delivery
+•
+Potential new SKU
+• Automation of functional testing
+• Automation of test data generation
+• Automation of test case recommendations based on requirements
+Customer Assist
+•
+Accelerated delivery potential
+•
+Diversification of team
+• Identify path to global resourcing addressing tool environment and 
+infrastructure
+• Address global system and data access issues
+• Update onboarding path to account for global team
+Go Global
+Proposed Strategy Solutions
+Using our data, pain points and values to drive solutions to scale
+
+
+=== PAGE 11 ===
+© 2025 Availity, LLC. All rights reserved. Confidential and proprietary—do not distribute. 
+10
+Current Configurable Solutions
+Scope on Essentials Portal and Gateway
+SE support
+Configurable by IA
+Add on
+Y
+Y
+E&B (270/271)
+Y
+Y
+Claim Entry (837I/P/D)
+Y
+Y
+Remittance (835)
+Y
+Y
+Claim Status (276/277)
+Y
+Y, EOP soon
+Remit Viewer/ EOP
+Y
+Y
+Auth/ Referral Submission/ Inquiry (278)
+Y
+Y
+Payer Space
+Y, some product work required
+Y
+Medical records Claim attachments (275)
+Y, some product work required
+Y
+Claim status attachments (275)
+Y, some product work required
+Y
+Auth attachments (275)
+Y
+Y soon
+EFT Enrollment
+Y
+Y
+E&B Value adds – Member ID Card
+Y
+Y
+E&B Value adds – Care Reminder
+Y
+Y
+E&B Value adds – Additional Benefit Notes
+Y
+Y
+Enhanced Claim Status
+Y
+Y
+Claim appeals
+

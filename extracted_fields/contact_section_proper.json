@@ -1,0 +1,416 @@
+{
+  "id": "contact-information",
+  "title": "Contact Information",
+  "description": "Primary and secondary contacts for this implementation",
+  "order": 3,
+  "questions": [
+    {
+      "id": "trading-partner-technical-header",
+      "type": "display",
+      "title": "Trading Partner Technical Contact",
+      "description": "Technical contact from your organization",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "trading-partner-technical-name",
+      "type": "text",
+      "title": "Name",
+      "required": true,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "Name1",
+      "defaultValue": "John doe"
+    },
+    {
+      "id": "trading-partner-technical-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": true,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "Phone1",
+      "defaultValue": "3855603306"
+    },
+    {
+      "id": "trading-partner-technical-email",
+      "type": "email",
+      "title": "Email",
+      "required": true,
+      "attachmentRequired": false,
+      "readonly": false,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "Email1",
+      "defaultValue": "ramki27123@gmail.com"
+    },
+    {
+      "id": "availity-technical-header",
+      "type": "display",
+      "title": "Availity Technical Contact",
+      "description": "Technical contact from Availity (to be completed by Availity)",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "availity-technical-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "AVName1",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-technical-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "AVPhone1",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-technical-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "AVEmail1",
+      "defaultValue": ""
+    },
+    {
+      "id": "trading-partner-account-manager-header",
+      "type": "display",
+      "title": "Trading Partner Account/Program Manager",
+      "description": "Account or program manager from your organization",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "trading-partner-account-manager-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "Name2",
+      "defaultValue": ""
+    },
+    {
+      "id": "trading-partner-account-manager-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "Phone2",
+      "defaultValue": ""
+    },
+    {
+      "id": "trading-partner-account-manager-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "Email2",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-account-manager-header",
+      "type": "display",
+      "title": "Availity Account/Program Manager",
+      "description": "Account or program manager from Availity",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "availity-account-manager-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "AVName2",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-account-manager-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "AVPhone2",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-account-manager-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "AVEmail2",
+      "defaultValue": ""
+    },
+    {
+      "id": "trading-partner-escalation-header",
+      "type": "display",
+      "title": "Trading Partner Escalation Contact",
+      "description": "Escalation contact from your organization",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "trading-partner-escalation-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "Name3",
+      "defaultValue": ""
+    },
+    {
+      "id": "trading-partner-escalation-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "Phone3",
+      "defaultValue": ""
+    },
+    {
+      "id": "trading-partner-escalation-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "Email3",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-escalation-header",
+      "type": "display",
+      "title": "Availity Escalation Contact",
+      "description": "Escalation contact from Availity",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "availity-escalation-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "AVName3",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-escalation-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "AVPhone3",
+      "defaultValue": ""
+    },
+    {
+      "id": "availity-escalation-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "AVEmail3",
+      "defaultValue": ""
+    },
+    {
+      "id": "additional-trading-partner-header",
+      "type": "display",
+      "title": "Additional Trading Partner Contact",
+      "description": "Additional contact from your organization",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "additional-trading-partner-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "Name4",
+      "defaultValue": ""
+    },
+    {
+      "id": "additional-trading-partner-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "Phone4",
+      "defaultValue": ""
+    },
+    {
+      "id": "additional-trading-partner-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": false,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "Email4",
+      "defaultValue": ""
+    },
+    {
+      "id": "other-availity-header",
+      "type": "display",
+      "title": "Other Availity Contact",
+      "description": "Other contact from Availity",
+      "required": false,
+      "attachmentRequired": false,
+      "isHeader": true
+    },
+    {
+      "id": "other-availity-name",
+      "type": "text",
+      "title": "Name",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "maxLength": 100
+      },
+      "originalField": "AVName4",
+      "defaultValue": ""
+    },
+    {
+      "id": "other-availity-phone",
+      "type": "text",
+      "title": "Phone",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "validation": {
+        "pattern": "^[\\d\\s\\-\\(\\)\\+]+$"
+      },
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*TE*{PhoneNumber}"
+      },
+      "originalField": "AVPhone4",
+      "defaultValue": ""
+    },
+    {
+      "id": "other-availity-email",
+      "type": "email",
+      "title": "Email",
+      "required": false,
+      "attachmentRequired": false,
+      "readonly": true,
+      "x12Field": {
+        "segment": "PER*IC*{ContactName}*EM*{EmailAddress}"
+      },
+      "originalField": "AVEmail4",
+      "defaultValue": ""
+    }
+  ]
+}

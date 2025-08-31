@@ -1,0 +1,536 @@
+{
+  "transaction_modes": {
+    "real_time_web": {
+      "name": "Real-time Web",
+      "keywords": [
+        "real-time web",
+        "web",
+        "real time web"
+      ],
+      "fields": "set()",
+      "specific_fields": "set()",
+      "requirements": []
+    },
+    "real_time_b2b": {
+      "name": "Real-time B2B",
+      "keywords": [
+        "real-time b2b",
+        "b2b",
+        "real time b2b",
+        "business to business"
+      ],
+      "fields": "set()",
+      "specific_fields": "set()",
+      "requirements": []
+    },
+    "edi_batch": {
+      "name": "EDI Batch",
+      "keywords": [
+        "edi batch",
+        "batch",
+        "edi",
+        "electronic data interchange"
+      ],
+      "fields": "set()",
+      "specific_fields": "set()",
+      "requirements": []
+    }
+  },
+  "mode_selection_fields": {
+    "primary_selector": {
+      "field_name": "edi_batch_please_only_complete_this_questionnaire",
+      "instruction": "EDI batch\nPlease only complete this questionnaire",
+      "page": 6
+    },
+    "mode_indicators": [
+      {
+        "field_name": "Real-time web",
+        "field_type": "text",
+        "value": "Off",
+        "page": 6
+      },
+      {
+        "field_name": "Real-time B2B",
+        "field_type": "text",
+        "value": "",
+        "page": 6
+      },
+      {
+        "field_name": "EDI batch",
+        "field_type": "text",
+        "value": "Off",
+        "page": 6
+      }
+    ],
+    "related_fields": []
+  },
+  "mode_specific_sections": {
+    "common_sections": [
+      {
+        "page": 1,
+        "fields": [
+          "Organization name",
+          "Required return date"
+        ],
+        "field_count": 2
+      },
+      {
+        "page": 4,
+        "fields": [
+          "Name1",
+          "Phone1",
+          "Email1",
+          "Name2",
+          "Phone2",
+          "Email2",
+          "Name3",
+          "Phone3",
+          "Email3",
+          "Name4",
+          "Phone4",
+          "Email4",
+          "AVName1",
+          "AVPhone1",
+          "AVEmail1",
+          "AVName2",
+          "AVPhone2",
+          "AVEmail2",
+          "AVName3",
+          "AVPhone3",
+          "AVEmail3",
+          "AVName4",
+          "AVPhone4",
+          "AVEmail4"
+        ],
+        "field_count": 24
+      },
+      {
+        "page": 7,
+        "fields": [
+          "ISA08_270",
+          "ISA08_270_define value",
+          "ISA16 Component Element Separator_3",
+          "GS02_270",
+          "GS02_270_define value",
+          "GS02_271",
+          "GS02_271_define value",
+          "GS03_270",
+          "GS03_270_define value",
+          "GS03_271",
+          "GS03_271_define value",
+          "270_2100A_NM103",
+          "271_2100A_NM103",
+          "270_2100A_NM109",
+          "271_2100A_NM109",
+          "Availitys standard is to send uppercase characters Is this acceptable",
+          "A space is part of the X12 basic character set Does your system accept spaces",
+          "Do you accept characters from the X12 extended character set"
+        ],
+        "field_count": 18
+      },
+      {
+        "page": 8,
+        "fields": [
+          "How do you reject the transaction?",
+          "If your ANSI translator detects a syntax error within the ANSI X12 transmission file, how will you reject the transaction?  Other. Please explain:",
+          "Do you support the TA1 response?",
+          "Is the TA1 response driven by ISA14?",
+          "Will you reject transactions that contain not used segments",
+          "Patient ID  DOB",
+          "Patient ID First Name  Last Name",
+          "Patient ID First Name Last Name  DOB",
+          "Patient ID First Name DOB",
+          "Patient ID Last Name DOB",
+          "Patient ID  First Name",
+          "Can you support all service type codes",
+          "requirements for the formatting of the patient ID on the 270 request",
+          "patient_id"
+        ],
+        "field_count": 14
+      },
+      {
+        "page": 9,
+        "fields": [
+          "Will you return additional data not reported in the standard 271 response",
+          "Payer_ID_8",
+          "Availitys standard deployment process is to publish your payer IDs in the Availity Health Plan",
+          "Is this a controlled deployment?",
+          "Payer_Name_8",
+          "In Availity Essentials providers select payers by first selecting their state in a dropdown list Is your",
+          "Specify the states.0.0",
+          "Specify the states.1.0",
+          "Specify the states.2.0",
+          "Specify the states.3.0",
+          "Specify the states.4.0",
+          "Specify the states.0.1",
+          "Specify the states.1.1",
+          "Specify the states.2.1",
+          "Specify the states.3.1",
+          "Specify the states.4.1",
+          "Specify the states.0.2",
+          "Specify the states.1.2",
+          "Specify the states.2.2",
+          "Specify the states.3.2",
+          "Specify the states.4.2"
+        ],
+        "field_count": 21
+      },
+      {
+        "page": 10,
+        "fields": [
+          "Availity supports XML envelope structure Do you require an XML wrapper",
+          "Do you have differing connectivity requirements for each state?",
+          "Test URL",
+          "Test user IDs",
+          "Prod URL",
+          "Prod user IDs",
+          "What are your system's hours of availability?",
+          "How many continuous threads can you support?"
+        ],
+        "field_count": 8
+      },
+      {
+        "page": 17,
+        "fields": [
+          "Please describe your production approval process",
+          "After you receive production approval will your test environment continue to be available_2",
+          "Does your organization have specific testing requirements_2",
+          "Does your organization have specific testing requirements? If Yes please specify",
+          "Do you exclude any EB benefit types from testing",
+          "Do you exclude any E&B benefit types from testing? If Yes please specify",
+          "Do test files require valid provider data_2"
+        ],
+        "field_count": 7
+      },
+      {
+        "page": 11,
+        "fields": [
+          "Will your test environment remain available?",
+          "Does your organization have specific testing requirements",
+          "Does your organization have specific testing requirements? If Yes, please specify:",
+          "Do you exclude any E&B benefit types from testing?",
+          "4.Do you exclude any E&B benefit types from testing?",
+          "Do test files require valid provider data",
+          "Do test files require valid membership records?",
+          "Do you have a designated payer ID you would like Availity to use in testing",
+          "If Yes, please specify (please include a separate attachment if you require different IDs for different lines of business):",
+          "Do you have a minimum or maximum number of test transactions you will accept",
+          "Do you have a minimum or maximum number of test transactions you will accept?",
+          "Do you have any other testing or test transaction restrictions",
+          "Do you have any other testing or test transaction restrictions?",
+          "When will you be prepared to receive a test file?"
+        ],
+        "field_count": 14
+      },
+      {
+        "page": 12,
+        "fields": [
+          "Payer name_11",
+          "Payer ID qualifier_11",
+          "Payer ID qualifier_11_define",
+          "Payer ID_11",
+          "Payer ID_11_define",
+          "yes",
+          "no_if_no"
+        ],
+        "field_count": 7
+      },
+      {
+        "page": 13,
+        "fields": [
+          "Provider Express Entry_12_requirements",
+          "Provider Identifiers NM108 requirements_12",
+          "Provider Identifiers NM109 requirements_12",
+          "Patient ID_12",
+          "Date of birth requirements_13"
+        ],
+        "field_count": 5
+      },
+      {
+        "page": 14,
+        "fields": [
+          "Patient last name requirements_13",
+          "Patient first name requirements_13",
+          "Patient rel2subscriber_13",
+          "Gender code requirements_13"
+        ],
+        "field_count": 4
+      },
+      {
+        "page": 15,
+        "fields": [
+          "As of date requirements_14",
+          "Can you support all service types?"
+        ],
+        "field_count": 2
+      },
+      {
+        "page": 16,
+        "fields": [
+          "2. Availity supports XML envelope structure Do you require an XML wrapper",
+          "Do you have differing connectivity requirements for each state?2",
+          "Test URL2",
+          "Test user IDs2",
+          "Prod URL2",
+          "Prod user IDs2",
+          "What are your system's hours of availability?2",
+          "How many continuous threads can you support?2"
+        ],
+        "field_count": 8
+      },
+      {
+        "page": 18,
+        "fields": [
+          "Do test files require valid membership records",
+          "Do you have a designated payer ID you would like Availity to use in testing_2",
+          "different lines of business",
+          "Do you have a minimum or maximum number of test transactions you will accept_2",
+          "Do you have a minimum or maximum number of test transactions you will accept? If Yes please specify",
+          "Do you have any other testing or test transaction restrictions_2",
+          "Do you have any other testing or test transaction restrictions? If Yes please specify",
+          "10 When will you be prepared to receive a test file Please specify a date or date range"
+        ],
+        "field_count": 8
+      },
+      {
+        "page": 20,
+        "fields": [
+          "If you answered Yes to 2 which reports will be returned in the endtoend test process",
+          "If you answered Yes to #2, which reports will be returned in the end-to-end test process?",
+          "Please describe your production approval process_2",
+          "After you receive production approval will your test environment continue to be available_3",
+          "Does your organization have specific testing requirements_3",
+          "Does your organization have specific testing requirements? If Yes please specify_5",
+          "How many test files will you accept during testing?",
+          "Do you exclude any types of EB benefits from testing",
+          "Do you exclude any types of E&B benefits from testing? If Yes please specify",
+          "Do test files require valid provider data_3"
+        ],
+        "field_count": 10
+      },
+      {
+        "page": 21,
+        "fields": [
+          "10 Do test files require valid membership records",
+          "11 Do you have a designated Payer ID that you would like Availity to use in testing",
+          "Do you have a designated Payer ID that you would like Availity to use in testing? If Yes, please specify (please include a separate attachment if you require different IDs for different lines of business):",
+          "12 When will you be prepared to receive a test file Please specify a date or date range"
+        ],
+        "field_count": 4
+      }
+    ],
+    "mode_specific_sections": {
+      "real_time_web": [],
+      "real_time_b2b": [],
+      "edi_batch": [
+        {
+          "page": 19,
+          "fields": [
+            "Please define your naming convention for inbound files",
+            "Does your organization have a separate test environment for EDI transactions",
+            "Does your organization have a separate test environment for EDI transactions? If Yes please describe"
+          ],
+          "field_count": 3
+        }
+      ]
+    },
+    "conditional_sections": [
+      {
+        "page": 6,
+        "modes_mentioned": [
+          "real_time_web",
+          "real_time_b2b",
+          "edi_batch"
+        ],
+        "fields": [
+          "Do you require Availity to enroll prior to submitting 270 transactions",
+          "Real-time web",
+          "Real-time B2B",
+          "EDI batch",
+          "ISA06_270",
+          "ISA06_270_define value",
+          "ISA06_271",
+          "ISA06_271_define value",
+          "ISA07_271",
+          "ISA07_271_define value",
+          "real",
+          "edi_batch_please_only_complete_this_questionnaire",
+          "030240928",
+          "or_define_value",
+          "availity_defines",
+          "01"
+        ]
+      }
+    ]
+  },
+  "conditional_logic": {
+    "if_then_fields": [
+      {
+        "field_name": "If your ANSI translator detects a syntax error within the ANSI X12 transmission file, how will you reject the transaction?  Other. Please explain:",
+        "condition_text": "if your ansi translator detects a syntax error within the ansi x12 transmission file, how will you reject the transaction?  other. please explain: ",
+        "field_type": "unknown",
+        "page": 8
+      },
+      {
+        "field_name": "Does your organization have specific testing requirements? If Yes, please specify:",
+        "condition_text": "does your organization have specific testing requirements? if yes, please specify: ",
+        "field_type": "unknown",
+        "page": 11
+      },
+      {
+        "field_name": "If Yes, please specify (please include a separate attachment if you require different IDs for different lines of business):",
+        "condition_text": "if yes, please specify (please include a separate attachment if you require different ids for different lines of business): ",
+        "field_type": "unknown",
+        "page": 11
+      },
+      {
+        "field_name": "When will you be prepared to receive a test file?",
+        "condition_text": "when will you be prepared to receive a test file? ",
+        "field_type": "unknown",
+        "page": 11
+      },
+      {
+        "field_name": "Does your organization have specific testing requirements? If Yes please specify",
+        "condition_text": "does your organization have specific testing requirements? if yes please specify ",
+        "field_type": "unknown",
+        "page": 17
+      },
+      {
+        "field_name": "Do you exclude any E&B benefit types from testing? If Yes please specify",
+        "condition_text": "do you exclude any e&b benefit types from testing? if yes please specify ",
+        "field_type": "unknown",
+        "page": 17
+      },
+      {
+        "field_name": "Do you have a minimum or maximum number of test transactions you will accept? If Yes please specify",
+        "condition_text": "do you have a minimum or maximum number of test transactions you will accept? if yes please specify ",
+        "field_type": "unknown",
+        "page": 18
+      },
+      {
+        "field_name": "Do you have any other testing or test transaction restrictions? If Yes please specify",
+        "condition_text": "do you have any other testing or test transaction restrictions? if yes please specify ",
+        "field_type": "unknown",
+        "page": 18
+      },
+      {
+        "field_name": "10 When will you be prepared to receive a test file Please specify a date or date range",
+        "condition_text": "10 when will you be prepared to receive a test file please specify a date or date range ",
+        "field_type": "unknown",
+        "page": 18
+      },
+      {
+        "field_name": "Does your organization have a separate test environment for EDI transactions? If Yes please describe",
+        "condition_text": "does your organization have a separate test environment for edi transactions? if yes please describe ",
+        "field_type": "unknown",
+        "page": 19
+      },
+      {
+        "field_name": "If you answered Yes to 2 which reports will be returned in the endtoend test process",
+        "condition_text": "if you answered yes to 2 which reports will be returned in the endtoend test process ",
+        "field_type": "signature",
+        "page": 20
+      },
+      {
+        "field_name": "If you answered Yes to #2, which reports will be returned in the end-to-end test process?",
+        "condition_text": "if you answered yes to #2, which reports will be returned in the end-to-end test process? ",
+        "field_type": "unknown",
+        "page": 20
+      },
+      {
+        "field_name": "Does your organization have specific testing requirements? If Yes please specify_5",
+        "condition_text": "does your organization have specific testing requirements? if yes please specify_5 ",
+        "field_type": "unknown",
+        "page": 20
+      },
+      {
+        "field_name": "Do you exclude any types of E&B benefits from testing? If Yes please specify",
+        "condition_text": "do you exclude any types of e&b benefits from testing? if yes please specify ",
+        "field_type": "unknown",
+        "page": 20
+      },
+      {
+        "field_name": "Do you have a designated Payer ID that you would like Availity to use in testing? If Yes, please specify (please include a separate attachment if you require different IDs for different lines of business):",
+        "condition_text": "do you have a designated payer id that you would like availity to use in testing? if yes, please specify (please include a separate attachment if you require different ids for different lines of business): ",
+        "field_type": "unknown",
+        "page": 21
+      },
+      {
+        "field_name": "12 When will you be prepared to receive a test file Please specify a date or date range",
+        "condition_text": "12 when will you be prepared to receive a test file please specify a date or date range ",
+        "field_type": "unknown",
+        "page": 21
+      },
+      {
+        "field_name": "no_if_no",
+        "condition_text": "no_if_no no \nif no",
+        "field_type": "text",
+        "page": 12
+      }
+    ],
+    "mode_dependent_fields": [
+      {
+        "field_name": "Real-time web",
+        "dependency": "real-time web ",
+        "page": 6
+      },
+      {
+        "field_name": "Real-time B2B",
+        "dependency": "real-time b2b ",
+        "page": 6
+      },
+      {
+        "field_name": "EDI batch",
+        "dependency": "edi batch ",
+        "page": 6
+      },
+      {
+        "field_name": "edi_batch_please_only_complete_this_questionnaire",
+        "dependency": "edi_batch_please_only_complete_this_questionnaire edi batch\nplease only complete this questionnaire",
+        "page": 6
+      }
+    ],
+    "field_dependencies": {},
+    "validation_rules": {}
+  },
+  "field_distribution": {
+    "total_fields": 175,
+    "by_type": {
+      "unknown": 102,
+      "signature": 55,
+      "text": 18
+    },
+    "by_page": {
+      "page_1": 2,
+      "page_4": 24,
+      "page_6": 16,
+      "page_7": 18,
+      "page_8": 14,
+      "page_9": 21,
+      "page_10": 8,
+      "page_17": 7,
+      "page_11": 14,
+      "page_12": 7,
+      "page_13": 5,
+      "page_14": 4,
+      "page_15": 2,
+      "page_16": 8,
+      "page_18": 8,
+      "page_19": 3,
+      "page_20": 10,
+      "page_21": 4
+    },
+    "by_section": {},
+    "required_fields": 14,
+    "optional_fields": 161
+  },
+  "recommendations": [
+    "Implement mode selection at the beginning of the questionnaire",
+    "Use conditional logic to show/hide mode-specific sections",
+    "Group common fields in shared sections",
+    "Implement field validation based on mode requirements",
+    "Consider progressive disclosure for complex conditional fields",
+    "Add help text for mode-specific technical requirements",
+    "Implement field dependencies for 'If Yes, please specify' type questions"
+  ]
+}

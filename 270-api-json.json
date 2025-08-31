@@ -1,0 +1,49 @@
+{
+  "id": "HPISDDEMORECEIVER",
+  "template": "api-default",
+  "transactionType": "1",
+  "name": "HPISD DEMO RECEIVER",
+  "clearinghouse": "HPISDDEMORECEIVER",
+  "versions": [
+    {
+      "version": "005010X279A1",
+      "edifecs": {},
+      "edifecsProfilesByVersion": {},
+      "payerSpecificEdifecsProfilesByVersion": {},
+      "ace": {
+        "disabled": true,
+        "rcmId": "",
+        "overrides": {},
+        "parameters": {}
+      },
+      "options": {
+        "autoDetectPipe": true,
+        "guideline_271_5010A1": "5010A1_AvailityStandard271.ecs",
+        "severity_271_5010A1": "5010A1_271Semantic_ClearingHouse.esf"
+      },
+      "payerIds": [],
+      "settings": {
+        "patientSearchOptions.combination1": "memberId,patientBirthDate",
+        "patientSearchOptions.combination2": "memberId,patientLastName,patientFirstName",
+        "patientSearchOptions.combination3": "memberId,patientLastName,patientFirstName,patientBirthDate"
+      }
+    }
+  ],
+  "inboxes": [
+    "HPISDDEMORECEIVER"
+  ],
+  "payerAriesId": "DEFAULT",
+  "submissionModeCd": 10,
+  "batch": "false",
+  "lastUpdateUserId": "USER",
+  "lastUpdateFirstName": "FNAME",
+  "lastUpdateLastName": "LNAME"
+  
+}
+
+
+
+
+
+
+

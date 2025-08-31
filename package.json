@@ -1,0 +1,35 @@
+{
+  "name": "apoc-digital-questionnaire",
+  "version": "1.0.0",
+  "description": "Availity POC - Digital Customer Onboarding Questionnaire for X12 HIPAA Transactions",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "cd backend && npm start",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && npm test"
+  },
+  "keywords": [
+    "healthcare",
+    "x12",
+    "hipaa",
+    "questionnaire",
+    "availity",
+    "digital-onboarding"
+  ],
+  "author": "Availity Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}

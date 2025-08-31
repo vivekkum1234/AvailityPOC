@@ -1,0 +1,49 @@
+{
+    "id": "HPISDDEMORECEIVER",
+    "template": "web-default",
+    "transactionType": "1",
+    "name": "HPISD DEMO RECEIVER",
+    "clearinghouse": "HPISDDEMORECEIVER",
+    "versions": [
+      {
+        "version": "005010X279A1",
+        "edifecs": {},
+        "edifecsProfilesByVersion": {},
+        "payerSpecificEdifecsProfilesByVersion": {},
+        "ace": {
+          "disabled": true,
+          "rcmId": "",
+          "overrides": {},
+          "parameters": {}
+        },
+        "options": {
+          "GS02": "030240928",
+          "GS03": "A1BEN",
+          "ISA05": "01",
+          "ISA06": "030240928",
+          "ISA07": "ZZ",
+          "ISA08": "A1BEN",
+          "ISA11": "^",
+          "ISA14": "0",
+          "guideline_271_5010A1": "5010A1_AvailityStandard271.ecs",
+          "severity_271_5010A1": "5010A1_271Semantic_ClearingHouse.esf",
+          "connectorId": "ARIES.RT.DATAPOWER.A1BEN",
+          "ISA01": "00",
+          "ISA03": "00",
+          "guideline_270_5010A1": "5010A1_AvailityStandard270.ecs",
+          "severity_270_5010A1": "5010A1_270Semantic_ClearingHouse.esf"
+        },
+        "payerIds": [],
+        "settings": {}
+      }
+    ],
+    "inboxes": [
+      "HPISDDEMORECEIVER"
+    ],
+    "payerAriesId": "DEFAULT",
+    "submissionModeCd": 1,
+    "batch": "false",
+    "lastUpdateUserId": "USER",
+    "lastUpdateFirstName": "FNAME",
+    "lastUpdateLastName": "LNAME"
+  }
