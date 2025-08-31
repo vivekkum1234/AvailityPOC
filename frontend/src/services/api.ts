@@ -212,6 +212,8 @@ class ApiService {
     implementationMode?: string;
     submittedBy?: string;
     submittedByName?: string;
+    updatedBy?: string;
+    updatedByName?: string;
   }): Promise<{
     submissionId: string;
     status: string;

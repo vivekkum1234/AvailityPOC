@@ -240,7 +240,7 @@ router.get('/submission/:responseId/edit', async (req, res) => {
 router.put('/submission/:responseId', async (req, res) => {
     try {
         const { responseId } = req.params;
-        const { organizationInfo, questionnaireData, implementationMode, submittedBy, submittedByName } = req.body;
+        const { organizationInfo, questionnaireData, implementationMode, submittedBy, submittedByName, updatedBy, updatedByName } = req.body;
         if (!responseId) {
             return res.status(400).json({
                 success: false,
@@ -266,6 +266,8 @@ router.put('/submission/:responseId', async (req, res) => {
             status: 'submitted',
             section_completion: calculateSectionCompletion(questionnaireData),
             updated_at: new Date().toISOString(),
+            updated_by: updatedBy || submittedBy || null,
+            updated_by_name: updatedByName || submittedByName || null,
         };
         const updatedResponse = await supabaseService_1.supabaseService.updateQuestionnaireResponse(responseId, updates);
         if (responseId) {
@@ -275,9 +277,9 @@ router.put('/submission/:responseId', async (req, res) => {
                 new_value: {
                     status: 'submitted',
                     implementation_mode: implementationMode,
-                    updated_by: submittedBy
+                    updated_by: updatedBy || submittedBy
                 },
-                user_identifier: submittedBy || 'anonymous'
+                user_identifier: updatedBy || submittedBy || 'anonymous'
             });
         }
         return res.status(200).json({

@@ -24,6 +24,7 @@ export interface QuestionnaireResponse {
     submitted_by_name?: string | null;
     created_by?: string | null;
     updated_by?: string | null;
+    updated_by_name?: string | null;
 }
 export interface Attachment {
     id?: string;

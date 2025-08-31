@@ -272,13 +272,13 @@ class SupabaseService {
             .from('users')
             .select(`
         *,
-        user_roles!inner (
+        user_roles!user_roles_user_id_fkey (
           role_type,
           organization_id,
           is_active,
           granted_at
         ),
-        organizations (
+        organizations!users_organization_id_fkey (
           name
         )
       `)

@@ -309,7 +309,9 @@ router.put('/submission/:responseId', async (req: Request, res: Response) => {
       questionnaireData,
       implementationMode,
       submittedBy,
-      submittedByName
+      submittedByName,
+      updatedBy,
+      updatedByName
     } = req.body;
 
     if (!responseId) {
@@ -343,6 +345,8 @@ router.put('/submission/:responseId', async (req: Request, res: Response) => {
       status: 'submitted', // Keep as submitted since 'modified' is not allowed by DB constraint
       section_completion: calculateSectionCompletion(questionnaireData),
       updated_at: new Date().toISOString(),
+      updated_by: updatedBy || submittedBy || null,
+      updated_by_name: updatedByName || submittedByName || null,
       // Preserve original submission timestamp and user
       // submitted_at and submitted_by remain unchanged
     };
@@ -357,9 +361,9 @@ router.put('/submission/:responseId', async (req: Request, res: Response) => {
         new_value: {
           status: 'submitted',
           implementation_mode: implementationMode,
-          updated_by: submittedBy
+          updated_by: updatedBy || submittedBy
         },
-        user_identifier: submittedBy || 'anonymous'
+        user_identifier: updatedBy || submittedBy || 'anonymous'
       });
     }
 

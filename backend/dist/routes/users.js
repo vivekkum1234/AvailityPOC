@@ -28,6 +28,38 @@ router.get('/', async (req, res) => {
         });
     }
 });
+router.get('/with-roles', async (req, res) => {
+    try {
+        const usersWithRoles = await supabaseService_1.supabaseService.getUsersWithRoles();
+        res.json({
+            success: true,
+            data: usersWithRoles
+        });
+    }
+    catch (error) {
+        console.error('Error getting users with roles:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to get users with roles'
+        });
+    }
+});
+router.get('/roles', async (req, res) => {
+    try {
+        const roles = await supabaseService_1.supabaseService.getRoleDefinitions();
+        res.json({
+            success: true,
+            data: roles
+        });
+    }
+    catch (error) {
+        console.error('Error getting role definitions:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to get role definitions'
+        });
+    }
+});
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -153,38 +185,6 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : 'Failed to update user'
-        });
-    }
-});
-router.get('/roles', async (req, res) => {
-    try {
-        const roles = await supabaseService_1.supabaseService.getRoleDefinitions();
-        res.json({
-            success: true,
-            data: roles
-        });
-    }
-    catch (error) {
-        console.error('Error getting role definitions:', error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : 'Failed to get role definitions'
-        });
-    }
-});
-router.get('/with-roles', async (req, res) => {
-    try {
-        const usersWithRoles = await supabaseService_1.supabaseService.getUsersWithRoles();
-        res.json({
-            success: true,
-            data: usersWithRoles
-        });
-    }
-    catch (error) {
-        console.error('Error getting users with roles:', error);
-        res.status(500).json({
-            success: false,
-            error: error instanceof Error ? error.message : 'Failed to get users with roles'
         });
     }
 });

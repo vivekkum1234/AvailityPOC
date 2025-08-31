@@ -14,6 +14,8 @@ interface Implementation {
   submitted_by: string;
   submitted_by_name?: string;
   created_by?: string;
+  updated_by?: string;
+  updated_by_name?: string;
   organizations: {
     id: string;
     name: string;
@@ -99,6 +101,41 @@ export const ImplementationsList: React.FC = () => {
       edi_batch: 'EDI Batch'
     };
     return modeLabels[mode as keyof typeof modeLabels] || mode;
+  };
+
+  const formatLastModifiedDate = (impl: Implementation) => {
+    // Check if the item was modified after submission
+    const wasModified = impl.updated_at && impl.submitted_at &&
+      new Date(impl.updated_at) > new Date(impl.submitted_at);
+
+    if (wasModified) {
+      try {
+        const date = new Date(impl.updated_at);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (error) {
+        return '—';
+      }
+    }
+
+    return '—';
+  };
+
+  const formatModifiedBy = (impl: Implementation) => {
+    // Check if the item was modified after submission
+    const wasModified = impl.updated_at && impl.submitted_at &&
+      new Date(impl.updated_at) > new Date(impl.submitted_at);
+
+    if (wasModified && impl.updated_by_name) {
+      return impl.updated_by_name;
+    }
+
+    return '—';
   };
 
   if (loading) {
@@ -204,6 +241,12 @@ export const ImplementationsList: React.FC = () => {
                         Submitted By
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Last Modified
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Modified By
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -242,6 +285,12 @@ export const ImplementationsList: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {impl.submitted_by_name || impl.created_by_user?.name || impl.submitted_by || '—'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatLastModifiedDate(impl)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatModifiedBy(impl)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <button

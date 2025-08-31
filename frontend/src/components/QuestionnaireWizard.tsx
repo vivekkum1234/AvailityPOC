@@ -449,7 +449,9 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
           questionnaireData: allResponses,
           implementationMode: implementationMode || allResponses['implementation-mode-selection'],
           submittedBy: user?.email || 'anonymous',
-          submittedByName: user ? `${user.name}` : 'Anonymous User'
+          submittedByName: user ? `${user.name}` : 'Anonymous User',
+          updatedBy: user?.email || 'anonymous',
+          updatedByName: user ? `${user.name}` : 'Anonymous User'
         };
 
         console.log('Updating questionnaire:', updateData);
