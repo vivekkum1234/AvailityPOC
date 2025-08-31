@@ -76,16 +76,7 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
           </svg>
         )
       },
-      {
-        id: 'implementation-guide',
-        label: 'Implementation Guide',
-        message: 'Rules for format, content, and data element values for this transaction are listed in the ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: 005010X279. For cost refer to http://www.wpc-edi.com/ External code sets refer to https://x12.org/codes',
-        icon: (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        )
-      }
+
     ];
 
     // Add context-specific actions
@@ -290,60 +281,16 @@ function generateSampleResponse(message: string, context?: ChatbotContext): stri
 
   // Handle audience and team assignment queries
   if (lowerMessage.includes('audience') || lowerMessage.includes('team assignment')) {
-    return `**Audience & Team Assignment**
-
-You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section.
-
-**Benefits of Team Assignment:**
-• **Faster Completion** - Multiple team members can work simultaneously
-• **Expertise Matching** - Assign sections to subject matter experts
-• **Notification System** - Team members get alerts when assigned
-• **Progress Tracking** - Monitor completion status across teams
-
-**How It Works:**
-1. **Identify Team Roles** - Technical SMEs, Business Owners, Project Managers
-2. **Section Assignment** - Match sections to appropriate expertise
-3. **Notification Alerts** - Assigned members receive email notifications
-4. **Collaborative Review** - Team leads can review and approve submissions
-
-**Example Assignments:**
-• **Technical SME** - Enveloping Requirements, Character Sets
-• **Business Owner** - Organization Info, Contact Information
-• **Project Manager** - Implementation Mode, Timeline sections
-
-This collaborative approach ensures faster, more accurate questionnaire completion.`;
+    return `You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section`;
   }
 
   // Handle implementation guide queries
   if (lowerMessage.includes('implementation guide') || lowerMessage.includes('technical requirements')) {
-    return `**Implementation Guide & Technical Requirements**
+    return `Rules for format, content, and data element values for this transaction are listed in the following ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: 005010X279.
 
-**X12 270/271 HIPAA Transaction Standards:**
-
-Rules for format, content, and data element values for this transaction are listed in the following ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: 005010X279.
-
-**Key Resources:**
-
-**📋 Cost Information:**
 For cost refer to http://www.wpc-edi.com/
 
-**🔗 External Code Sets:**
-External code sets refer to https://x12.org/codes
-
-**📖 Technical Specifications:**
-• **Transaction Set:** 270 (Eligibility Inquiry) / 271 (Eligibility Response)
-• **Version:** 005010X279
-• **Standard:** ASC X12 Technical Report Type 3 (TR3)
-• **Compliance:** HIPAA-compliant healthcare transactions
-
-**Implementation Steps:**
-1. **Review TR3 Documentation** - Understand field requirements
-2. **Configure System** - Set up X12 processing capabilities
-3. **Test Transactions** - Validate with sample data
-4. **Certification** - Complete Availity certification process
-
-**Support:**
-Contact your Availity technical representative for detailed implementation assistance and certification requirements.`;
+External code sets refer to https://x12.org/codes`;
   }
 
   if (lowerMessage.includes('isa05')) {
