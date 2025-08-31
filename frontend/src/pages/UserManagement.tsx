@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/api';
 
 interface User {
   id: string;
@@ -31,76 +32,46 @@ export const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Mock data for now
-      const mockUsers: User[] = [
-        {
-          id: 'f706b57e-1c34-437d-b8b8-665a27a8a332',
-          email: 'admin@aetna.com',
-          first_name: 'John',
-          last_name: 'Smith',
-          phone: '555-0201',
-          user_type: 'payer',
-          status: 'active',
-          organization_name: 'Aetna',
-          role_type: 'payer_admin',
-          role_display_name: 'Organization Administrator',
-          created_at: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: '6ecb4b10-f6d4-4d18-a723-e3d1b7d1451e',
-          email: 'admin@valuelabs.com',
-          first_name: 'Sarah',
-          last_name: 'Johnson',
-          phone: '555-0202',
-          user_type: 'payer',
-          status: 'active',
-          organization_name: 'Valuelabs',
-          role_type: 'payer_admin',
-          role_display_name: 'Organization Administrator',
-          created_at: '2024-01-15T11:15:00Z'
-        },
-        {
-          id: '69c33789-086f-4c6e-a6c9-21368e5afcc3',
-          email: 'admin@sample.com',
-          first_name: 'Mike',
-          last_name: 'Davis',
-          phone: '555-0203',
-          user_type: 'payer',
-          status: 'active',
-          organization_name: 'Sample',
-          role_type: 'payer_admin',
-          role_display_name: 'Organization Administrator',
-          created_at: '2024-01-15T12:00:00Z'
-        },
-        {
-          id: 'f7678e83-ad1c-4fac-9f9f-4075207648a8',
-          email: 'admin@availity.com',
-          first_name: 'Lisa',
-          last_name: 'Wilson',
-          phone: '555-0301',
-          user_type: 'availity',
-          status: 'active',
-          role_type: 'availity_admin',
-          role_display_name: 'System Administrator',
-          created_at: '2024-01-15T09:00:00Z'
-        },
-        {
-          id: 'bd7e174f-71b7-4c76-a13f-98a484f5ce5d',
-          email: 'support@availity.com',
-          first_name: 'David',
-          last_name: 'Brown',
-          phone: '555-0302',
-          user_type: 'availity',
-          status: 'active',
-          role_type: 'availity_admin',
-          role_display_name: 'System Administrator',
-          created_at: '2024-01-15T09:30:00Z'
-        }
-      ];
 
-      setUsers(mockUsers);
+      // Fetch users with roles from API
+      const apiUsers = await apiService.getUsersWithRoles();
+
+      // Map API response to our User interface
+      const mappedUsers: User[] = apiUsers.map((apiUser: any) => {
+        // Get the first active role for display
+        const activeRole = apiUser.user_roles?.[0] || {};
+
+        // Map role types to display names
+        const getRoleDisplayName = (roleType: string, userType: string) => {
+          const roleMap: Record<string, string> = {
+            'payer_admin': 'Organization Administrator',
+            'payer_user': 'Organization User',
+            'availity_admin': 'System Administrator',
+            'availity_support': 'System Support',
+            'availity_user': 'System User'
+          };
+          return roleMap[roleType] || (userType === 'availity' ? 'System User' : 'Organization User');
+        };
+
+        return {
+          id: apiUser.id,
+          email: apiUser.email,
+          first_name: apiUser.first_name,
+          last_name: apiUser.last_name,
+          phone: apiUser.phone,
+          user_type: apiUser.user_type,
+          status: apiUser.status || 'active',
+          organization_name: apiUser.organizations?.name || (apiUser.user_type === 'availity' ? undefined : 'Unknown Organization'),
+          role_type: activeRole.role_type,
+          role_display_name: getRoleDisplayName(activeRole.role_type, apiUser.user_type),
+          last_login_at: apiUser.last_login_at,
+          created_at: apiUser.created_at
+        };
+      });
+
+      setUsers(mappedUsers);
     } catch (err) {
+      console.error('Error loading users:', err);
       setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setLoading(false);
@@ -152,6 +123,20 @@ export const UserManagement: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-200 border-t-primary-500"></div>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Users</h3>
+          <p className="text-gray-600">Fetching user data from the database...</p>
         </div>
       </div>
     );

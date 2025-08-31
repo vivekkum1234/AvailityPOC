@@ -30,6 +30,44 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/users/with-roles - Get users with their roles (must be before /:id route)
+router.get('/with-roles', async (req: Request, res: Response) => {
+  try {
+    const usersWithRoles = await supabaseService.getUsersWithRoles();
+
+    res.json({
+      success: true,
+      data: usersWithRoles
+    });
+
+  } catch (error) {
+    console.error('Error getting users with roles:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get users with roles'
+    });
+  }
+});
+
+// GET /api/users/roles - Get role definitions
+router.get('/roles', async (req: Request, res: Response) => {
+  try {
+    const roles = await supabaseService.getRoleDefinitions();
+
+    res.json({
+      success: true,
+      data: roles
+    });
+
+  } catch (error) {
+    console.error('Error getting role definitions:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get role definitions'
+    });
+  }
+});
+
 // GET /api/users/:id - Get user by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
@@ -181,43 +219,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/users/roles - Get role definitions
-router.get('/roles', async (req: Request, res: Response) => {
-  try {
-    const roles = await supabaseService.getRoleDefinitions();
 
-    res.json({
-      success: true,
-      data: roles
-    });
-
-  } catch (error) {
-    console.error('Error getting role definitions:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to get role definitions'
-    });
-  }
-});
-
-// GET /api/users/with-roles - Get users with their roles
-router.get('/with-roles', async (req: Request, res: Response) => {
-  try {
-    const usersWithRoles = await supabaseService.getUsersWithRoles();
-
-    res.json({
-      success: true,
-      data: usersWithRoles
-    });
-
-  } catch (error) {
-    console.error('Error getting users with roles:', error);
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to get users with roles'
-    });
-  }
-});
 
 // POST /api/users/:id/roles - Assign role to user
 router.post('/:id/roles', async (req: Request, res: Response) => {
