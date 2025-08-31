@@ -58,11 +58,21 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
       },
       {
         id: 'audience',
-        label: 'Audience',
-        message: 'You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section',
+        label: 'Audience & Team Assignment',
+        message: 'Tell me about audience and team assignment for questionnaire sections',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+          </svg>
+        )
+      },
+      {
+        id: 'implementation-guide',
+        label: 'Implementation Guide',
+        message: 'Show me the implementation guide and technical requirements',
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         )
       },
@@ -277,6 +287,64 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
 // Sample response generator (replace with actual AI integration)
 function generateSampleResponse(message: string, context?: ChatbotContext): string {
   const lowerMessage = message.toLowerCase();
+
+  // Handle audience and team assignment queries
+  if (lowerMessage.includes('audience') || lowerMessage.includes('team assignment')) {
+    return `**Audience & Team Assignment**
+
+You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section.
+
+**Benefits of Team Assignment:**
+• **Faster Completion** - Multiple team members can work simultaneously
+• **Expertise Matching** - Assign sections to subject matter experts
+• **Notification System** - Team members get alerts when assigned
+• **Progress Tracking** - Monitor completion status across teams
+
+**How It Works:**
+1. **Identify Team Roles** - Technical SMEs, Business Owners, Project Managers
+2. **Section Assignment** - Match sections to appropriate expertise
+3. **Notification Alerts** - Assigned members receive email notifications
+4. **Collaborative Review** - Team leads can review and approve submissions
+
+**Example Assignments:**
+• **Technical SME** - Enveloping Requirements, Character Sets
+• **Business Owner** - Organization Info, Contact Information
+• **Project Manager** - Implementation Mode, Timeline sections
+
+This collaborative approach ensures faster, more accurate questionnaire completion.`;
+  }
+
+  // Handle implementation guide queries
+  if (lowerMessage.includes('implementation guide') || lowerMessage.includes('technical requirements')) {
+    return `**Implementation Guide & Technical Requirements**
+
+**X12 270/271 HIPAA Transaction Standards:**
+
+Rules for format, content, and data element values for this transaction are listed in the following ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: 005010X279.
+
+**Key Resources:**
+
+**📋 Cost Information:**
+For cost refer to http://www.wpc-edi.com/
+
+**🔗 External Code Sets:**
+External code sets refer to https://x12.org/codes
+
+**📖 Technical Specifications:**
+• **Transaction Set:** 270 (Eligibility Inquiry) / 271 (Eligibility Response)
+• **Version:** 005010X279
+• **Standard:** ASC X12 Technical Report Type 3 (TR3)
+• **Compliance:** HIPAA-compliant healthcare transactions
+
+**Implementation Steps:**
+1. **Review TR3 Documentation** - Understand field requirements
+2. **Configure System** - Set up X12 processing capabilities
+3. **Test Transactions** - Validate with sample data
+4. **Certification** - Complete Availity certification process
+
+**Support:**
+Contact your Availity technical representative for detailed implementation assistance and certification requirements.`;
+  }
 
   if (lowerMessage.includes('isa05')) {
     return `**ISA05 - Sender ID Qualifier** identifies the type of organization sending the transaction.
