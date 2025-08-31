@@ -58,8 +58,8 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
       },
       {
         id: 'audience',
-        label: 'Audience & Team Assignment',
-        message: 'Tell me about audience and team assignment for questionnaire sections',
+        label: 'Audience',
+        message: 'Tell me about audience for questionnaire sections',
         icon: (
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
@@ -279,18 +279,32 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
 function generateSampleResponse(message: string, context?: ChatbotContext): string {
   const lowerMessage = message.toLowerCase();
 
-  // Handle audience and team assignment queries
-  if (lowerMessage.includes('audience') || lowerMessage.includes('team assignment')) {
-    return `You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section`;
+  // Handle audience queries
+  if (lowerMessage.includes('audience')) {
+    return `🎯 **Team Collaboration**
+
+You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section.
+
+✅ **Benefits:**
+• Faster completion through parallel work
+• Automatic notifications to assigned team members
+• Better organization of responsibilities`;
   }
 
   // Handle implementation guide queries
   if (lowerMessage.includes('implementation guide') || lowerMessage.includes('technical requirements')) {
-    return `Rules for format, content, and data element values for this transaction are listed in the following ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: 005010X279.
+    return `📖 **Implementation Guide**
 
-For cost refer to http://www.wpc-edi.com/
+📋 **Technical Standards:**
+Rules for format, content, and data element values for this transaction are listed in the following ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: **005010X279**.
 
-External code sets refer to https://x12.org/codes`;
+🔗 **Resources:**
+
+💰 **Cost Information:**
+<a href="http://www.wpc-edi.com/" target="_blank" rel="noopener noreferrer">http://www.wpc-edi.com/</a>
+
+📋 **External Code Sets:**
+<a href="https://x12.org/codes" target="_blank" rel="noopener noreferrer">https://x12.org/codes</a>`;
   }
 
   if (lowerMessage.includes('isa05')) {

@@ -68,13 +68,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
   const formatInlineMarkdown = (text: string): React.ReactElement[] => {
     const parts: React.ReactElement[] = [];
     let currentIndex = 0;
-    
-    // Handle bold text (**text**)
-    const boldRegex = /\*\*(.*?)\*\*/g;
+
+    // Combined regex to handle both bold text and HTML links
+    const combinedRegex = /(\*\*(.*?)\*\*)|(<a\s+href="([^"]*)"[^>]*>(.*?)<\/a>)/g;
     let match;
-    
-    while ((match = boldRegex.exec(text)) !== null) {
-      // Add text before the bold part
+
+    while ((match = combinedRegex.exec(text)) !== null) {
+      // Add text before the current match
       if (match.index > currentIndex) {
         parts.push(
           <span key={`text-${currentIndex}`}>
@@ -82,17 +82,34 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
           </span>
         );
       }
-      
-      // Add the bold part
-      parts.push(
-        <strong key={`bold-${match.index}`} className="font-semibold text-gray-900">
-          {match[1]}
-        </strong>
-      );
-      
+
+      if (match[1]) {
+        // This is a bold match (**text**)
+        parts.push(
+          <strong key={`bold-${match.index}`} className="font-semibold text-gray-900">
+            {match[2]}
+          </strong>
+        );
+      } else if (match[3]) {
+        // This is an HTML link match
+        const href = match[4];
+        const linkText = match[5];
+        parts.push(
+          <a
+            key={`link-${match.index}`}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-availity-600 hover:text-availity-700 underline font-medium"
+          >
+            {linkText}
+          </a>
+        );
+      }
+
       currentIndex = match.index + match[0].length;
     }
-    
+
     // Add remaining text
     if (currentIndex < text.length) {
       parts.push(
@@ -101,7 +118,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
         </span>
       );
     }
-    
+
     return parts.length > 0 ? parts : [<span key="default">{text}</span>];
   };
 
