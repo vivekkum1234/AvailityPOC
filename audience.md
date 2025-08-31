@@ -1,0 +1,1 @@
+You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section

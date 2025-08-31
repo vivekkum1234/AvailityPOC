@@ -1,4 +1,5 @@
 // Chatbot TypeScript interfaces - completely separate from existing types
+import React from 'react';
 
 export interface ChatMessage {
   id: string;
@@ -34,5 +35,5 @@ export interface QuickAction {
   id: string;
   label: string;
   message: string;
-  icon?: string;
+  icon?: string | React.ReactElement;
 }

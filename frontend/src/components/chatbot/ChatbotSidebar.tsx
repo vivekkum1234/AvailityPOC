@@ -12,6 +12,7 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Handle mode change notifications
   useEffect(() => {
@@ -39,31 +40,41 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
         id: 'implementation-modes',
         label: 'Choose Implementation Mode',
         message: 'What are the differences between Real-time Web, Real-time B2B, and EDI Batch modes?',
-        icon: '🔄'
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+          </svg>
+        )
       },
       {
         id: 'isa-fields',
         label: 'ISA Field Explanations',
         message: 'Can you explain ISA segments and their purpose in X12 transactions?',
-        icon: '📋'
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        )
       },
       {
-        id: 'payer-info',
-        label: 'Payer Name & ID Help',
-        message: 'Help me understand payer name and payer ID requirements',
-        icon: '🏢'
+        id: 'audience',
+        label: 'Audience',
+        message: 'You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section',
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+          </svg>
+        )
       },
       {
-        id: 'character-sets',
-        label: 'Character Set Options',
-        message: 'Explain the character set and formatting requirements',
-        icon: '🔤'
-      },
-      {
-        id: 'best-practices',
-        label: 'Best Practices',
-        message: 'What are the recommended settings for a typical payer implementation?',
-        icon: '⭐'
+        id: 'implementation-guide',
+        label: 'Implementation Guide',
+        message: 'Rules for format, content, and data element values for this transaction are listed in the ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: 005010X279. For cost refer to http://www.wpc-edi.com/ External code sets refer to https://x12.org/codes',
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        )
       }
     ];
 
@@ -76,7 +87,11 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
           id: 'current-section',
           label: `Help with ${context.currentSection}`,
           message: `I need help with the ${context.currentSection} section. Can you explain what this section is about and what I need to fill out?`,
-          icon: '❓'
+          icon: (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )
         });
       }
 
@@ -86,14 +101,22 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
           id: 'enveloping-help',
           label: 'ISA/GS Fields',
           message: 'Explain the ISA and GS segment fields in the enveloping requirements',
-          icon: '📋'
+          icon: (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          )
         });
       } else if (sectionName.includes('contact')) {
         baseActions.splice(1, 0, {
           id: 'contact-help',
           label: 'Contact Requirements',
           message: 'What contact information do I need to provide?',
-          icon: '👥'
+          icon: (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+          )
         });
       }
     }
@@ -153,65 +176,101 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
   };
 
   return (
-    <div className="w-80 h-screen sticky top-0 bg-white border-r border-gray-200 flex flex-col shadow-soft">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-availity-50">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-availity-500 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">AI Assistant</h3>
-            <p className="text-sm text-gray-600">X12 270/271 Help</p>
-          </div>
+    <>
+      {/* Minimized State - Bottom Tab */}
+      {isMinimized && (
+        <div className="fixed bottom-4 left-4 z-50">
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-primary-400 to-availity-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+            title="Open AI Assistant"
+          >
+            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <span className="font-medium">AI Assistant</span>
+          </button>
         </div>
-        
-        {context?.currentSection && (
-          <div className="mt-3 px-3 py-2 bg-white rounded-lg border border-gray-200">
-            <p className="text-xs text-gray-500">Current Section</p>
-            <p className="text-sm font-medium text-gray-800">{context.currentSection}</p>
-            {context.implementationMode && (
-              <div className="mt-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-availity-100 text-availity-800">
-                  {context.implementationMode === 'real_time_web' && 'Real-time Web'}
-                  {context.implementationMode === 'real_time_b2b' && 'Real-time B2B'}
-                  {context.implementationMode === 'edi_batch' && 'EDI Batch'}
-                </span>
+      )}
+
+      {/* Full Chatbot - Only when expanded */}
+      {!isMinimized && (
+        <div className="w-80 h-screen sticky top-0 bg-white border-r border-gray-200 flex flex-col shadow-soft">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-availity-50 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-availity-500 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">AI Assistant</h3>
+                  <p className="text-sm text-gray-600">X12 270/271 Help</p>
+                </div>
+              </div>
+
+              {/* Professional Minimize Button */}
+              <button
+                onClick={() => setIsMinimized(true)}
+                className="p-1.5 hover:bg-white hover:bg-opacity-50 rounded transition-colors duration-200 flex-shrink-0"
+                title="Minimize chatbot"
+              >
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <div className="w-3 h-0.5 bg-gray-600 rounded-full"></div>
+                </div>
+              </button>
+            </div>
+
+            {context?.currentSection && (
+              <div className="mt-3 px-3 py-2 bg-white rounded-lg border border-gray-200">
+                <p className="text-xs text-gray-500">Current Section</p>
+                <p className="text-sm font-medium text-gray-800">{context.currentSection}</p>
+                {context.implementationMode && (
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-availity-100 text-availity-800">
+                      {context.implementationMode === 'real_time_web' && 'Real-time Web'}
+                      {context.implementationMode === 'real_time_b2b' && 'Real-time B2B'}
+                      {context.implementationMode === 'edi_batch' && 'EDI Batch'}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
 
-      {/* Quick Actions - Collapsible */}
-      <div className="border-b border-gray-200">
-        <button
-          onClick={() => setIsQuickActionsCollapsed(!isQuickActionsCollapsed)}
-          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
-        >
-          <span className="text-sm font-medium text-gray-700">Quick Help</span>
-          <svg
-            className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isQuickActionsCollapsed ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {!isQuickActionsCollapsed && (
-          <QuickActions actions={getQuickActions()} onActionClick={handleQuickAction} />
-        )}
-      </div>
+          {/* Quick Actions - Collapsible */}
+          <div className="border-b border-gray-200 flex-shrink-0">
+            <button
+              onClick={() => setIsQuickActionsCollapsed(!isQuickActionsCollapsed)}
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
+            >
+              <span className="text-sm font-medium text-gray-700">Quick Help</span>
+              <svg
+                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isQuickActionsCollapsed ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {!isQuickActionsCollapsed && (
+              <QuickActions actions={getQuickActions()} onActionClick={handleQuickAction} />
+            )}
+          </div>
 
-      {/* Messages */}
-      <ChatbotMessages messages={messages} />
+          {/* Messages */}
+          <ChatbotMessages messages={messages} />
 
-      {/* Input */}
-      <ChatbotInput onSendMessage={handleSendMessage} disabled={isLoading} />
-    </div>
+          {/* Input */}
+          <ChatbotInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        </div>
+      )}
+    </>
   );
 };
 
