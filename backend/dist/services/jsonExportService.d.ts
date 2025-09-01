@@ -49,6 +49,7 @@ export declare class JsonExportService {
     private static exportB2BFormat;
     private static formatOrganizationName;
     private static getFieldValue;
+    private static extractUserInfo;
     static isExportSupported(implementationMode: string): boolean;
 }
 //# sourceMappingURL=jsonExportService.d.ts.map

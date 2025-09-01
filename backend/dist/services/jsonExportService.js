@@ -12,6 +12,7 @@ class JsonExportService {
         const responses = response.responses || {};
         const organizationName = responses['organization-name'] || 'UNKNOWN_ORG';
         const formattedOrgName = this.formatOrganizationName(organizationName);
+        const userInfo = this.extractUserInfo(response);
         return {
             id: formattedOrgName,
             template: 'b2b-default',
@@ -55,9 +56,9 @@ class JsonExportService {
             payerAriesId: 'DEFAULT',
             submissionModeCd: 2,
             batch: 'false',
-            lastUpdateUserId: 'USER',
-            lastUpdateFirstName: 'FNAME',
-            lastUpdateLastName: 'LNAME'
+            lastUpdateUserId: userInfo.userId,
+            lastUpdateFirstName: userInfo.firstName,
+            lastUpdateLastName: userInfo.lastName
         };
     }
     static formatOrganizationName(orgName) {
@@ -74,6 +75,34 @@ class JsonExportService {
             return customValue || defaultValue;
         }
         return value || defaultValue;
+    }
+    static extractUserInfo(response) {
+        const submittedByName = response.submitted_by_name || '';
+        const submittedBy = response.submitted_by || '';
+        if (submittedByName && submittedByName !== 'Anonymous User' && submittedByName.trim() !== '') {
+            const nameParts = submittedByName.trim().split(' ');
+            if (nameParts.length >= 2) {
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ');
+                return {
+                    userId: submittedByName,
+                    firstName: firstName,
+                    lastName: lastName
+                };
+            }
+            else if (nameParts.length === 1) {
+                return {
+                    userId: submittedByName,
+                    firstName: nameParts[0] || '',
+                    lastName: ''
+                };
+            }
+        }
+        return {
+            userId: submittedBy || 'UNKNOWN_USER',
+            firstName: 'UNKNOWN',
+            lastName: 'USER'
+        };
     }
     static isExportSupported(implementationMode) {
         return implementationMode === 'real_time_b2b';

@@ -65,10 +65,13 @@ export class JsonExportService {
    */
   private static exportB2BFormat(response: QuestionnaireResponse): ExportedJsonData {
     const responses = response.responses || {};
-    
+
     // Format organization name for ID fields
     const organizationName = responses['organization-name'] || 'UNKNOWN_ORG';
     const formattedOrgName = this.formatOrganizationName(organizationName);
+
+    // Extract user information from submitted_by_name
+    const userInfo = this.extractUserInfo(response);
 
     return {
       id: formattedOrgName,
@@ -113,9 +116,9 @@ export class JsonExportService {
       payerAriesId: 'DEFAULT',
       submissionModeCd: 2,
       batch: 'false',
-      lastUpdateUserId: 'USER',
-      lastUpdateFirstName: 'FNAME',
-      lastUpdateLastName: 'LNAME'
+      lastUpdateUserId: userInfo.userId,
+      lastUpdateFirstName: userInfo.firstName,
+      lastUpdateLastName: userInfo.lastName
     };
   }
 
@@ -135,14 +138,56 @@ export class JsonExportService {
    */
   private static getFieldValue(responses: Record<string, any>, fieldId: string, defaultValue: string): string {
     const value = responses[fieldId];
-    
+
     // Handle custom values
     if (value === 'custom') {
       const customValue = responses[`${fieldId}-custom`];
       return customValue || defaultValue;
     }
-    
+
     return value || defaultValue;
+  }
+
+  /**
+   * Extract user information from submitted_by_name field
+   */
+  private static extractUserInfo(response: QuestionnaireResponse): {
+    userId: string;
+    firstName: string;
+    lastName: string;
+  } {
+    const submittedByName = response.submitted_by_name || '';
+    const submittedBy = response.submitted_by || '';
+
+    // Parse submitted_by_name if available and not anonymous
+    if (submittedByName && submittedByName !== 'Anonymous User' && submittedByName.trim() !== '') {
+      const nameParts = submittedByName.trim().split(' ');
+
+      if (nameParts.length >= 2) {
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' '); // Handle middle names and suffixes
+
+        return {
+          userId: submittedByName,
+          firstName: firstName,
+          lastName: lastName
+        };
+      } else if (nameParts.length === 1) {
+        // Single name case
+        return {
+          userId: submittedByName,
+          firstName: nameParts[0] || '',
+          lastName: ''
+        };
+      }
+    }
+
+    // Fallback: Use email or default values
+    return {
+      userId: submittedBy || 'UNKNOWN_USER',
+      firstName: 'UNKNOWN',
+      lastName: 'USER'
+    };
   }
 
   /**
