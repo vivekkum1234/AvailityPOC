@@ -122,6 +122,74 @@ const getBusinessRulesForTestCase = (testId: string): string[] => {
       'MSG must provide a clear human-readable reason (e.g., "Subscriber/Insured Not Found – Invalid Member ID")',
       'No coverage dates (DTP*356/357) should appear'
     ];
+  } else if (testId.includes('PHARMACY') || testId === 'TC_PHARMACY_001') {
+    // TC_004: Pharmacy/Service Type 88 Coverage
+    console.log('🔍 Matched PHARMACY rules');
+    return [
+      'EB must use EB01=1 (Active Coverage)',
+      'Service type must be 88 (Pharmacy)',
+      'Coverage level must be IND',
+      'Effective date (DTP*356) must be ≤ request date',
+      'No termination date (DTP*357) if still active',
+      'MSG must confirm pharmacy coverage'
+    ];
+  } else if (testId.includes('INVALID_ID') || testId === 'TC_INVALID_ID_002') {
+    // TC_005: Invalid ID Format Test
+    console.log('🔍 Matched INVALID_ID rules');
+    return [
+      'If member ID format is invalid, no EB coverage should be returned',
+      'AAA segment required for invalid ID format',
+      'AAA01=Y (reject loop)',
+      'AAA02=15 (Response not found)',
+      'AAA03=72 (Invalid/Missing ID)',
+      'AAA04=N (no further action)',
+      'MSG should state clearly: invalid member ID format',
+      'TRN must echo request'
+    ];
+  } else if (testId.includes('FAMILY_COVERAGE') || testId === 'TC_FAMILY_COVERAGE_003') {
+    // TC_006: Family Coverage Test
+    console.log('🔍 Matched FAMILY_COVERAGE rules');
+    return [
+      'EB must reflect coverage level: FAM = family coverage',
+      'Service Type = 30',
+      'Effective date (DTP*356) must be ≤ service date',
+      'If family coverage, MSG should indicate "Family Coverage"',
+      'No AAA errors if member valid'
+    ];
+  } else if (testId.includes('PHARMACY') || testId === 'TC_PHARMACY_001') {
+    // TC_004: Pharmacy/Service Type 88 Coverage
+    console.log('🔍 Matched PHARMACY rules');
+    return [
+      'EB must use EB01=1 (Active Coverage)',
+      'Service type must be 88 (Pharmacy)',
+      'Coverage level must be IND',
+      'Effective date (DTP*356) must be ≤ request date',
+      'No termination date (DTP*357) if still active',
+      'MSG must confirm pharmacy coverage'
+    ];
+  } else if (testId.includes('INVALID_ID') || testId === 'TC_INVALID_ID_002') {
+    // TC_005: Invalid ID Format Test
+    console.log('🔍 Matched INVALID_ID rules');
+    return [
+      'If member ID format is invalid, no EB coverage should be returned',
+      'AAA segment required for invalid ID format',
+      'AAA01=Y (reject loop)',
+      'AAA02=15 (Response not found)',
+      'AAA03=72 (Invalid/Missing ID)',
+      'AAA04=N (no further action)',
+      'MSG should state clearly: invalid member ID format',
+      'TRN must echo request'
+    ];
+  } else if (testId.includes('FAMILY_COVERAGE') || testId === 'TC_FAMILY_COVERAGE_003') {
+    // TC_006: Family Coverage Test
+    console.log('🔍 Matched FAMILY_COVERAGE rules');
+    return [
+      'EB must reflect coverage level: IND = individual coverage, FAM = family coverage',
+      'Service Type = 30',
+      'Effective date (DTP*356) must be ≤ service date',
+      'If family coverage, MSG should indicate "Family Coverage"',
+      'No AAA errors if member valid'
+    ];
   } else if (testId.includes('ACTIVE') || testId === 'TC_ACTIVE_001') {
     // Active Member – General Health Benefits
     console.log('🔍 Matched ACTIVE rules');
@@ -140,6 +208,133 @@ const getBusinessRulesForTestCase = (testId: string): string[] => {
   return ['Business rules validation completed'];
 };
 
+// Custom Scenario Form Component
+interface CustomScenarioFormProps {
+  onSubmit: (scenario: Omit<TestRecommendation, 'id'>) => void;
+  onCancel: () => void;
+}
+
+const CustomScenarioForm: React.FC<CustomScenarioFormProps> = ({ onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as 'high' | 'medium' | 'low',
+    category: 'Additional Testing' as 'Core Functionality' | 'Additional Testing',
+    estimatedDuration: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim() || !formData.description.trim()) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    onSubmit(formData);
+    setFormData({
+      title: '',
+      description: '',
+      priority: 'medium',
+      category: 'Additional Testing',
+      estimatedDuration: ''
+    });
+  };
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Custom Test Scenario</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title *
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="e.g., Custom Coverage Verification Test"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Estimated Duration
+            </label>
+            <input
+              type="text"
+              value={formData.estimatedDuration}
+              onChange={(e) => setFormData(prev => ({ ...prev, estimatedDuration: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="e.g., 3 minutes"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description *
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            placeholder="Describe what this test scenario should validate..."
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Priority
+            </label>
+            <select
+              value={formData.priority}
+              onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as any }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="Core Functionality">Core Functionality</option>
+              <option value="Additional Testing">Additional Testing</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            Add Scenario
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
 export const PayerTesting: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>(1);
   const [selectedImplementation, setSelectedImplementation] = useState<string>('');
@@ -147,6 +342,8 @@ export const PayerTesting: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingImplementations, setLoadingImplementations] = useState(true);
   const [recommendations, setRecommendations] = useState<TestRecommendation[]>([]);
+  const [customScenarios, setCustomScenarios] = useState<TestRecommendation[]>([]);
+  const [showCustomScenarioForm, setShowCustomScenarioForm] = useState(false);
   const [detailedTestCases, setDetailedTestCases] = useState<DetailedTestCase[]>([]);
   const [testData, setTestData] = useState<TestData[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
@@ -200,6 +397,19 @@ export const PayerTesting: React.FC = () => {
     }
   };
 
+  const addCustomScenario = (customScenario: Omit<TestRecommendation, 'id'>) => {
+    const newScenario: TestRecommendation = {
+      ...customScenario,
+      id: `CUSTOM_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
+    setCustomScenarios(prev => [...prev, newScenario]);
+    setShowCustomScenarioForm(false);
+  };
+
+  const getAllRecommendations = () => {
+    return [...recommendations, ...customScenarios];
+  };
+
   const generateTestData = async () => {
     if (!selectedImplementation) return;
 
@@ -210,8 +420,9 @@ export const PayerTesting: React.FC = () => {
         throw new Error('Selected implementation not found');
       }
 
-      // Get selected test case IDs from checkboxes
-      const selectedTestCases = recommendations
+      // Get selected test case IDs from checkboxes (both AI-generated and custom)
+      const allRecommendations = getAllRecommendations();
+      const selectedTestCases = allRecommendations
         .filter(rec => {
           const checkbox = document.querySelector(`input[data-test-id="${rec.id}"]`) as HTMLInputElement;
           return checkbox?.checked;
@@ -219,7 +430,9 @@ export const PayerTesting: React.FC = () => {
         .map(rec => rec.id);
 
       console.log('Selected test cases:', selectedTestCases);
-      console.log('Total recommendations:', recommendations.length);
+      console.log('Total AI recommendations:', recommendations.length);
+      console.log('Total custom scenarios:', customScenarios.length);
+      console.log('Total available scenarios:', allRecommendations.length);
 
       // Generate detailed test data using AI
       const detailedTestCases = await apiService.generateTestData(
@@ -538,6 +751,75 @@ export const PayerTesting: React.FC = () => {
                     </div>
                   </div>
                 ))}
+            </div>
+
+            {/* Custom Scenarios Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">🎯 Custom Test Scenarios</h3>
+                <button
+                  onClick={() => setShowCustomScenarioForm(true)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Custom Scenario
+                </button>
+              </div>
+
+              {showCustomScenarioForm && (
+                <CustomScenarioForm
+                  onSubmit={addCustomScenario}
+                  onCancel={() => setShowCustomScenarioForm(false)}
+                />
+              )}
+
+              {customScenarios.length > 0 && (
+                <div className="space-y-3">
+                  {customScenarios.map((scenario) => (
+                    <div key={scenario.id} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          defaultChecked={false}
+                          data-test-id={scenario.id}
+                          className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="text-base font-semibold text-gray-900">{scenario.title}</h4>
+                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                              scenario.priority === 'high' ? 'bg-red-100 text-red-800' :
+                              scenario.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {scenario.priority.charAt(0).toUpperCase() + scenario.priority.slice(1)}
+                            </span>
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              Custom
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">{scenario.description}</p>
+                          {scenario.estimatedDuration && (
+                            <p className="text-xs text-gray-500 mt-1">Duration: {scenario.estimatedDuration}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {customScenarios.length === 0 && !showCustomScenarioForm && (
+                <div className="text-center py-8 bg-gray-50 border border-gray-200 rounded-lg">
+                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <p className="text-gray-500 text-sm">No custom scenarios added yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Click "Add Custom Scenario" to create your own test cases</p>
+                </div>
+              )}
             </div>
 
             <button
