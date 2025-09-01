@@ -348,7 +348,7 @@ export const PayerTesting: React.FC = () => {
   const [testData, setTestData] = useState<TestData[]>([]);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [executionSummary, setExecutionSummary] = useState<TestExecutionSummary | null>(null);
-  const [payerEndpoint, setPayerEndpoint] = useState('http://localhost:3002/api/mock-payer/execute-tests');
+  const [payerEndpoint, setPayerEndpoint] = useState('https://availitypoc-production.up.valuelabs.app/api/mock-payer/execute-tests');
   const [executionMode, setExecutionMode] = useState('Simulated (Demo)');
 
   useEffect(() => {
@@ -520,7 +520,13 @@ export const PayerTesting: React.FC = () => {
 
   const getStepStatus = (step: WorkflowStep) => {
     if (step < currentStep) return 'completed';
-    if (step === currentStep) return 'active';
+    if (step === currentStep) {
+      // If we're on step 4 (results) and all tests passed, show as completed
+      if (step === 4 && testResults.length > 0 && testResults.every(result => result.status === 'passed')) {
+        return 'completed';
+      }
+      return 'active';
+    }
     return 'pending';
   };
 
@@ -885,7 +891,7 @@ export const PayerTesting: React.FC = () => {
                     value={payerEndpoint}
                     onChange={(e) => setPayerEndpoint(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="http://localhost:3002/api/mock-payer/execute-tests"
+                    placeholder="https://availitypoc-production.up.valuelabs.app/api/mock-payer/execute-tests"
                   />
                   <p className="text-sm text-gray-500 mt-1">Mock payer endpoint for demonstration</p>
                 </div>
@@ -1013,11 +1019,6 @@ export const PayerTesting: React.FC = () => {
                 className="inline-flex items-center px-6 py-3 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 Run New Tests
-              </button>
-              <button
-                className="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Export Results
               </button>
             </div>
           </div>
