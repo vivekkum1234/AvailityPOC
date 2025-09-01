@@ -7,6 +7,7 @@ interface LoginProps {
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   // Mock users for login (matching our database users)
   const mockUsers = [
     { email: 'admin@aetna.com', name: 'John Smith', userType: 'payer' as const, organization: 'Aetna' },
-    { email: 'admin@valuelabs.com', name: 'Sarah Johnson', userType: 'payer' as const, organization: 'Valuelabs' },
     { email: 'admin@sample.com', name: 'Mike Davis', userType: 'payer' as const, organization: 'Sample' },
     { email: 'admin@availity.com', name: 'Lisa Wilson', userType: 'availity' as const, organization: 'Availity' },
     { email: 'support@availity.com', name: 'David Brown', userType: 'availity' as const, organization: 'Availity' },
@@ -29,11 +29,23 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // Basic validation
+      if (!email || !password) {
+        setError('Please enter both email and password.');
+        return;
+      }
+
       // Find user by email
       const user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-      
+
       if (!user) {
-        setError('User not found. Please check your email address.');
+        setError('Invalid email or password. Please try again.');
+        return;
+      }
+
+      // Simple password validation (for demo - accept any password with at least 3 characters)
+      if (password.length < 3) {
+        setError('Password must be at least 3 characters long.');
         return;
       }
 
@@ -55,16 +67,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const handleQuickLogin = (user: typeof mockUsers[0]) => {
     setEmail(user.email);
-    onLogin({
-      email: user.email,
-      name: user.name,
-      userType: user.userType
-    });
-    navigate('/');
+    setPassword('demo123'); // Set a demo password
+    // Auto-submit after setting email and password
+    setTimeout(() => {
+      onLogin({
+        email: user.email,
+        name: user.name,
+        userType: user.userType
+      });
+      navigate('/');
+    }, 100);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-2 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
@@ -74,15 +90,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             className="w-20 h-20 object-contain"
           />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+        <h2 className="mt-4 text-center text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           Availity Digital Questionnaire Platform
         </h2>
       </div>
 
       {/* Login Form */}
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-soft sm:rounded-2xl sm:px-10 border border-gray-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-6 px-4 shadow-soft sm:rounded-2xl sm:px-10 border border-gray-200">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -98,6 +114,25 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="Enter your email address"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <div className="mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  placeholder="Enter your password"
                 />
               </div>
             </div>
@@ -136,7 +171,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </form>
 
           {/* Quick Login Options */}
-          <div className="mt-8">
+          <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -146,7 +181,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </div>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="mt-4 space-y-2">
               <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
                 Payer Users
               </div>
@@ -173,7 +208,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </button>
               ))}
 
-              <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 mt-4">
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 mt-3">
                 Availity Users
               </div>
               {mockUsers.filter(u => u.userType === 'availity').map((user) => (

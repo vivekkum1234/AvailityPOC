@@ -173,17 +173,6 @@ export const MainDashboard: React.FC = () => {
 
   const tabs: Tab[] = [
     {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z" />
-        </svg>
-      ),
-      comingSoon: true
-    },
-    {
       id: 'questionnaire',
       label: 'Questionnaire',
       icon: (
@@ -233,26 +222,6 @@ export const MainDashboard: React.FC = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'dashboard':
-        return (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-8 bg-gradient-to-br from-primary-100 to-availity-100 rounded-full flex items-center justify-center">
-              <svg className="w-12 h-12 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Dashboard Coming Soon</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-              We're working on an amazing dashboard experience that will provide insights, analytics, and quick access to your most important data.
-            </p>
-            <div className="inline-flex items-center px-6 py-3 bg-primary-50 text-primary-700 rounded-xl font-medium">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Stay tuned for updates
-            </div>
-          </div>
-        );
       case 'questionnaire':
         if (loading) {
           return (
