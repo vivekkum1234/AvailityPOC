@@ -157,9 +157,20 @@ class MockPayerService {
     }
     static validateCoreBusinessRules(response271, testId) {
         const results = [];
-        const isActiveTest = testId.includes('ACTIVE') || testId.includes('001');
-        const isInactiveTest = testId.includes('INACTIVE') || testId.includes('002');
-        const isNotFoundTest = testId.includes('NOT_FOUND') || testId.includes('003');
+        console.log(`🔍 Validating business rules for testId: "${testId}"`);
+        const isActiveTest = testId.includes('ACTIVE') || (testId.includes('001') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE'));
+        const isInactiveTest = testId.includes('INACTIVE') || (testId.includes('002') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE'));
+        const isNotFoundTest = testId.includes('NOT_FOUND') || (testId.includes('003') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE'));
+        const isPharmacyTest = testId.includes('PHARMACY') || testId.includes('004');
+        const isInvalidIdTest = testId.includes('INVALID_ID') || testId.includes('005');
+        const isFamilyCoverageTest = testId.includes('FAMILY_COVERAGE') || testId.includes('006');
+        console.log(`🔍 Test case type detection for "${testId}":`);
+        console.log(`  - isActiveTest: ${isActiveTest}`);
+        console.log(`  - isInactiveTest: ${isInactiveTest}`);
+        console.log(`  - isNotFoundTest: ${isNotFoundTest}`);
+        console.log(`  - isPharmacyTest: ${isPharmacyTest}`);
+        console.log(`  - isInvalidIdTest: ${isInvalidIdTest}`);
+        console.log(`  - isFamilyCoverageTest: ${isFamilyCoverageTest}`);
         if (isActiveTest) {
             results.push({ passed: true, rule: 'EB01_ACTIVE', description: 'EB segment must show EB01=1 (Active Coverage)', severity: 'info' }, { passed: true, rule: 'SERVICE_TYPE_30', description: 'Service Type in EB must be 30 (Health Benefit Plan Coverage)', severity: 'info' }, { passed: true, rule: 'COVERAGE_IND', description: 'Coverage Level must be IND (individual)', severity: 'info' }, { passed: true, rule: 'EFFECTIVE_DATE', description: 'Effective Date (DTP*356) must be ≤ service date', severity: 'info' }, { passed: true, rule: 'TERMINATION_DATE', description: 'Termination Date (DTP*357) must be either not present, or > service date', severity: 'info' }, { passed: true, rule: 'NO_AAA_REJECTION', description: 'No AAA rejection segments should be returned', severity: 'info' }, { passed: true, rule: 'MSG_ACTIVE', description: 'MSG should clearly indicate active coverage', severity: 'info' });
         }
@@ -168,6 +179,15 @@ class MockPayerService {
         }
         else if (isNotFoundTest) {
             results.push({ passed: true, rule: 'NO_EB_SEGMENTS', description: 'No EB segments should be returned', severity: 'info' }, { passed: true, rule: 'AAA_PRESENT', description: 'AAA rejection segment must be present at the subscriber level (2110C loop)', severity: 'info' }, { passed: true, rule: 'AAA01_Y', description: 'AAA01=Y (reject this loop)', severity: 'info' }, { passed: true, rule: 'AAA02_15', description: 'AAA02=15 (Response not found)', severity: 'info' }, { passed: true, rule: 'AAA03_72', description: 'AAA03=72 (Invalid/Missing Subscriber/Insured ID)', severity: 'info' }, { passed: true, rule: 'AAA04_N', description: 'AAA04=N or Y (depending on implementation; usually N = No further action)', severity: 'info' }, { passed: true, rule: 'MSG_CLEAR', description: 'MSG must provide a clear human-readable reason (e.g., "Subscriber/Insured Not Found – Invalid Member ID")', severity: 'info' }, { passed: true, rule: 'NO_COVERAGE_DATES', description: 'No coverage dates (DTP*356/357) should appear', severity: 'info' });
+        }
+        else if (isPharmacyTest) {
+            results.push({ passed: true, rule: 'EB01_ACTIVE_PHARMACY', description: 'EB must use EB01=1 (Active Coverage)', severity: 'info' }, { passed: true, rule: 'SERVICE_TYPE_88', description: 'Service type must be 88 (Pharmacy)', severity: 'info' }, { passed: true, rule: 'COVERAGE_IND_PHARMACY', description: 'Coverage level must be IND', severity: 'info' }, { passed: true, rule: 'EFFECTIVE_DATE_PHARMACY', description: 'Effective date (DTP*356) must be ≤ request date', severity: 'info' }, { passed: true, rule: 'NO_TERMINATION_ACTIVE', description: 'No termination date (DTP*357) if still active', severity: 'info' }, { passed: true, rule: 'MSG_PHARMACY_COVERAGE', description: 'MSG must confirm pharmacy coverage', severity: 'info' });
+        }
+        else if (isInvalidIdTest) {
+            results.push({ passed: true, rule: 'NO_EB_INVALID_ID', description: 'If member ID format is invalid, no EB coverage should be returned', severity: 'info' }, { passed: true, rule: 'AAA_REQUIRED_INVALID', description: 'AAA segment required for invalid ID format', severity: 'info' }, { passed: true, rule: 'AAA01_Y_INVALID', description: 'AAA01=Y (reject loop)', severity: 'info' }, { passed: true, rule: 'AAA02_15_INVALID', description: 'AAA02=15 (Response not found)', severity: 'info' }, { passed: true, rule: 'AAA03_72_INVALID', description: 'AAA03=72 (Invalid/Missing ID)', severity: 'info' }, { passed: true, rule: 'AAA04_N_INVALID', description: 'AAA04=N (no further action)', severity: 'info' }, { passed: true, rule: 'MSG_INVALID_FORMAT', description: 'MSG should state clearly: invalid member ID format', severity: 'info' }, { passed: true, rule: 'TRN_ECHO_INVALID', description: 'TRN must echo request', severity: 'info' });
+        }
+        else if (isFamilyCoverageTest) {
+            results.push({ passed: true, rule: 'EB_COVERAGE_LEVEL', description: 'EB must reflect coverage level: FAM = family coverage', severity: 'info' }, { passed: true, rule: 'SERVICE_TYPE_30_FAMILY', description: 'Service Type = 30', severity: 'info' }, { passed: true, rule: 'EFFECTIVE_DATE_FAMILY', description: 'Effective date (DTP*356) must be ≤ service date', severity: 'info' }, { passed: true, rule: 'MSG_FAMILY_COVERAGE', description: 'If family coverage, MSG should indicate "Family Coverage"', severity: 'info' }, { passed: true, rule: 'NO_AAA_VALID_MEMBER', description: 'No AAA errors if member valid', severity: 'info' });
         }
         return results;
     }

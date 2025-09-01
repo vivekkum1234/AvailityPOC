@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { ImplementationDetail } from '../components/ImplementationDetail';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Implementation {
   id: string;
@@ -30,6 +31,7 @@ interface Implementation {
 }
 
 export const ImplementationsList: React.FC = () => {
+  const { user } = useAuth(); // Get current user for filtering
   const [implementations, setImplementations] = useState<Implementation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,13 @@ export const ImplementationsList: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Filter implementations based on user role
+  const filteredImplementations = user?.userType === 'payer'
+    ? implementations.filter(impl =>
+        impl.submitted_by_name?.toLowerCase() === user.name.toLowerCase()
+      )
+    : implementations; // Availity users see all implementations
 
 
 
@@ -185,14 +194,17 @@ export const ImplementationsList: React.FC = () => {
                   X12 270/271 Implementations
                 </h1>
                 <p className="text-sm text-gray-600 font-medium">
-                  View and manage submitted questionnaires
+                  {user?.userType === 'payer'
+                    ? `Your submitted questionnaires`
+                    : 'View and manage submitted questionnaires'
+                  }
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-availity-700 border border-primary-200">
                 <div className="w-2 h-2 bg-availity-500 rounded-full mr-2"></div>
-                {implementations.length} Implementation{implementations.length !== 1 ? 's' : ''}
+                {filteredImplementations.length} Implementation{filteredImplementations.length !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
@@ -201,15 +213,22 @@ export const ImplementationsList: React.FC = () => {
 
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {implementations.length === 0 ? (
+          {filteredImplementations.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">No implementations found</h3>
-              <p className="text-gray-600 mb-6">No questionnaires have been submitted yet.</p>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                {user?.userType === 'payer' ? 'No implementations found' : 'No implementations found'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {user?.userType === 'payer'
+                  ? 'You have not submitted any questionnaires yet.'
+                  : 'No questionnaires have been submitted yet.'
+                }
+              </p>
               <a href="/" className="btn-primary">
                 Create New Implementation
               </a>
@@ -252,7 +271,7 @@ export const ImplementationsList: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {implementations.map((impl, index) => (
+                    {filteredImplementations.map((impl, index) => (
                       <tr
                         key={impl.id}
                         onClick={() => setSelectedImplementationId(impl.id)}

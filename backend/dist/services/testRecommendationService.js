@@ -627,6 +627,7 @@ Return as JSON array with complete test case objects including all payloads and 
         const gsTime = now.toTimeString().slice(0, 5).replace(':', '');
         const controlNum = String(index).padStart(3, '0');
         console.log(`🔧 Creating ${testCaseType} test case ${index} for ${testCaseId}`);
+        console.log(`📋 Template mapping: ${testCaseId} → ${testCaseType}`);
         switch (testCaseType) {
             case 'active':
                 return this.createActiveTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
@@ -634,6 +635,12 @@ Return as JSON array with complete test case objects including all payloads and 
                 return this.createInactiveTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
             case 'not_found':
                 return this.createNotFoundTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
+            case 'pharmacy':
+                return this.createPharmacyTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
+            case 'invalid_id':
+                return this.createInvalidIdTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
+            case 'family_coverage':
+                return this.createFamilyCoverageTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
             default:
                 console.warn(`⚠️ Unknown test case type: ${testCaseType}, defaulting to active`);
                 return this.createActiveTestCase(controlNum, isaDate, isaTime, gsDate, gsTime);
@@ -641,13 +648,42 @@ Return as JSON array with complete test case objects including all payloads and 
     }
     static determineTestCaseType(testCaseId) {
         const id = testCaseId.toLowerCase();
-        if (id.includes('inactive') || id.includes('terminated') || id.includes('expired') ||
-            id.includes('coverage verification') || id.includes('tc_002')) {
+        if (id === 'tc_001') {
+            return 'active';
+        }
+        else if (id === 'tc_002') {
             return 'inactive';
         }
-        else if (id.includes('not found') || id.includes('error') || id.includes('invalid') ||
-            id.includes('member not found') || id.includes('error handling') || id.includes('tc_003')) {
+        else if (id === 'tc_003') {
             return 'not_found';
+        }
+        else if (id === 'tc_004') {
+            return 'pharmacy';
+        }
+        else if (id === 'tc_005') {
+            return 'invalid_id';
+        }
+        else if (id === 'tc_006') {
+            return 'family_coverage';
+        }
+        else if (id.includes('inactive') || id.includes('terminated') || id.includes('expired') ||
+            id.includes('coverage verification')) {
+            return 'inactive';
+        }
+        else if (id.includes('not found') || id.includes('error handling') || id.includes('member not found')) {
+            return 'not_found';
+        }
+        else if (id.includes('pharmacy') || id.includes('service type 88') || id.includes('drug') ||
+            id.includes('88 coverage')) {
+            return 'pharmacy';
+        }
+        else if (id.includes('invalid') || id.includes('format') || id.includes('member id format') ||
+            id.includes('id format')) {
+            return 'invalid_id';
+        }
+        else if (id.includes('family') || id.includes('coverage level') || id.includes('family vs individual') ||
+            id.includes('fam coverage')) {
+            return 'family_coverage';
         }
         else {
             return 'active';
@@ -743,6 +779,99 @@ Return as JSON array with complete test case objects including all payloads and 
                 required: ['AAA*Y*15*72*N', 'MSG*Subscriber/Insured Not Found'],
                 forbidden: ['EB*1*IND', 'EB*6*IND', 'MSG*Active Coverage'],
                 business: ['Invalid member should return AAA error segment with action code 15', 'Should include MSG segment with error description', 'Should not include EB segments for not found members']
+            }
+        };
+    }
+    static createPharmacyTestCase(controlNum, isaDate, isaTime, gsDate, gsTime) {
+        const request270 = `ISA*00*          *00*          *ZZ*030240928     *ZZ*6686CBAF-048001*${isaDate}*${isaTime}*^*00501*0000002${controlNum}*0*T*:~GS*HS*030240928*6686CBAF-048001*${gsDate}*${isaTime}*2${controlNum}*X*005010X279A1~ST*270*0002${controlNum}*005010X279A1~BHT*0022*13*ELIG-REQ-0002${controlNum}*${gsDate}*${isaTime}*RP~HL*1**20*1~NM1*PR*2*AETNA*****PI*60054~HL*2*1*21*1~NM1*1P*2*MAIN STREET CLINIC*****XX*1234567890~HL*3*2*22*0~TRN*1*ELIG-${gsDate}-0002${controlNum}*9876543210~NM1*IL*1*DOE*JANE****MI*W445566778~DMG*D8*19801010*F~DTP*291*D8*${gsDate}~EQ*88~SE*13*0002${controlNum}~GE*1*2${controlNum}~IEA*1*0000002${controlNum}~`;
+        const response271 = `ISA*00*          *00*          *ZZ*6686CBAF-048001*ZZ*030240928     *${isaDate}*${isaTime}*^*00501*0000002${controlNum}*0*T*:~GS*HB*6686CBAF-048001*030240928*${gsDate}*${isaTime}*2${controlNum}*X*005010X279A1~ST*271*0002${controlNum}*005010X279A1~BHT*0022*11*ELIG-REQ-0002${controlNum}*${gsDate}*${isaTime}*CH~HL*1**20*1~NM1*PR*2*AETNA*****PI*60054~HL*2*1*21*1~NM1*1P*2*MAIN STREET CLINIC*****XX*1234567890~HL*3*2*22*0~TRN*2*ELIG-${gsDate}-0002${controlNum}*9876543210~NM1*IL*1*DOE*JANE****MI*W445566778~DTP*291*D8*${gsDate}~EB*1*IND*88****1~DTP*356*D8*20240101~MSG*Active Coverage for Pharmacy Benefits.~SE*13*0002${controlNum}~GE*1*2${controlNum}~IEA*1*0000002${controlNum}~`;
+        return {
+            id: `TC_PHARMACY_${controlNum}`,
+            title: 'Service Type 88 Coverage (Pharmacy)',
+            description: 'Test case for pharmacy benefits coverage verification',
+            priority: 'Critical',
+            category: 'Additional',
+            memberData: {
+                memberId: 'W445566778',
+                firstName: 'JANE',
+                lastName: 'DOE',
+                dob: '19801010',
+                serviceType: '88'
+            },
+            request270: {
+                payload: request270,
+                segments: []
+            },
+            expectedResponse271: {
+                payload: response271,
+                segments: []
+            },
+            validationRules: {
+                required: ['EB*1*IND*88', 'MSG*Active Coverage for Pharmacy Benefits'],
+                forbidden: ['AAA*Y*79', 'EB*6*IND'],
+                business: ['Pharmacy coverage should return EB*1*IND*88', 'Should include pharmacy-specific benefits message']
+            }
+        };
+    }
+    static createInvalidIdTestCase(controlNum, isaDate, isaTime, gsDate, gsTime) {
+        const request270 = `ISA*00*          *00*          *ZZ*030240928     *ZZ*6686CBAF-048001*${isaDate}*${isaTime}*^*00501*0000002${controlNum}*0*T*:~GS*HS*030240928*6686CBAF-048001*${gsDate}*${isaTime}*2${controlNum}*X*005010X279A1~ST*270*0002${controlNum}*005010X279A1~BHT*0022*13*ELIG-REQ-0002${controlNum}*${gsDate}*${isaTime}*RP~HL*1**20*1~NM1*PR*2*AETNA*****PI*60054~HL*2*1*21*1~NM1*1P*2*CITY HEALTH PROVIDERS*****XX*2233445566~HL*3*2*22*0~TRN*1*ELIG-${gsDate}-0002${controlNum}*9876543210~NM1*IL*1*SMITH*ROBERT****MI*INVALID123~DMG*D8*19900101*M~DTP*291*D8*${gsDate}~EQ*30~SE*13*0002${controlNum}~GE*1*2${controlNum}~IEA*1*0000002${controlNum}~`;
+        const response271 = `ISA*00*          *00*          *ZZ*6686CBAF-048001*ZZ*030240928     *${isaDate}*${isaTime}*^*00501*0000002${controlNum}*0*T*:~GS*HB*6686CBAF-048001*030240928*${gsDate}*${isaTime}*2${controlNum}*X*005010X279A1~ST*271*0002${controlNum}*005010X279A1~BHT*0022*11*ELIG-REQ-0002${controlNum}*${gsDate}*${isaTime}*CH~HL*1**20*1~NM1*PR*2*AETNA*****PI*60054~HL*2*1*21*1~NM1*1P*2*CITY HEALTH PROVIDERS*****XX*2233445566~HL*3*2*22*0~TRN*2*ELIG-${gsDate}-0002${controlNum}*9876543210~NM1*IL*1*SMITH*ROBERT****MI*INVALID123~AAA*Y*15*72*N~MSG*Invalid Member ID Format.~SE*12*0002${controlNum}~GE*1*2${controlNum}~IEA*1*0000002${controlNum}~`;
+        return {
+            id: `TC_INVALID_ID_${controlNum}`,
+            title: 'Member ID Format Test (Invalid ID)',
+            description: 'Test case for invalid member ID format validation',
+            priority: 'Critical',
+            category: 'Additional',
+            memberData: {
+                memberId: 'INVALID123',
+                firstName: 'ROBERT',
+                lastName: 'SMITH',
+                dob: '19900101',
+                serviceType: '30'
+            },
+            request270: {
+                payload: request270,
+                segments: []
+            },
+            expectedResponse271: {
+                payload: response271,
+                segments: []
+            },
+            validationRules: {
+                required: ['AAA*Y*15*72*N', 'MSG*Invalid Member ID Format'],
+                forbidden: ['EB*1*IND', 'EB*6*IND', 'MSG*Active Coverage'],
+                business: ['Invalid ID format should return AAA error segment with action code 15', 'Should include MSG segment with format error description', 'Should not include EB segments for invalid IDs']
+            }
+        };
+    }
+    static createFamilyCoverageTestCase(controlNum, isaDate, isaTime, gsDate, gsTime) {
+        const request270 = `ISA*00*          *00*          *ZZ*030240928     *ZZ*6686CBAF-048001*${isaDate}*${isaTime}*^*00501*0000002${controlNum}*0*T*:~GS*HS*030240928*6686CBAF-048001*${gsDate}*${isaTime}*2${controlNum}*X*005010X279A1~ST*270*0002${controlNum}*005010X279A1~BHT*0022*13*ELIG-REQ-0002${controlNum}*${gsDate}*${isaTime}*RP~HL*1**20*1~NM1*PR*2*AETNA*****PI*60054~HL*2*1*21*1~NM1*1P*2*FAMILY CARE CLINIC*****XX*3344556677~HL*3*2*22*0~TRN*1*ELIG-${gsDate}-0002${controlNum}*9876543210~NM1*IL*1*JOHNSON*DAVID****MI*W556677889~DMG*D8*19850505*M~DTP*291*D8*${gsDate}~EQ*30~SE*13*0002${controlNum}~GE*1*2${controlNum}~IEA*1*0000002${controlNum}~`;
+        const response271 = `ISA*00*          *00*          *ZZ*6686CBAF-048001*ZZ*030240928     *${isaDate}*${isaTime}*^*00501*0000002${controlNum}*0*T*:~GS*HB*6686CBAF-048001*030240928*${gsDate}*${isaTime}*2${controlNum}*X*005010X279A1~ST*271*0002${controlNum}*005010X279A1~BHT*0022*11*ELIG-REQ-0002${controlNum}*${gsDate}*${isaTime}*CH~HL*1**20*1~NM1*PR*2*AETNA*****PI*60054~HL*2*1*21*1~NM1*1P*2*FAMILY CARE CLINIC*****XX*3344556677~HL*3*2*22*0~TRN*2*ELIG-${gsDate}-0002${controlNum}*9876543210~NM1*IL*1*JOHNSON*DAVID****MI*W556677889~DTP*291*D8*${gsDate}~EB*1*FAM*30****1~DTP*356*D8*20240101~MSG*Active Family Coverage for General Health Benefits.~SE*13*0002${controlNum}~GE*1*2${controlNum}~IEA*1*0000002${controlNum}~`;
+        return {
+            id: `TC_FAMILY_COVERAGE_${controlNum}`,
+            title: 'Coverage Level Test (Family vs Individual)',
+            description: 'Test case for family coverage level verification',
+            priority: 'Critical',
+            category: 'Additional',
+            memberData: {
+                memberId: 'W556677889',
+                firstName: 'DAVID',
+                lastName: 'JOHNSON',
+                dob: '19850505',
+                serviceType: '30'
+            },
+            request270: {
+                payload: request270,
+                segments: []
+            },
+            expectedResponse271: {
+                payload: response271,
+                segments: []
+            },
+            validationRules: {
+                required: ['EB*1*FAM*30', 'MSG*Active Family Coverage'],
+                forbidden: ['AAA*Y*79', 'EB*6*IND', 'EB*1*IND'],
+                business: ['Family coverage should return EB*1*FAM*30', 'Should distinguish between family and individual coverage', 'Should include family-specific benefits message']
             }
         };
     }

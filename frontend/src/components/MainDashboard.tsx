@@ -112,6 +112,7 @@ const HeaderActions: React.FC = () => {
 export const MainDashboard: React.FC = () => {
   const location = useLocation();
   const isEditMode = location.pathname.includes('/edit/');
+  const { user } = useAuth(); // Get current user for role-based access
 
   const [activeTab, setActiveTab] = useState<TabId>('questionnaire');
 
@@ -132,6 +133,16 @@ export const MainDashboard: React.FC = () => {
   useEffect(() => {
     loadQuestionnaire();
   }, []);
+
+  // Safety check: If payer user is on a restricted tab, redirect to questionnaire
+  useEffect(() => {
+    if (user?.userType === 'payer') {
+      const restrictedTabs: TabId[] = ['configurations', 'testing', 'users'];
+      if (restrictedTabs.includes(activeTab)) {
+        setActiveTab('questionnaire');
+      }
+    }
+  }, [user, activeTab]);
 
   const loadQuestionnaire = async () => {
     try {
@@ -171,7 +182,8 @@ export const MainDashboard: React.FC = () => {
     setChatbotContext(context);
   }, []);
 
-  const tabs: Tab[] = [
+  // Define all available tabs
+  const allTabs: Tab[] = [
     {
       id: 'questionnaire',
       label: 'Questionnaire',
@@ -219,6 +231,17 @@ export const MainDashboard: React.FC = () => {
       )
     }
   ];
+
+  // Filter tabs based on user role - hide restricted tabs for payer users
+  const tabs: Tab[] = allTabs.filter(tab => {
+    // If user is a payer, hide configurations, testing, and users tabs
+    if (user?.userType === 'payer') {
+      const restrictedTabs: TabId[] = ['configurations', 'testing', 'users'];
+      return !restrictedTabs.includes(tab.id);
+    }
+    // Availity users see all tabs
+    return true;
+  });
 
   const renderTabContent = () => {
     switch (activeTab) {

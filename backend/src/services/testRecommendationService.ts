@@ -263,7 +263,7 @@ IEA*1*000000103~
    */
   private static createAIPrompt(payerInfo: PayerInfo, configuration: PayerConfiguration): string {
     return `
-You are an expert in X12 EDI 270/271 HIPAA transactions and healthcare payer testing. Generate exactly 6 test case RECOMMENDATIONS for payer testing based on the configuration provided.
+You are an expert in X12 EDI 270/271 HIPAA transactions and healthcare payer testing. Generate exactly 12 test case RECOMMENDATIONS for payer testing based on the configuration provided.
 
 PAYER INFORMATION:
 - Name: ${payerInfo.name}
@@ -293,23 +293,59 @@ REQUIRED TEST CASE RECOMMENDATIONS (Generate exactly these 6):
    - Priority: Critical
    - Estimated Duration: 1 minute
 
-4. **Service Type 88 Coverage (Medium)**
+4. **Service Type 88 Coverage (Critical)**
    - Description: Test pharmacy service type coverage verification
+   - Category: Core Functionality
+   - Priority: Critical
+   - Estimated Duration: 3 minutes
+
+5. **Member ID Format Test (Critical)**
+   - Description: Test member ID format validation and requirements
+   - Category: Core Functionality
+   - Priority: Critical
+   - Estimated Duration: 2 minutes
+
+6. **Coverage Level Test (Critical)**
+   - Description: Test family vs individual coverage level verification
+   - Category: Core Functionality
+   - Priority: Critical
+   - Estimated Duration: 2 minutes
+
+7. **Future Effective Coverage (Medium)**
+   - Description: Test member coverage that starts in the future (DTP*356 > service date)
    - Category: Additional Testing
    - Priority: Medium
    - Estimated Duration: 3 minutes
 
-5. **Member ID Format Test (Medium)**
-   - Description: Test member ID format validation and requirements
+8. **Terminated Coverage Validation (Medium)**
+   - Description: Test response where termination date (DTP*357) is before service date
    - Category: Additional Testing
    - Priority: Medium
-   - Estimated Duration: 2 minutes
+   - Estimated Duration: 3 minutes
 
-6. **Coverage Level Test (Medium)**
-   - Description: Test family vs individual coverage level verification
+9. **Dependent Eligibility Verification (Medium)**
+   - Description: Test subscriber vs dependent eligibility under family plan
    - Category: Additional Testing
    - Priority: Medium
-   - Estimated Duration: 2 minutes
+   - Estimated Duration: 4 minutes
+
+10. **Dual Coverage (Medical & Dental) (Medium)**
+    - Description: Test multiple EB segments with different service types (30 for medical, 35 for dental)
+    - Category: Additional Testing
+    - Priority: Medium
+    - Estimated Duration: 5 minutes
+
+11. **Medicare / Other Payer ID Check (Medium)**
+    - Description: Test payer response when alternate payer ID or Medicare ID is used
+    - Category: Additional Testing
+    - Priority: Medium
+    - Estimated Duration: 3 minutes
+
+12. **Gender Mismatch Handling (Medium)**
+    - Description: Test rejection or warning when gender in request doesn't match payer record
+    - Category: Additional Testing
+    - Priority: Medium
+    - Estimated Duration: 3 minutes
 
 Return ONLY test case recommendations as a JSON array with these fields:
 - id: string (TC_001, TC_002, etc.)
@@ -520,25 +556,73 @@ Do NOT include payloads, member data, or validation rules in this response.
         id: 'TC_004',
         title: 'Service Type 88 Coverage (Aetna)',
         description: 'Test pharmacy service type coverage verification',
-        priority: 'Medium',
-        category: 'Additional Testing',
+        priority: 'Critical',
+        category: 'Core Functionality',
         estimatedDuration: '3 minutes'
       },
       {
         id: 'TC_005',
         title: 'Member ID Format Test (Aetna)',
         description: 'Test member ID format validation and requirements',
-        priority: 'Medium',
-        category: 'Additional Testing',
+        priority: 'Critical',
+        category: 'Core Functionality',
         estimatedDuration: '2 minutes'
       },
       {
         id: 'TC_006',
         title: 'Coverage Level Test (Aetna)',
         description: 'Test family vs individual coverage level verification',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '2 minutes'
+      },
+      {
+        id: 'TC_007',
+        title: 'Future Effective Coverage (Aetna)',
+        description: 'Test member coverage that starts in the future (DTP*356 > service date)',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '2 minutes'
+        estimatedDuration: '3 minutes'
+      },
+      {
+        id: 'TC_008',
+        title: 'Terminated Coverage Validation (Aetna)',
+        description: 'Test response where termination date (DTP*357) is before service date',
+        priority: 'Medium',
+        category: 'Additional Testing',
+        estimatedDuration: '3 minutes'
+      },
+      {
+        id: 'TC_009',
+        title: 'Dependent Eligibility Verification (Aetna)',
+        description: 'Test subscriber vs dependent eligibility under family plan',
+        priority: 'Medium',
+        category: 'Additional Testing',
+        estimatedDuration: '4 minutes'
+      },
+      {
+        id: 'TC_010',
+        title: 'Dual Coverage (Medical & Dental) (Aetna)',
+        description: 'Test multiple EB segments with different service types (30 for medical, 35 for dental)',
+        priority: 'Medium',
+        category: 'Additional Testing',
+        estimatedDuration: '5 minutes'
+      },
+      {
+        id: 'TC_011',
+        title: 'Medicare / Other Payer ID Check (Aetna)',
+        description: 'Test payer response when alternate payer ID or Medicare ID is used',
+        priority: 'Medium',
+        category: 'Additional Testing',
+        estimatedDuration: '3 minutes'
+      },
+      {
+        id: 'TC_012',
+        title: 'Gender Mismatch Handling (Aetna)',
+        description: 'Test rejection or warning when gender in request doesn\'t match payer record',
+        priority: 'Medium',
+        category: 'Additional Testing',
+        estimatedDuration: '3 minutes'
       }
     ];
 

@@ -85,6 +85,9 @@ export declare class TestRecommendationService {
     private static createActiveTestCase;
     private static createInactiveTestCase;
     private static createNotFoundTestCase;
+    private static createPharmacyTestCase;
+    private static createInvalidIdTestCase;
+    private static createFamilyCoverageTestCase;
     private static getFallbackTestData;
 }
 //# sourceMappingURL=testRecommendationService.d.ts.map
