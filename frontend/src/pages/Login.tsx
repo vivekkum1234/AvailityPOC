@@ -68,18 +68,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       {/* Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-availity-500 rounded-xl flex items-center justify-center shadow-medium">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
+          <img
+            src="/availity.jpeg"
+            alt="Availity Logo"
+            className="w-20 h-20 object-contain"
+          />
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-          Sign in to APOC
+          Availity Digital Questionnaire Platform
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Availity POC Digital Questionnaire Platform
-        </p>
       </div>
 
       {/* Login Form */}
