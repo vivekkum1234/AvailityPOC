@@ -47,6 +47,7 @@ export interface ExportedJsonData {
 export declare class JsonExportService {
     static exportToClientFormat(response: QuestionnaireResponse): ExportedJsonData | null;
     private static exportB2BFormat;
+    private static exportWebFormat;
     private static formatOrganizationName;
     private static getFieldValue;
     private static extractUserInfo;

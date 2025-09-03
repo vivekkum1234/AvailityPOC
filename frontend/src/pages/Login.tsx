@@ -14,10 +14,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   // Mock users for login (matching our database users)
   const mockUsers = [
-    { email: 'admin@aetna.com', name: 'John Smith', userType: 'payer' as const, organization: 'Aetna' },
-    { email: 'admin@sample.com', name: 'Mike Davis', userType: 'payer' as const, organization: 'Aetna' },
+    { email: 'John.smith@aetnademo.com', name: 'John Smith', userType: 'payer' as const, organization: 'Aetna' },
+    { email: 'Mike.davis@aetnademo.com', name: 'Mike Davis', userType: 'payer' as const, organization: 'Aetna' },
     { email: 'admin@availity.com', name: 'Lisa Wilson', userType: 'availity' as const, organization: 'Availity' },
-    { email: 'support@availity.com', name: 'David Brown', userType: 'payer' as const, organization: 'Aetna' },
+    { email: 'David.brown@aetnademo.com', name: 'David Brown', userType: 'payer' as const, organization: 'Aetna' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
