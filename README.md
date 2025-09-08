@@ -8,12 +8,15 @@ APOC (Availity Proof of Concept) is an advanced test case generation system desi
 
 ### ✨ Key Features
 
+- **📋 Digital Questionnaire**: Interactive X12 270/271 implementation questionnaire
+- **🔄 Multi-Mode Support**: Real-time B2B, Real-time Web, and Batch processing modes
 - **🤖 AI-Powered Test Recommendations**: Generate 12 dynamic test cases based on payer configuration
-- **📋 Intelligent Test Data Generation**: Create complete X12 270/271 payloads with realistic synthetic data
+- **📊 Intelligent Test Data Generation**: Create complete X12 270/271 payloads with realistic synthetic data
 - **🏥 Healthcare-Focused**: Provider names, NPIs, member IDs, and trading partner data
 - **⚡ Real-Time Testing**: Execute test cases against mock payer endpoints
-- **📊 Comprehensive Validation**: X12 format validation and business rule checking
-- **🎨 Professional UI**: Clean, responsive interface for test case management
+- **✅ Comprehensive Validation**: X12 format validation and business rule checking
+- **📈 Progress Tracking**: Visual progress indicators and submission management
+- **🎨 Professional UI**: Clean, responsive interface for complete workflow management
 
 ## 🚀 Live Demo
 
@@ -27,9 +30,10 @@ APOC (Availity Proof of Concept) is an advanced test case generation system desi
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   React Frontend │    │  Express Backend │    │   Supabase DB   │
 │                 │    │                 │    │                 │
-│ • Test Case UI  │◄──►│ • AI Integration │◄──►│ • Questionnaires│
-│ • Data Display  │    │ • X12 Generation │    │ • Submissions   │
-│ • Execution     │    │ • Mock Payer     │    │ • Test Results  │
+│ • Questionnaire │◄──►│ • AI Integration │◄──►│ • Questionnaires│
+│ • Test Case UI  │    │ • X12 Generation │    │ • Submissions   │
+│ • Data Display  │    │ • Mock Payer     │    │ • Test Results  │
+│ • Execution     │    │ • Validation     │    │ • User Data     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -103,30 +107,81 @@ npm run dev
 - Backend API: http://localhost:3002
 - API Docs: http://localhost:3002/api
 
-## 📋 Usage Guide
+## 📋 Complete Workflow Guide
 
-### 1. Create Payer Configuration
-1. Navigate to the questionnaire section
-2. Fill out payer implementation details
-3. Submit configuration
+### 1. Digital Questionnaire (Implementation Setup)
+1. **Access Questionnaire**: Navigate to the main questionnaire section
+2. **Select Implementation Mode**: Choose from:
+   - **Real-time B2B**: Direct payer-to-payer integration
+   - **Real-time Web**: Web portal integration
+   - **Batch**: File-based processing
+3. **Fill Implementation Details**:
+   - Payer information and contact details
+   - Supported service types (30, 12, 13, 35, 88, AL, MH)
+   - Search options (Patient ID + DOB, Patient ID + Name + DOB, etc.)
+   - Technical specifications (XML wrapper, system hours, thread limits)
+   - Testing environment details
+4. **Submit Configuration**: Save your implementation setup
 
-### 2. Generate Test Recommendations
-1. Go to "Payer Testing" section
-2. Select your payer configuration
-3. Click "Generate Test Recommendations"
-4. Wait 20-30 seconds for AI processing
+### 2. Review Submissions
+1. **View Submissions**: Check all submitted questionnaire responses
+2. **Track Progress**: Monitor completion status and timestamps
+3. **Edit if Needed**: Update configurations as requirements change
 
-### 3. Generate Test Data
-1. Select test cases from recommendations
-2. Click "Generate Test Data"
-3. Review generated X12 270/271 payloads
-4. Verify realistic synthetic data
+### 3. Generate Test Recommendations (AI-Powered)
+1. **Access Payer Testing**: Go to "Payer Testing" section
+2. **Select Configuration**: Choose your submitted payer configuration
+3. **Generate Recommendations**: Click "Generate Test Recommendations"
+4. **AI Processing**: Wait 20-30 seconds for intelligent analysis
+5. **Review Results**: Get 12 contextual test cases based on your configuration
 
-### 4. Execute Tests
-1. Select test cases to run
-2. Click "Execute Tests"
-3. Review validation results
-4. Check business rule compliance
+### 4. Generate Test Data (AI-Powered)
+1. **Select Test Cases**: Choose from AI-generated recommendations
+2. **Generate Data**: Click "Generate Test Data"
+3. **AI Processing**: Wait 20-30 seconds for complete X12 payload generation
+4. **Review Output**:
+   - Complete X12 270 request payloads
+   - Complete X12 271 response payloads
+   - Realistic synthetic data (provider names, NPIs, member IDs)
+   - Validation rules and business logic
+
+### 5. Execute Tests
+1. **Select Test Cases**: Choose generated test cases to run
+2. **Execute**: Click "Execute Tests" against mock payer endpoint
+3. **Real-time Results**: View immediate test execution results
+4. **Validation**: Check X12 format validation and business rule compliance
+5. **Analysis**: Review response times and success/failure rates
+
+## 📋 Questionnaire Structure
+
+### Implementation Modes
+
+#### 🔄 Real-time B2B
+- **Direct Integration**: Payer-to-payer real-time connectivity
+- **Use Cases**: Live eligibility verification, instant responses
+- **Technical Requirements**: API endpoints, authentication, real-time processing
+- **Configuration**: Service types, search options, system specifications
+
+#### 🌐 Real-time Web
+- **Web Portal**: Browser-based eligibility checking
+- **Use Cases**: Provider portals, member self-service
+- **Technical Requirements**: Web interface, session management, responsive design
+- **Configuration**: UI preferences, user authentication, web-specific settings
+
+#### 📦 Batch Processing
+- **File-based**: Bulk eligibility processing
+- **Use Cases**: Overnight processing, bulk verification
+- **Technical Requirements**: File formats, scheduling, batch validation
+- **Configuration**: File specifications, processing windows, error handling
+
+### Questionnaire Sections
+
+1. **Payer Information**: Organization details, contact information
+2. **Implementation Mode**: Technical approach selection
+3. **Service Types**: Supported X12 service type codes
+4. **Search Options**: Member lookup capabilities
+5. **Technical Specifications**: System requirements and limitations
+6. **Testing Environment**: Test endpoint and validation setup
 
 ## 🔧 Configuration
 
@@ -196,6 +251,25 @@ npm test
   - Trading partners: Availity, Aetna, BCBS, etc.
 
 ## 📊 Sample Output
+
+### Questionnaire Submission
+```json
+{
+  "id": "410a13ca-b41e-4be8-b2c4-ca8ed4c51e87",
+  "organization_id": "AETNA_IMPL_001",
+  "implementation_mode": "real_time_b2b",
+  "payer_name": "Aetna Better Health",
+  "contact_email": "implementation@aetna.com",
+  "supported_service_types": ["30", "12", "13", "35", "88", "AL", "MH"],
+  "search_options": ["Patient Id Dob", "Patient Id Name Dob", "Patient Id First Last"],
+  "test_environment": "Available",
+  "xml_wrapper": false,
+  "system_hours": "24/7",
+  "max_threads": 10,
+  "submitted_at": "2024-09-08T15:30:00Z",
+  "submitted_by": "John Smith"
+}
+```
 
 ### Generated Test Case
 ```json
