@@ -4,7 +4,17 @@ A comprehensive healthcare EDI testing platform that generates intelligent test 
 
 ## 🎯 Overview
 
-APOC (Availity Proof of Concept) is an advanced test case generation system designed for healthcare payers implementing X12 EDI 270/271 eligibility verification. The platform uses AI to generate contextual test scenarios and complete X12 payloads with realistic synthetic data.
+APOC (Availity Proof of Concept) is a comprehensive healthcare EDI implementation and testing platform designed for healthcare payers implementing X12 EDI 270/271 eligibility verification. The platform provides a complete workflow from initial implementation questionnaire through AI-powered test case generation to final validation.
+
+### 🔄 Complete Implementation Workflow
+
+1. **📋 Digital Questionnaire**: Interactive implementation questionnaire capturing payer-specific requirements, technical specifications, and implementation mode selection (Real-time B2B, Real-time Web, or Batch processing)
+
+2. **🤖 AI-Powered Analysis**: Intelligent analysis of questionnaire responses to generate contextual test scenarios tailored to the specific payer configuration and implementation approach
+
+3. **📊 Test Data Generation**: AI creates complete X12 270/271 payloads with realistic synthetic data including healthcare provider information, member details, and trading partner data
+
+4. **⚡ Automated Testing**: Real-time test execution against mock payer endpoints with comprehensive X12 format validation and business rule compliance checking
 
 ### ✨ Key Features
 
