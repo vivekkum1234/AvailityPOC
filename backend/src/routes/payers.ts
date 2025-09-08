@@ -347,7 +347,7 @@ router.post('/payers/:payerId/test-recommendations', async (req, res) => {
     // Add payer info to configuration
     const payerInfo = {
       id: payerId,
-      name: latestSubmission.organization_id || 'Unknown Payer',
+      name: 'Test Payer', // Use simple name instead of long UUID
       implementationMode: latestSubmission.implementation_mode || 'real_time_b2b'
     };
 
@@ -399,6 +399,18 @@ router.post('/payers/:payerId/generate-test-data', async (req, res) => {
       });
     }
 
+    // Validate that selectedTestCases contains TestRecommendation objects
+    const validTestCases = selectedTestCases.filter(tc =>
+      tc && typeof tc === 'object' && tc.id && tc.title && tc.description
+    );
+
+    if (validTestCases.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'selectedTestCases must contain valid TestRecommendation objects with id, title, and description'
+      });
+    }
+
     // Get the payer configuration
     const submissions = await supabaseService.getQuestionnaireResponses({
       organization_id: payerId,
@@ -427,7 +439,7 @@ router.post('/payers/:payerId/generate-test-data', async (req, res) => {
     // Add payer info to configuration
     const payerInfo = {
       id: payerId,
-      name: latestSubmission.organization_id || 'Unknown Payer',
+      name: 'Test Payer', // Use simple name instead of long UUID
       implementationMode: latestSubmission.implementation_mode || 'real_time_b2b'
     };
 
@@ -447,11 +459,11 @@ router.post('/payers/:payerId/generate-test-data', async (req, res) => {
       validProviderDataRequired: baseConfiguration.validProviderDataRequired
     };
 
-    // Generate test data using AI
+    // Generate test data using AI with validated test case objects
     const testData = await TestRecommendationService.generateTestData(
       payerInfo,
       serviceConfiguration,
-      selectedTestCases
+      validTestCases
     );
 
     return res.json({

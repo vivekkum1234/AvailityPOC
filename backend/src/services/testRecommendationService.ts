@@ -25,6 +25,15 @@ export interface TestCase {
     dob: string;
     serviceType: string;
   };
+  syntheticData?: {
+    senderId: string;
+    receiverId: string;
+    providerName: string;
+    providerNPI: string;
+    controlNumber: string;
+    transactionDate: string;
+    transactionTime: string;
+  };
   request270: {
     payload: string;
     segments: X12Segment[];
@@ -72,8 +81,17 @@ export class TestRecommendationService {
   private static readonly AI_API_URL = process.env.OPENAI_API_URL || 'https://api.openai.com/v1/chat/completions';
   private static readonly AI_API_KEY = process.env.OPENAI_API_KEY;
 
-  // Temporary bypass for demo - set to false to use real AI
-  private static readonly USE_SIMULATED_AI = true;
+  static {
+    // Debug API key loading
+    console.log('🔑 TestRecommendationService: OpenAI API Key status:',
+      TestRecommendationService.AI_API_KEY ? 'Loaded' : 'Missing');
+    if (!TestRecommendationService.AI_API_KEY) {
+      console.warn('⚠️ OPENAI_API_KEY environment variable not set');
+    }
+  }
+
+  // Use real AI for dynamic test case generation
+  private static readonly USE_SIMULATED_AI = false;
 
   /**
    * Simulate AI processing with realistic timing (10-12 seconds)
@@ -84,6 +102,63 @@ export class TestRecommendationService {
     await new Promise(resolve => setTimeout(resolve, duration));
     const actualTime = Date.now() - startTime;
     console.log(`✅ AI processing simulation complete (${Math.round(actualTime/1000)}s)`);
+  }
+
+  /**
+   * Extract key configuration details for AI context
+   */
+  private static extractConfigurationContext(configuration: PayerConfiguration): string {
+    const context = [];
+
+    // Implementation mode specific details
+    if (configuration.implementationMode) {
+      context.push(`Implementation Mode: ${configuration.implementationMode}`);
+    }
+
+    // Service types supported
+    if (configuration.supportedServiceTypes && configuration.supportedServiceTypes.length > 0) {
+      context.push(`Supported Service Types: ${configuration.supportedServiceTypes.join(', ')}`);
+    } else if (configuration.supportsAllServiceTypes) {
+      context.push(`Supports All Service Types: Yes`);
+    }
+
+    // Member ID format requirements
+    if (configuration.memberIdFormat) {
+      context.push(`Member ID Format: ${configuration.memberIdFormat}`);
+    }
+
+    // Search options
+    if (configuration.supportedSearchOptions && configuration.supportedSearchOptions.length > 0) {
+      context.push(`Supported Search Options: ${configuration.supportedSearchOptions.join(', ')}`);
+    }
+
+    // Test environment details
+    if (configuration.testUrl) {
+      context.push(`Test Environment: Available`);
+    }
+
+    // Data requirements
+    if (configuration.validMemberRecordsRequired) {
+      context.push(`Valid Member Records Required: Yes`);
+    }
+    if (configuration.validProviderDataRequired) {
+      context.push(`Valid Provider Data Required: Yes`);
+    }
+
+    // Additional configuration details
+    const otherConfig = Object.entries(configuration)
+      .filter(([key, value]) =>
+        !['implementationMode', 'supportedServiceTypes', 'supportsAllServiceTypes',
+          'memberIdFormat', 'supportedSearchOptions', 'testUrl',
+          'validMemberRecordsRequired', 'validProviderDataRequired'].includes(key)
+        && value !== undefined && value !== null && value !== ''
+      )
+      .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+      .slice(0, 5); // Limit to avoid overly long context
+
+    context.push(...otherConfig);
+
+    return context.length > 0 ? context.join('\n- ') : 'Standard configuration';
   }
 
   /**
@@ -234,26 +309,113 @@ IEA*1*000000103~
   }
 
   /**
+   * Get realistic provider name based on index
+   */
+  private static getRealisticProviderName(index: number): string {
+    const providerNames = [
+      'RIVERSIDE MEDICAL CENTER',
+      'FAMILY HEALTH CLINIC',
+      'DOWNTOWN URGENT CARE',
+      'GREEN VALLEY FAMILY CLINIC',
+      'RIVERBEND INTERNAL MEDICINE',
+      'CENTRAL CITY MEDICAL GROUP',
+      'NORTHSIDE FAMILY PRACTICE',
+      'WESTSIDE URGENT CARE',
+      'EASTSIDE MEDICAL CENTER',
+      'SOUTHSIDE HEALTH CLINIC'
+    ];
+    return providerNames[index % providerNames.length] || 'FAMILY HEALTH CLINIC';
+  }
+
+  /**
+   * Get realistic provider NPI based on index
+   */
+  private static getRealisticProviderNPI(index: number): string {
+    const providerNPIs = [
+      '1234567890',
+      '9876543210',
+      '5555666777',
+      '2233445566',
+      '7788990011',
+      '3344556677',
+      '8899001122',
+      '4455667788',
+      '9900112233',
+      '5566778899'
+    ];
+    return providerNPIs[index % providerNPIs.length] || '1234567890';
+  }
+
+  /**
+   * Get realistic first name based on index
+   */
+  private static getRealisticFirstName(index: number): string {
+    const firstNames = [
+      'JOHN',
+      'JANE',
+      'MICHAEL',
+      'SARAH',
+      'DAVID',
+      'LISA',
+      'ROBERT',
+      'MARY',
+      'JAMES',
+      'JENNIFER'
+    ];
+    return firstNames[index % firstNames.length] || 'JOHN';
+  }
+
+  /**
+   * Get realistic last name based on index
+   */
+  private static getRealisticLastName(index: number): string {
+    const lastNames = [
+      'DOE',
+      'SMITH',
+      'JOHNSON',
+      'WILLIAMS',
+      'BROWN',
+      'JONES',
+      'GARCIA',
+      'MILLER',
+      'DAVIS',
+      'RODRIGUEZ'
+    ];
+    return lastNames[index % lastNames.length] || 'DOE';
+  }
+
+  /**
    * Generate test recommendations using AI (Step 1)
    */
   static async generateTestRecommendations(
     payerInfo: PayerInfo,
     configuration: PayerConfiguration
   ): Promise<TestRecommendation[]> {
+    console.log('🎯 Starting test recommendations generation...');
+    console.log('🔑 OpenAI API key status:', this.AI_API_KEY ? 'Available' : 'Missing');
+
     try {
-      // Create the AI prompt with specific instructions for the 6 test cases
+      // Create the AI prompt with specific instructions for the 12 test cases
       const prompt = this.createAIPrompt(payerInfo, configuration);
+      console.log('📝 Created AI prompt, calling OpenAI API...');
 
       // Call AI API
+      const startTime = Date.now();
       const aiResponse = await this.callAI(prompt);
+      const endTime = Date.now();
+      console.log(`🤖 Received AI response in ${endTime - startTime}ms`);
+      console.log('📄 AI response length:', aiResponse.length);
 
       // Parse and structure the response
       const testCases = this.parseAIResponse(aiResponse, payerInfo);
+      console.log(`✅ Successfully parsed ${testCases.length} test recommendations`);
 
       return testCases;
     } catch (error) {
-      console.error('Error generating test recommendations:', error);
+      console.error('❌ Error generating test recommendations:', error);
+      console.error('🔍 Error details:', error instanceof Error ? error.message : String(error));
       // Return fallback test cases if AI fails
+      console.log('🔄 Falling back to template-based test recommendations');
       return this.getFallbackTestCases(payerInfo, configuration);
     }
   }
@@ -263,99 +425,21 @@ IEA*1*000000103~
    */
   private static createAIPrompt(payerInfo: PayerInfo, configuration: PayerConfiguration): string {
     return `
-You are an expert in X12 EDI 270/271 HIPAA transactions and healthcare payer testing. Generate exactly 12 test case RECOMMENDATIONS for payer testing based on the configuration provided.
+Generate 12 test case recommendations for ${payerInfo.name} (${payerInfo.implementationMode}).
 
-PAYER INFORMATION:
-- Name: ${payerInfo.name}
-- Implementation Mode: ${payerInfo.implementationMode}
-- ID: ${payerInfo.id}
+Configuration: ${this.extractConfigurationContext(configuration)}
 
-CONFIGURATION:
-${JSON.stringify(configuration, null, 2)}
+Create relevant test cases based on the payer configuration. Include 6-8 "Core Functionality" (Critical priority) and 4-6 "Additional Testing" (Medium priority).
 
-REQUIRED TEST CASE RECOMMENDATIONS (Generate exactly these 6):
-
-1. **Active Member - General Health Benefits (Critical)**
-   - Description: Test active member eligibility verification for general health benefits
-   - Category: Core Functionality
-   - Priority: Critical
-   - Estimated Duration: 2 minutes
-
-2. **Inactive Member - Coverage Verification (Critical)**
-   - Description: Test inactive/expired member response handling
-   - Category: Core Functionality
-   - Priority: Critical
-   - Estimated Duration: 2 minutes
-
-3. **Member Not Found - Error Handling (Critical)**
-   - Description: Test invalid member ID error handling and response codes
-   - Category: Core Functionality
-   - Priority: Critical
-   - Estimated Duration: 1 minute
-
-4. **Service Type 88 Coverage (Critical)**
-   - Description: Test pharmacy service type coverage verification
-   - Category: Core Functionality
-   - Priority: Critical
-   - Estimated Duration: 3 minutes
-
-5. **Member ID Format Test (Critical)**
-   - Description: Test member ID format validation and requirements
-   - Category: Core Functionality
-   - Priority: Critical
-   - Estimated Duration: 2 minutes
-
-6. **Coverage Level Test (Critical)**
-   - Description: Test family vs individual coverage level verification
-   - Category: Core Functionality
-   - Priority: Critical
-   - Estimated Duration: 2 minutes
-
-7. **Future Effective Coverage (Medium)**
-   - Description: Test member coverage that starts in the future (DTP*356 > service date)
-   - Category: Additional Testing
-   - Priority: Medium
-   - Estimated Duration: 3 minutes
-
-8. **Terminated Coverage Validation (Medium)**
-   - Description: Test response where termination date (DTP*357) is before service date
-   - Category: Additional Testing
-   - Priority: Medium
-   - Estimated Duration: 3 minutes
-
-9. **Dependent Eligibility Verification (Medium)**
-   - Description: Test subscriber vs dependent eligibility under family plan
-   - Category: Additional Testing
-   - Priority: Medium
-   - Estimated Duration: 4 minutes
-
-10. **Dual Coverage (Medical & Dental) (Medium)**
-    - Description: Test multiple EB segments with different service types (30 for medical, 35 for dental)
-    - Category: Additional Testing
-    - Priority: Medium
-    - Estimated Duration: 5 minutes
-
-11. **Medicare / Other Payer ID Check (Medium)**
-    - Description: Test payer response when alternate payer ID or Medicare ID is used
-    - Category: Additional Testing
-    - Priority: Medium
-    - Estimated Duration: 3 minutes
-
-12. **Gender Mismatch Handling (Medium)**
-    - Description: Test rejection or warning when gender in request doesn't match payer record
-    - Category: Additional Testing
-    - Priority: Medium
-    - Estimated Duration: 3 minutes
-
-Return ONLY test case recommendations as a JSON array with these fields:
-- id: string (TC_001, TC_002, etc.)
-- title: string
-- description: string
-- category: "Core Functionality" | "Additional Testing"
-- priority: "Critical" | "Medium" | "Low"
-- estimatedDuration: string
-
-Do NOT include payloads, member data, or validation rules in this response.
+Return JSON array with 12 test cases:
+[{
+  "id": "TC_001",
+  "title": "Test case title",
+  "description": "Test description based on configuration",
+  "category": "Core Functionality",
+  "priority": "Critical",
+  "estimatedDuration": "2 minutes"
+}]
 `;
   }
 
@@ -454,7 +538,9 @@ Do NOT include payloads, member data, or validation rules in this response.
       const response = await fetch(this.AI_API_URL, fetchOptions);
 
       if (!response.ok) {
-        throw new Error(`AI API error: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error('🚨 OpenAI API Error Response:', errorBody);
+        throw new Error(`AI API error: ${response.status} ${response.statusText} - ${errorBody}`);
       }
 
       const data = await response.json() as any;
@@ -530,7 +616,7 @@ Do NOT include payloads, member data, or validation rules in this response.
     const fallbackRecommendations: TestRecommendation[] = [
       {
         id: 'TC_001',
-        title: 'Active Member - General Health Benefits (Aetna)',
+        title: 'Active Member - General Health Benefits',
         description: 'Test active member eligibility verification for general health benefits',
         priority: 'Critical',
         category: 'Core Functionality',
@@ -538,7 +624,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_002',
-        title: 'Inactive Member - Coverage Verification (Aetna)',
+        title: 'Inactive Member - Coverage Verification',
         description: 'Test inactive/expired member response handling',
         priority: 'Critical',
         category: 'Core Functionality',
@@ -546,7 +632,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_003',
-        title: 'Member Not Found - Error Handling (Aetna)',
+        title: 'Member Not Found - Error Handling',
         description: 'Test invalid member ID error handling and response codes',
         priority: 'Critical',
         category: 'Core Functionality',
@@ -554,7 +640,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_004',
-        title: 'Service Type 88 Coverage (Aetna)',
+        title: 'Service Type 88 Coverage',
         description: 'Test pharmacy service type coverage verification',
         priority: 'Critical',
         category: 'Core Functionality',
@@ -562,7 +648,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_005',
-        title: 'Member ID Format Test (Aetna)',
+        title: 'Member ID Format Test',
         description: 'Test member ID format validation and requirements',
         priority: 'Critical',
         category: 'Core Functionality',
@@ -570,7 +656,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_006',
-        title: 'Coverage Level Test (Aetna)',
+        title: 'Coverage Level Test',
         description: 'Test family vs individual coverage level verification',
         priority: 'Critical',
         category: 'Core Functionality',
@@ -578,7 +664,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_007',
-        title: 'Future Effective Coverage (Aetna)',
+        title: 'Future Effective Coverage',
         description: 'Test member coverage that starts in the future (DTP*356 > service date)',
         priority: 'Medium',
         category: 'Additional Testing',
@@ -586,7 +672,7 @@ Do NOT include payloads, member data, or validation rules in this response.
       },
       {
         id: 'TC_008',
-        title: 'Terminated Coverage Validation (Aetna)',
+        title: 'Terminated Coverage Validation',
         description: 'Test response where termination date (DTP*357) is before service date',
         priority: 'Medium',
         category: 'Additional Testing',
@@ -635,47 +721,52 @@ Do NOT include payloads, member data, or validation rules in this response.
   static async generateTestData(
     payerInfo: PayerInfo,
     configuration: PayerConfiguration,
-    selectedTestCases: string[]
+    selectedTestCases: TestRecommendation[]
   ): Promise<TestCase[]> {
     console.log('🧪 Generating test data for selected test cases:', selectedTestCases);
+    console.log('🤖 Using AI to generate contextual test data...');
 
-    // For POC: Hit AI for demonstration but use proven templates for results
-    // This provides realistic loading time while guaranteeing exact data.md payloads
-    console.log('🤖 Demonstrating AI processing for POC...');
-
-    // Temporary bypass for demo - use simulated AI processing
-    if (this.USE_SIMULATED_AI) {
-      console.log('📝 Starting AI test data generation (simulated for demo)...');
-
-      // Simulate realistic AI processing time (fixed 10 seconds for testing)
-      const processingTime = 10000; // Exactly 10 seconds
-      await this.simulateAIProcessing(processingTime);
-
-      console.log('🎯 Using proven templates for guaranteed exact payloads from data.md');
-      return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
-    }
-
-    // Real AI processing (preserved for future use)
+    // Check if AI API key is available
     if (!this.AI_API_KEY) {
       console.warn('⚠️ OpenAI API key not found, using proven template test data');
       return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
     }
 
     try {
-      // Create optimized AI prompt for faster processing
-      const prompt = this.createOptimizedTestDataPrompt(payerInfo, configuration, selectedTestCases);
-      console.log('📝 Sending optimized request to AI for realistic 10-15s processing...');
+      // Create AI prompt with configuration context for test data generation
+      const prompt = this.createContextualTestDataPrompt(payerInfo, configuration, selectedTestCases);
+      console.log('📝 Sending contextual request to AI for test data generation...');
+      console.log('🔑 Using OpenAI API key:', this.AI_API_KEY ? 'Available' : 'Missing');
+      console.log('📋 Selected test cases count:', selectedTestCases.length);
+      console.log('📏 Prompt length:', prompt.length, 'characters');
 
-      // Call AI API with optimized parameters for faster response
-      const aiResponse = await this.callOptimizedAI(prompt);
-      console.log('🤖 Received AI response (using proven templates for guaranteed results)');
+      // Log a preview of the prompt to debug
+      console.log('📄 Prompt preview (first 500 chars):', prompt.substring(0, 500));
 
-      // Use proven templates for guaranteed results while maintaining realistic timing
-      console.log('🎯 Using proven templates for guaranteed exact payloads from data.md');
-      return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+      // Call AI API for test data generation
+      const startTime = Date.now();
+      const aiResponse = await this.callAI(prompt);
+      const endTime = Date.now();
+      console.log(`🤖 Received AI response in ${endTime - startTime}ms, parsing test data...`);
+      console.log('📄 AI response length:', aiResponse.length);
+
+      // Parse AI response and validate
+      console.log('🔍 Raw AI response preview (first 500 chars):', aiResponse.substring(0, 500));
+      console.log('🔍 Raw AI response preview (last 200 chars):', aiResponse.substring(Math.max(0, aiResponse.length - 200)));
+
+      const aiTestCases = this.parseTestDataResponse(aiResponse, payerInfo, selectedTestCases);
+
+      if (aiTestCases && aiTestCases.length > 0) {
+        console.log(`✅ Successfully generated ${aiTestCases.length} AI test cases`);
+        return aiTestCases;
+      } else {
+        console.warn('⚠️ AI response was empty or invalid, falling back to templates');
+        return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+      }
 
     } catch (error) {
-      console.error('❌ AI call failed, using proven templates');
+      console.error('❌ AI call failed, using proven templates:', error);
+      console.error('🔍 Error details:', error instanceof Error ? error.message : String(error));
       return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
     }
 
@@ -756,6 +847,81 @@ Return brief JSON array with:
 - Keep responses concise for faster processing
 
 Example: [{"id":"TC_001","title":"Active Member Test","description":"Basic eligibility check","priority":"Critical"}]
+`;
+  }
+
+  /**
+   * Create contextual AI prompt for test data generation based on configuration
+   */
+  private static createContextualTestDataPrompt(
+    payerInfo: PayerInfo,
+    configuration: PayerConfiguration,
+    selectedTestCases: TestRecommendation[]
+  ): string {
+    const configContext = this.extractConfigurationContext(configuration);
+
+    return `
+Generate X12 270/271 test data for ${selectedTestCases.length} test cases for ${payerInfo.name}.
+
+PAYER: ${payerInfo.name} (${payerInfo.implementationMode})
+CONFIG: ${configContext}
+
+TEST CASES:
+${selectedTestCases.map((tc, i) => `${i + 1}. ${tc.title} - ${tc.description}`).join('\n')}
+
+REQUIREMENTS:
+- Generate complete X12 270 request and 271 response payloads
+- Use consistent data between 270 and 271 (same member, provider, control numbers)
+- Generate appropriate segments based on test case scenario:
+  * Active member → EB*1 segments
+  * Inactive member → EB*6 segments
+  * Member not found → AAA error segments
+- Use realistic member IDs, provider names, and control numbers
+
+SEGMENT EXAMPLES:
+- Active member: EB*1*IND*30****1
+- Inactive member: EB*6*IND*30 + DTP*357*D8*{end_date}
+- Member not found: AAA*Y*15*72*N
+- Pharmacy: EB*1*IND*88****1
+- Family coverage: EB*1*FAM*30****1
+
+INSTRUCTIONS:
+1. Analyze each test case title to determine scenario
+2. Generate appropriate X12 segments:
+   - "Active" → EB*1 (Active Coverage)
+   - "Inactive/Terminated" → EB*6 + DTP*357
+   - "Not Found/Invalid" → AAA error segments
+   - "Pharmacy" → Service type 88
+   - "Individual" → EB02=IND, "Family" → EB02=FAM
+3. Use consistent data between 270 and 271
+4. GENERATE REALISTIC SYNTHETIC DATA:
+   - Provider Names: "RIVERSIDE MEDICAL CENTER", "FAMILY HEALTH CLINIC", "DOWNTOWN URGENT CARE"
+   - Provider NPIs: "1234567890", "9876543210", "5555666777"
+   - Member IDs: "W883449464", "M123456789", "A987654321"
+   - Member Names: "JOHN DOE", "JANE SMITH", "MICHAEL JOHNSON"
+   - Sender IDs: "030240928" (Availity), "CLEARHS01"
+   - Receiver IDs: "AETNA", "60054", "BCBSFL"
+5. GENERATE COMPLETE X12 PAYLOADS - NOT PLACEHOLDERS:
+   - Include ALL required segments: ISA, GS, ST, BHT, HL, NM1, DMG, DTP, EQ/EB, SE, GE, IEA
+   - Use proper X12 format with ~ segment terminators
+   - Generate actual segment data, not "Complete X12 payload" text
+   - 270 request must have EQ segment, 271 response must have EB segment
+
+IMPORTANT: Generate COMPLETE X12 payloads like the examples above. Do NOT use placeholder text like "Complete X12 payload" - generate actual ISA~GS~ST~...~IEA segments.
+
+Return JSON array:
+[{
+  "id": "TC_001",
+  "title": "Test case title",
+  "description": "Description",
+  "priority": "Critical",
+  "category": "Core",
+  "memberData": {"memberId": "W883449464", "firstName": "JOHN", "lastName": "DOE", "dob": "1985-01-15", "serviceType": "30"},
+  "syntheticData": {"senderId": "030240928", "receiverId": "AETNA", "providerName": "RIVERSIDE MEDICAL CENTER", "providerNPI": "1234567890", "controlNumber": "001", "transactionDate": "241205", "transactionTime": "1430"},
+  "request270": {"payload": "ISA*00*          *00*          *ZZ*030240928      *ZZ*AETNA          *241205*1430*^*00501*000000001*0*P*:~GS*HS*030240928*AETNA*20241205*1430*1*X*005010X279A1~ST*270*0001*005010X279A1~BHT*0022*13*001*20241205*1430~HL*1**20*1~NM1*PR*2*AETNA*****PI*AETNA~HL*2*1*21*1~NM1*1P*2*RIVERSIDE MEDICAL CENTER*****XX*1234567890~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*W883449464~DMG*D8*19850115~DTP*472*D8*20241205~EQ*30~SE*13*0001~GE*1*1~IEA*1*000000001~", "segments": ["ISA","GS","ST","BHT","HL","NM1","DMG","DTP","EQ","SE","GE","IEA"]},
+  "expectedResponse271": {"payload": "ISA*00*          *00*          *ZZ*AETNA          *ZZ*030240928      *241205*1430*^*00501*000000001*0*P*:~GS*HS*AETNA*030240928*20241205*1430*1*X*005010X279A1~ST*271*0001*005010X279A1~BHT*0022*11*001*20241205*1430~HL*1**20*1~NM1*PR*2*AETNA*****PI*AETNA~HL*2*1*21*1~NM1*1P*2*RIVERSIDE MEDICAL CENTER*****XX*1234567890~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*W883449464~DMG*D8*19850115~DTP*472*D8*20241205~EB*1*IND*30****1~SE*13*0001~GE*1*1~IEA*1*000000001~", "segments": ["ISA","GS","ST","BHT","HL","NM1","DMG","DTP","EB","SE","GE","IEA"]},
+  "validationRules": {"required": [], "forbidden": [], "business": []}
+}]
 `;
   }
 
@@ -890,28 +1056,94 @@ Return as JSON array with complete test case objects including all payloads and 
   private static parseTestDataResponse(
     aiResponse: string,
     payerInfo: PayerInfo,
-    selectedTestCases: string[]
+    selectedTestCases: TestRecommendation[]
   ): TestCase[] {
     try {
-      const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        throw new Error('No JSON array found in AI response');
+      console.log('🔍 Attempting to parse AI response...');
+      console.log('🔍 Raw AI response (first 100 chars):', aiResponse.substring(0, 100));
+      console.log('🔍 Raw AI response (around position 23):', aiResponse.substring(15, 35));
+
+      // Try multiple JSON extraction methods
+      let jsonString = '';
+
+      // Method 1: Look for clean JSON array at start
+      if (aiResponse.trim().startsWith('[')) {
+        const endIndex = aiResponse.lastIndexOf(']');
+        if (endIndex !== -1) {
+          jsonString = aiResponse.substring(0, endIndex + 1).trim();
+          console.log('✅ Found clean JSON array at start');
+        }
       }
 
-      const parsedCases = JSON.parse(jsonMatch[0]);
+      // Method 2: Look for JSON array anywhere in response
+      if (!jsonString) {
+        const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          jsonString = jsonMatch[0];
+          console.log('✅ Found JSON array using regex match');
+        }
+      }
 
-      return parsedCases.map((testCase: any, index: number) => ({
-        id: testCase.id || selectedTestCases[index] || `TC_${String(index + 1).padStart(3, '0')}`,
-        title: testCase.title || `Test Case ${index + 1}`,
-        description: testCase.description || 'AI-generated test case',
-        priority: testCase.priority || 'Medium',
-        category: testCase.category || 'Core',
+      // Method 3: Look for JSON between code blocks
+      if (!jsonString) {
+        const codeBlockMatch = aiResponse.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
+        if (codeBlockMatch && codeBlockMatch[1]) {
+          jsonString = codeBlockMatch[1];
+          console.log('✅ Found JSON in code blocks');
+        }
+      }
+
+      // Method 4: Extract from multiple test case blocks
+      if (!jsonString) {
+        // Look for pattern like "Test Case 1: { ... } Test Case 2: { ... }"
+        const testCaseMatches = aiResponse.match(/\{[\s\S]*?\}/g);
+        if (testCaseMatches && testCaseMatches.length > 0) {
+          jsonString = '[' + testCaseMatches.join(',') + ']';
+          console.log('✅ Found multiple test case objects, combining into array');
+        }
+      }
+
+      // Method 5: Last resort - try to find any array-like structure
+      if (!jsonString) {
+        const arrayMatch = aiResponse.match(/\[[\s\S]*?\]/);
+        if (arrayMatch) {
+          jsonString = arrayMatch[0];
+          console.log('✅ Found array-like structure');
+        } else {
+          console.error('❌ No JSON structure found in AI response');
+          throw new Error('No JSON array found in AI response');
+        }
+      }
+
+      console.log('🔍 JSON string to parse (first 200 chars):', jsonString.substring(0, 200));
+      console.log('🔍 JSON string length:', jsonString.length);
+
+      const parsedCases = JSON.parse(jsonString);
+      console.log('✅ Successfully parsed JSON, found', parsedCases.length, 'test cases');
+
+      return parsedCases.map((testCase: any, index: number) => {
+        const selectedTestCase = selectedTestCases[index];
+        return {
+          id: testCase.id || selectedTestCase?.id || `TC_${String(index + 1).padStart(3, '0')}`,
+          title: testCase.title || selectedTestCase?.title || `Test Case ${index + 1}`,
+          description: testCase.description || selectedTestCase?.description || 'AI-generated test case',
+          priority: (testCase.priority || selectedTestCase?.priority || 'Medium') as 'Critical' | 'Medium' | 'Low',
+          category: (testCase.category || (selectedTestCase?.category === 'Core Functionality' ? 'Core' : 'Additional') || 'Core') as 'Core' | 'Additional',
         memberData: {
           memberId: testCase.memberData?.memberId || this.generateMemberId(testCase.title || ''),
-          firstName: testCase.memberData?.firstName || 'John',
-          lastName: testCase.memberData?.lastName || 'Doe',
+          firstName: testCase.memberData?.firstName || this.getRealisticFirstName(index),
+          lastName: testCase.memberData?.lastName || this.getRealisticLastName(index),
           dob: testCase.memberData?.dob || '1985-01-15',
           serviceType: testCase.memberData?.serviceType || '30'
+        },
+        syntheticData: {
+          senderId: testCase.syntheticData?.senderId || '030240928',
+          receiverId: testCase.syntheticData?.receiverId || 'AETNA',
+          providerName: testCase.syntheticData?.providerName || this.getRealisticProviderName(index),
+          providerNPI: testCase.syntheticData?.providerNPI || this.getRealisticProviderNPI(index),
+          controlNumber: testCase.syntheticData?.controlNumber || String(index + 1).padStart(3, '0'),
+          transactionDate: testCase.syntheticData?.transactionDate || new Date().toISOString().slice(2, 10).replace(/-/g, ''),
+          transactionTime: testCase.syntheticData?.transactionTime || new Date().toTimeString().slice(0, 5).replace(':', '')
         },
         request270: {
           payload: testCase.request270?.payload || this.generateDefault270(payerInfo.name),
@@ -926,11 +1158,16 @@ Return as JSON array with complete test case objects including all payloads and 
           forbidden: testCase.validationRules?.forbidden || [],
           business: testCase.validationRules?.business || []
         }
-      }));
+      };
+      });
     } catch (error) {
       console.error('❌ Error parsing test data response:', error);
+      console.error('🔍 Error type:', error instanceof Error ? error.name : typeof error);
+      console.error('🔍 Error message:', error instanceof Error ? error.message : String(error));
       console.log('🔄 AI response parsing failed, will fall back to template-based generation');
-      throw new Error('Failed to parse test data response');
+
+      // Return empty array to trigger fallback
+      return [];
     }
   }
 
@@ -940,31 +1177,30 @@ Return as JSON array with complete test case objects including all payloads and 
   private static getTemplateBasedTestData(
     payerInfo: PayerInfo,
     configuration: PayerConfiguration,
-    selectedTestCases: string[]
+    selectedTestCases: TestRecommendation[]
   ): TestCase[] {
     console.log(`🎯 Using proven template-based test data generation for ${selectedTestCases.length} selected test cases`);
 
     const templateTestCases: TestCase[] = [];
-    const templateTypes: ('active' | 'inactive' | 'not_found')[] = ['active', 'inactive', 'not_found'];
 
     // Generate exactly the number of test cases requested, mapping each to appropriate template
-    selectedTestCases.forEach((testCaseId, index) => {
-      // Determine test case type based on the selected test case ID/title
-      const testCaseType = this.determineTestCaseType(testCaseId);
+    selectedTestCases.forEach((selectedTestCase, index) => {
+      // Determine test case type based on the selected test case title/description
+      const testCaseType = this.determineTestCaseType(selectedTestCase.title || selectedTestCase.id);
 
-      console.log(`🔍 Processing selected test case: "${testCaseId}" → ${testCaseType} template`);
+      console.log(`🔍 Processing selected test case: "${selectedTestCase.title}" → ${testCaseType} template`);
 
-      const testCase = this.createTemplateBasedTestCaseByType(testCaseType, index + 1, payerInfo, testCaseId);
+      const testCase = this.createTemplateBasedTestCaseByType(testCaseType, index + 1, payerInfo, selectedTestCase.id, selectedTestCase);
       if (testCase) {
         templateTestCases.push(testCase);
         console.log(`✅ Created template test case ${index + 1}: ${testCase.title} (${testCaseType})`);
       } else {
-        console.error(`❌ Failed to create test case for ${testCaseId}`);
+        console.error(`❌ Failed to create test case for ${selectedTestCase.id}`);
       }
     });
 
     console.log(`🎯 Generated ${templateTestCases.length} template-based test cases`);
-    return templateTestCases.length > 0 ? templateTestCases : this.getFallbackTestData(payerInfo, configuration, selectedTestCases);
+    return templateTestCases.length > 0 ? templateTestCases : this.getFallbackTestData(payerInfo, configuration, selectedTestCases.map(tc => tc.id));
   }
 
   /**
@@ -982,7 +1218,8 @@ Return as JSON array with complete test case objects including all payloads and 
     testCaseType: 'active' | 'inactive' | 'not_found' | 'pharmacy' | 'invalid_id' | 'family_coverage',
     index: number,
     payerInfo: PayerInfo,
-    testCaseId: string
+    testCaseId: string,
+    selectedTestCase?: TestRecommendation
   ): TestCase | null {
     const now = new Date();
     const isaDate = now.toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
@@ -1084,6 +1321,15 @@ Return as JSON array with complete test case objects including all payloads and 
         lastName: 'DOE',
         dob: '19850115',
         serviceType: '30'
+      },
+      syntheticData: {
+        senderId: '030240928',
+        receiverId: '6686CBAF-048001',
+        providerName: 'GREEN VALLEY FAMILY CLINIC',
+        providerNPI: '1234567890',
+        controlNumber: controlNum,
+        transactionDate: isaDate,
+        transactionTime: isaTime
       },
       request270: {
         payload: request270,

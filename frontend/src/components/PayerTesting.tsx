@@ -420,14 +420,13 @@ export const PayerTesting: React.FC = () => {
         throw new Error('Selected implementation not found');
       }
 
-      // Get selected test case IDs from checkboxes (both AI-generated and custom)
+      // Get selected test case objects from checkboxes (both AI-generated and custom)
       const allRecommendations = getAllRecommendations();
       const selectedTestCases = allRecommendations
         .filter(rec => {
           const checkbox = document.querySelector(`input[data-test-id="${rec.id}"]`) as HTMLInputElement;
           return checkbox?.checked;
-        })
-        .map(rec => rec.id);
+        });
 
       console.log('Selected test cases:', selectedTestCases);
       console.log('Total AI recommendations:', recommendations.length);

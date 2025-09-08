@@ -355,7 +355,7 @@ class ApiService {
     });
   }
 
-  async generateTestData(payerId: string, selectedTestCases: string[]): Promise<any> {
+  async generateTestData(payerId: string, selectedTestCases: any[]): Promise<any> {
     return this.request<any>(`/payers/${payerId}/generate-test-data`, {
       method: 'POST',
       body: JSON.stringify({ selectedTestCases }),
