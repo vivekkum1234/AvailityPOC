@@ -1,0 +1,21 @@
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - echo "Installing backend dependencies"
+      - cd backend
+      - npm ci --only=production
+      - npm run build
+      - echo "Build completed successfully"
+run:
+  runtime-version: 18
+  command: cd backend && npm start
+  network:
+    port: 3002
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3002"
