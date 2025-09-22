@@ -1,6 +1,22 @@
 import { Questionnaire, Section, QuestionnaireResponse } from '../types/questionnaire';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+// Production-ready API configuration
+const getApiBaseUrl = (): string => {
+  // Production API URL from environment variable
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // Development fallback
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3002/api';
+  }
+
+  // Production fallback (replace with your actual App Runner URL)
+  return 'https://your-app-runner-service.region.awsapprunner.com/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {

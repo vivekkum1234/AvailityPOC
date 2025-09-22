@@ -1,0 +1,16 @@
+# Redirects for AWS Amplify SPA routing
+# This file handles client-side routing for React Router
+
+# Handle all routes by serving index.html (SPA routing)
+/*    /index.html   200
+
+# API proxy rules (optional - if you want to proxy API calls)
+# /api/*  https://your-app-runner-service.region.awsapprunner.com/api/:splat  200
+
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://your-app-runner-service.region.awsapprunner.com https://fsfdzstsrobdkgcnssdm.supabase.co;

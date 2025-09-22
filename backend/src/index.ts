@@ -29,15 +29,44 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration for production
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3003',
+  'http://localhost:3004',
+  process.env.FRONTEND_URL,
+  // Add AWS Amplify domains
+  process.env.AWS_AMPLIFY_URL,
+  // Allow any Amplify subdomain
+  /^https:\/\/.*\.amplifyapp\.com$/,
+  // Allow custom domain if configured
+  process.env.CUSTOM_DOMAIN
+].filter((origin): origin is string | RegExp => Boolean(origin));
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3003',
-    'http://localhost:3004',
-    process.env.FRONTEND_URL
-  ].filter((url): url is string => Boolean(url)),
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      } else {
+        return allowedOrigin.test(origin);
+      }
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Body parsing middleware

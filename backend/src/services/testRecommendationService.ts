@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import fetch, { RequestInit } from 'node-fetch';
 dotenv.config();
 
 // Types for test recommendations (Step 1)
