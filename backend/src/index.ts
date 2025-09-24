@@ -1,3 +1,6 @@
+// Import polyfills first for Node.js 12 compatibility
+import './polyfills';
+
 import dotenv from 'dotenv';
 dotenv.config();
 
