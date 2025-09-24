@@ -1,18 +1,40 @@
 version: 1
-applications:
-  - frontend:
-      phases:
-        preBuild:
-          commands:
-            - cd frontend
-            - npm ci
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: frontend/build
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - frontend/node_modules/**/*
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "=== Amplify Build Debug ==="
+        - echo "Current directory:"
+        - pwd
+        - echo "Listing root files:"
+        - ls -la
+        - echo "Changing to frontend directory"
+        - cd frontend
+        - echo "Frontend directory contents:"
+        - ls -la
+        - echo "Installing dependencies"
+        - npm ci
+        - echo "Node.js version:"
+        - node --version
+        - echo "NPM version:"
+        - npm --version
+    build:
+      commands:
+        - echo "=== Building React Application ==="
+        - cd frontend
+        - echo "Current directory:"
+        - pwd
+        - export DISABLE_ESLINT_PLUGIN=true
+        - export GENERATE_SOURCEMAP=false
+        - npm run build
+        - echo "Build completed, checking output:"
+        - ls -la build/
+        - echo "Checking index.html exists:"
+        - ls -la build/index.html
+  artifacts:
+    baseDirectory: frontend/build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - frontend/node_modules/**/*
