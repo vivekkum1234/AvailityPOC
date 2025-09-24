@@ -11,13 +11,13 @@ run:
   runtime-version: 14
   command: npm start
   network:
-    port: 8080
+    port: 3002
     env: PORT
   env:
     - name: NODE_ENV
       value: production
     - name: PORT
-      value: 8080
+      value: "3002"
     # Environment variables will be set via AWS App Runner service configuration
     # - name: SUPABASE_URL
     #   value: "your-supabase-url"
