@@ -4,9 +4,10 @@ applications:
       phases:
         preBuild:
           commands:
+            - echo "Navigating to frontend directory"
             - cd frontend
-            - echo "Installing frontend dependencies"
-            - npm ci
+            - echo "Installing frontend dependencies with npm install (not ci)"
+            - npm install
         build:
           commands:
             - echo "Building React application"
