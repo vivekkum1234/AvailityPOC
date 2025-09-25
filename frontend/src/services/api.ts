@@ -12,7 +12,7 @@ const getApiBaseUrl = (): string => {
     return 'http://localhost:3002/api';
   }
 
-  // Production fallback (replace with your actual App Runner URL)
+  // Production fallback - replace with your actual App Runner URL or set REACT_APP_API_URL
   return 'https://your-app-runner-service.region.awsapprunner.com/api';
 };
 
