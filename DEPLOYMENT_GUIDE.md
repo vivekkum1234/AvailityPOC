@@ -1,6 +1,6 @@
-# AWS Deployment Guide - Node.js 14 Ready
+# AWS Deployment Guide - Node.js 14 Ready (`availity-deploy` Branch)
 
-This guide provides step-by-step instructions for deploying both backend and frontend services to AWS with Node.js 14 compatibility.
+This guide provides step-by-step instructions for deploying both backend and frontend services to AWS with Node.js 14 compatibility from the `availity-deploy` branch.
 
 ## 🚀 Prerequisites
 
@@ -48,7 +48,7 @@ SMTP_PASS=your-actual-smtp-password
 4. Connect your GitHub repository
 5. Configure:
    - **Repository**: `https://github.com/vivekkum1234/AvailityPOC`
-   - **Branch**: `test-availity`
+   - **Branch**: `availity-deploy`
    - **Source directory**: `backend/`
    - **Configuration source**: "Use configuration file" (apprunner.yaml)
 
@@ -89,7 +89,7 @@ DISABLE_ESLINT_PLUGIN=true
 3. Connect your GitHub repository
 4. Configure:
    - **Repository**: `https://github.com/vivekkum1234/AvailityPOC`
-   - **Branch**: `test-availity`
+   - **Branch**: `availity-deploy`
    - **App root directory**: `frontend/`
 
 ### Step 3: Configure Build Settings
