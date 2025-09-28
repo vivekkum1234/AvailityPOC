@@ -12,6 +12,7 @@ applications:
           commands:
             - echo "Building React application"
             - export DISABLE_ESLINT_PLUGIN=true
+            - export REACT_APP_API_URL=https://gxwzcsjx9w.ap-southeast-2.awsapprunner.com/api
             - npm run build
       artifacts:
         baseDirectory: frontend/build
