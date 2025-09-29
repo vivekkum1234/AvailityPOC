@@ -30,14 +30,20 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
+console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:3003',
     'http://localhost:3004',
+    'https://availity-poc.dzpf4ynhdt2su.amplifyapp.com',
     process.env.FRONTEND_URL
   ].filter((url): url is string => Boolean(url)),
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Body parsing middleware
