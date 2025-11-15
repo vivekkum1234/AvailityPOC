@@ -398,14 +398,19 @@ function calculateSectionCompletion(responses: Record<string, any>): Record<stri
       'trading-partner-technical-name', 'trading-partner-technical-phone', 'trading-partner-technical-email'
     ],
     'enveloping-requirements': [
-      // ISA segments
-      'isa05-270', 'isa05-271', 'isa06-270', 'isa06-271',
-      'isa07-270', 'isa07-271', 'isa08-270', 'isa08-271',
-      'isa11-270', 'isa11-271', 'isa16-270', 'isa16-271',
+      // ISA segments - all fields with defaults should be checked
+      'isa05-270', 'isa05-271',
+      'isa06-270', 'isa06-271',
+      'isa07-270', 'isa07-271',
+      'isa08-270', 'isa08-271',
+      'isa11-270', 'isa11-271',
+      'isa16-270', 'isa16-271',
       // GS segments
-      'gs02-270', 'gs02-271', 'gs03-270', 'gs03-271',
+      'gs02-270', 'gs02-271',
+      'gs03-270', 'gs03-271',
       // Payer information
-      '2100a-nm103-270', '2100a-nm103-271', '2100a-nm109-270', '2100a-nm109-271'
+      '2100a-nm103-270', '2100a-nm103-271',
+      '2100a-nm109-270', '2100a-nm109-271'
     ],
     'payer-enhancements': ['uppercase-characters-acceptable', 'system-accept-spaces', 'accept-extended-character-set'],
     'payer-specific-processing-errors': ['ansi-translator-syntax-error-rejection', 'support-ta1-response', 'ta1-response-driven-by-isa14', 'reject-not-used-segments'],

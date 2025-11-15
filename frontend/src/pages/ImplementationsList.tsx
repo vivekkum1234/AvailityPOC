@@ -281,12 +281,12 @@ export const ImplementationsList: React.FC = () => {
                           <div className="flex items-center">
                             <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-availity-500 rounded-lg flex items-center justify-center mr-3">
                               <span className="text-white font-bold text-sm">
-                                {impl.organizations.name.charAt(0)}
+                                {impl.organizations?.name?.charAt(0) || '?'}
                               </span>
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">
-                                {impl.organizations.name}
+                                {impl.organizations?.name || 'Unknown Organization'}
                               </div>
                             </div>
                           </div>

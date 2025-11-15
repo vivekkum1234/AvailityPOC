@@ -6,6 +6,9 @@ import { QuestionRenderer } from './QuestionRenderer';
 import { EnvelopingRequirementsTable } from './EnvelopingRequirementsTable';
 import { apiService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { getSampleDataForSection, getSectionsToFill } from '../utils/sampleDataGenerator';
+import { AutoFillOptions, NavigationCallbacks, FieldUpdateCallback } from './chatbot/chatbot.types';
+import { findMatchingQuestion, validateAndFormatValue } from '../utils/voiceFieldMatcher';
 
 interface QuestionnaireWizardProps {
   sections: Section[];
@@ -13,6 +16,9 @@ interface QuestionnaireWizardProps {
   onSectionComplete: (sectionId: string, data: any) => void;
   onAutoSave: (sectionId: string, questionId: string, value: any) => void;
   onChatbotContextUpdate?: (context: any) => void;
+  onAutoFillReady?: (callback: (options?: AutoFillOptions) => Promise<void>) => void;
+  onNavigationReady?: (callbacks: NavigationCallbacks) => void;
+  onFieldUpdateReady?: (callback: FieldUpdateCallback) => void;
 }
 
 export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
@@ -20,7 +26,10 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   initialData,
   onSectionComplete,
   onAutoSave,
-  onChatbotContextUpdate
+  onChatbotContextUpdate,
+  onAutoFillReady,
+  onNavigationReady,
+  onFieldUpdateReady
 }) => {
   const { user } = useAuth(); // Get authenticated user
   const { responseId } = useParams<{ responseId: string }>();
@@ -401,19 +410,25 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     return availableUsers.find(user => user.id === userId);
   };
 
-  const handleNext = () => {
-    if (currentSectionIndex < visibleSections.length - 1) {
-      setCurrentSectionIndex(prev => prev + 1);
-      scrollToTop(); // Scroll to top of page
-    }
-  };
+  const handleNext = useCallback(() => {
+    setCurrentSectionIndex(prev => {
+      if (prev < visibleSections.length - 1) {
+        scrollToTop();
+        return prev + 1;
+      }
+      return prev;
+    });
+  }, [visibleSections.length]);
 
-  const handlePrevious = () => {
-    if (currentSectionIndex > 0) {
-      setCurrentSectionIndex(prev => prev - 1);
-      scrollToTop(); // Scroll to top of page
-    }
-  };
+  const handlePrevious = useCallback(() => {
+    setCurrentSectionIndex(prev => {
+      if (prev > 0) {
+        scrollToTop();
+        return prev - 1;
+      }
+      return prev;
+    });
+  }, []);
 
   const handleSectionSubmit = async (data: any) => {
     // Save current section data
@@ -541,6 +556,299 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
       setIsSavingDraft(false);
     }
   };
+
+  // Auto-fill handler for AI chatbot
+  // Helper function to simulate typing animation
+  const typeText = async (element: HTMLInputElement | HTMLTextAreaElement, text: string, speed: number = 50) => {
+    element.focus();
+    element.value = ''; // Clear first
+    for (let i = 0; i <= text.length; i++) {
+      element.value = text.substring(0, i);
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      await new Promise(resolve => setTimeout(resolve, speed));
+    }
+    // Trigger final change event
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const handleAutoFillRequest = useCallback(async (options?: AutoFillOptions) => {
+    const { autoSubmit = false, sectionId, implementationMode: optionsMode } = options || {};
+
+    try {
+      // Use implementation mode from options, or fall back to current mode, or default to 'real_time_b2b'
+      const modeToUse = optionsMode || implementationMode || 'real_time_b2b';
+
+      console.log('Auto-fill requested:', { autoSubmit, sectionId, implementationMode: modeToUse });
+
+      // If implementation mode is not set yet, set it first
+      if (!implementationMode && modeToUse) {
+        console.log('Setting implementation mode to:', modeToUse);
+        setImplementationMode(modeToUse);
+        setValue('implementation-mode', modeToUse);
+
+        // Wait for the state to update and sections to become visible
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Determine which sections to fill
+      let sectionsToFill: Section[];
+
+      if (sectionId) {
+        // Fill only specific section
+        const section = sections.find(s => s.id === sectionId);
+        sectionsToFill = section ? [section] : [];
+      } else {
+        // Fill all sections based on implementation mode
+        const sectionIdsToFill = getSectionsToFill(modeToUse);
+        sectionsToFill = sections.filter(s => sectionIdsToFill.includes(s.id));
+      }
+
+      console.log('Sections to fill:', sectionsToFill.map(s => s.id));
+
+      // Fill each section with animation
+      for (let i = 0; i < sectionsToFill.length; i++) {
+        const section = sectionsToFill[i];
+        const sampleData = getSampleDataForSection(section.id, { implementationMode: modeToUse });
+
+        console.log(`Filling section ${section.id}:`, sampleData);
+
+        // Skip sections with no data
+        if (Object.keys(sampleData).length === 0) {
+          console.log(`Skipping section ${section.id} - no sample data available`);
+          continue;
+        }
+
+        // Navigate to this section for visual effect
+        // Wait for sections to become visible first
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Find the section in visible sections after state updates
+        const sectionIndex = sections.findIndex(s => s.id === section.id);
+        if (sectionIndex !== -1) {
+          console.log(`Navigating to section ${section.id} at index ${sectionIndex}`);
+          setCurrentSectionIndex(sectionIndex);
+          await new Promise(resolve => setTimeout(resolve, 500)); // Wait for navigation animation
+        } else {
+          console.log(`Section ${section.id} not found in visible sections`);
+        }
+
+        // Fill fields with typing animation
+        const fieldEntries = Object.entries(sampleData);
+        for (let j = 0; j < fieldEntries.length; j++) {
+          const [fieldId, value] = fieldEntries[j];
+
+          console.log(`Filling field ${fieldId} with value:`, value);
+
+          // Small delay before starting to fill the field
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          // Find the input element
+          const element = document.querySelector(`[name="${fieldId}"]`) as HTMLInputElement | HTMLTextAreaElement | null;
+
+          if (element) {
+            // Add visual highlight effect
+            element.classList.add('auto-fill-highlight');
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Handle different field types
+            if (Array.isArray(value)) {
+              // Checkbox - select each option with delay
+              for (const optionValue of value) {
+                const checkbox = document.querySelector(`[name="${fieldId}"][value="${optionValue}"]`) as HTMLInputElement;
+                if (checkbox) {
+                  await new Promise(resolve => setTimeout(resolve, 400));
+                  checkbox.checked = true;
+                  checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+              }
+              setValue(fieldId, value);
+            } else if (element.tagName === 'INPUT' && (element as HTMLInputElement).type === 'radio') {
+              // Radio button
+              const radio = document.querySelector(`[name="${fieldId}"][value="${value}"]`) as HTMLInputElement;
+              if (radio) {
+                await new Promise(resolve => setTimeout(resolve, 400));
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+              setValue(fieldId, value);
+            } else if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+              // Text input or textarea - type letter by letter
+              const textValue = String(value);
+              await typeText(element, textValue, 50); // 50ms per character for visible typing
+              setValue(fieldId, value);
+            } else {
+              // Other types - set directly
+              setValue(fieldId, value);
+            }
+
+            // Update responses state
+            setResponses(prev => ({ ...prev, [fieldId]: value }));
+
+            // Trigger auto-save
+            onAutoSave(section.id, fieldId, value);
+
+            // Remove highlight after a delay
+            setTimeout(() => {
+              element.classList.remove('auto-fill-highlight');
+            }, 1000);
+          } else {
+            console.log(`Element not found for field: ${fieldId}`);
+            // Still set the value even if element not found
+            setValue(fieldId, value);
+            setResponses(prev => ({ ...prev, [fieldId]: value }));
+            onAutoSave(section.id, fieldId, value);
+          }
+        }
+
+        // Brief pause before moving to next section
+        if (i < sectionsToFill.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+
+      // Auto-submit if requested
+      if (autoSubmit) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Brief pause before submit
+        await handleQuestionnaireSubmit();
+      }
+
+      console.log('Auto-fill completed');
+    } catch (error) {
+      console.error('Auto-fill error:', error);
+      alert('Auto-fill failed. Please try again.');
+    }
+  }, [visibleSections, implementationMode, currentSectionIndex, setValue, onAutoSave, handleNext, handleQuestionnaireSubmit]);
+
+  // Register auto-fill handler with parent component
+  useEffect(() => {
+    console.log('Registering auto-fill handler, onAutoFillReady:', !!onAutoFillReady);
+    if (onAutoFillReady) {
+      onAutoFillReady(handleAutoFillRequest);
+      console.log('Auto-fill handler registered successfully');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onAutoFillReady]);
+
+  // Create stable callback for section navigation
+  const handleGoToSection = useCallback((sectionName: string) => {
+    const normalizedInput = sectionName.toLowerCase().trim();
+
+    // Try to find matching section
+    const matchIndex = visibleSections.findIndex(section => {
+      const normalizedTitle = section.title.toLowerCase();
+
+      // Exact match
+      if (normalizedTitle === normalizedInput) return true;
+
+      // Contains match
+      if (normalizedTitle.includes(normalizedInput)) return true;
+
+      // Partial word match
+      const words = normalizedTitle.split(/[\s\-()]+/);
+      return words.some(word => word.toLowerCase() === normalizedInput);
+    });
+
+    if (matchIndex !== -1) {
+      console.log(`Navigating to section: ${visibleSections[matchIndex].title}`);
+      setCurrentSectionIndex(matchIndex);
+      scrollToTop();
+      return true;
+    }
+
+    console.log(`Section not found: ${sectionName}`);
+    return false;
+  }, [visibleSections]);
+
+  // Register navigation callbacks with parent component
+  useEffect(() => {
+    if (onNavigationReady) {
+      const navigationCallbacks: NavigationCallbacks = {
+        onNext: handleNext,
+        onPrevious: handlePrevious,
+        onGoToSection: handleGoToSection,
+        getSectionNames: () => visibleSections.map(s => s.title),
+        getCurrentSectionName: () => currentSection?.title || ''
+      };
+
+      console.log('Registering navigation callbacks');
+      onNavigationReady(navigationCallbacks);
+    }
+  }, [onNavigationReady, handleNext, handlePrevious, handleGoToSection, visibleSections, currentSection]);
+
+  // Field update handler for voice commands
+  const handleFieldUpdate = useCallback(async (fieldName: string, fieldValue: string): Promise<{ success: boolean; message: string }> => {
+    console.log('QuestionnaireWizard: handleFieldUpdate called:', { fieldName, fieldValue });
+
+    if (!currentSection) {
+      return { success: false, message: 'No section is currently active' };
+    }
+
+    // Get visible questions in current section
+    const currentQuestions = visibleQuestions;
+    console.log('Current section questions:', currentQuestions.map(q => q.title));
+
+    // Find matching question
+    const matchedQuestion = findMatchingQuestion(fieldName, currentQuestions);
+
+    if (!matchedQuestion) {
+      console.log('No matching question found for:', fieldName);
+      return { success: false, message: `I couldn't find a field matching "${fieldName}" in this section` };
+    }
+
+    console.log('Matched question:', matchedQuestion.title, matchedQuestion.id);
+
+    // Validate and format the value
+    const validation = validateAndFormatValue(fieldValue, matchedQuestion);
+
+    if (!validation.valid) {
+      console.log('Validation failed:', validation.error);
+      return { success: false, message: validation.error || 'Invalid value for this field' };
+    }
+
+    const formattedValue = validation.formattedValue!;
+    console.log('Formatted value:', formattedValue);
+
+    // Update the form
+    setValue(matchedQuestion.id, formattedValue);
+    setResponses(prev => ({ ...prev, [matchedQuestion.id]: formattedValue }));
+    onAutoSave(currentSection.id, matchedQuestion.id, formattedValue);
+
+    // Add visual highlight
+    const element = document.querySelector(`[name="${matchedQuestion.id}"]`) as HTMLElement;
+    if (element) {
+      element.classList.add('auto-fill-highlight');
+      setTimeout(() => {
+        element.classList.remove('auto-fill-highlight');
+      }, 1000);
+    }
+
+    // Get a friendly field name for the response
+    const friendlyFieldName = matchedQuestion.title.length > 50
+      ? matchedQuestion.title.substring(0, 50) + '...'
+      : matchedQuestion.title;
+
+    // Get a friendly value for the response
+    let friendlyValue = formattedValue;
+    if (matchedQuestion.options) {
+      const option = matchedQuestion.options.find(opt => opt.value === formattedValue);
+      if (option) {
+        friendlyValue = option.label;
+      }
+    }
+
+    return {
+      success: true,
+      message: `Set ${friendlyFieldName} to ${friendlyValue}`
+    };
+  }, [currentSection, visibleQuestions, setValue, setResponses, onAutoSave]);
+
+  // Register field update callback with parent component
+  useEffect(() => {
+    if (onFieldUpdateReady) {
+      console.log('Registering field update callback');
+      onFieldUpdateReady(handleFieldUpdate);
+    }
+  }, [onFieldUpdateReady, handleFieldUpdate]);
 
   const calculateProgress = () => {
     return ((currentSectionIndex + 1) / visibleSections.length) * 100;

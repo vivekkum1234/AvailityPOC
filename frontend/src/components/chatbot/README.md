@@ -10,6 +10,7 @@ This AI-powered chatbot provides contextual help for users filling out the X12 2
 - **Contextual help** - Understands current questionnaire section
 - **Smart responses** - Detailed explanations for X12 fields
 - **Quick actions** - Pre-defined helpful questions
+- **🎤 Voice input** - Speak your questions instead of typing (Chrome/Edge/Safari)
 - **Professional UI** - Matches application design system
 - **Zero disruption** - Doesn't affect existing questionnaire logic
 
@@ -21,6 +22,13 @@ This AI-powered chatbot provides contextual help for users filling out the X12 2
 - Payer name and ID requirements
 - Best practices and recommendations
 
+### 🎤 Voice Input
+- Click the microphone button to speak your question
+- Real-time transcription appears in the input field
+- Edit the text if needed, then press Enter to send
+- Works in Chrome, Edge, and Safari
+- See [VOICE_INPUT_README.md](./VOICE_INPUT_README.md) for details
+
 ## Components
 
 ```
@@ -29,11 +37,16 @@ chatbot/
 ├── ChatbotSidebar.tsx        # Left panel with full chat interface
 ├── ChatbotMessages.tsx       # Message display area
 ├── ChatbotMessage.tsx        # Individual message bubbles
-├── ChatbotInput.tsx          # Input field with send button
+├── ChatbotInput.tsx          # Input field with send button + voice input
 ├── QuickActions.tsx          # Pre-defined help buttons
+├── VoiceInputButton.tsx      # 🎤 Microphone button component
+├── RecordingIndicator.tsx    # 🔴 Recording status indicator
 ├── useChatbotContext.ts      # Context management hook
 ├── chatbot.types.ts          # TypeScript interfaces
 └── index.ts                  # Exports
+
+hooks/
+└── useSpeechRecognition.ts   # 🎤 Web Speech API integration
 ```
 
 ## Integration

@@ -1,18 +1,59 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { ChatMessage, ChatbotContext, QuickAction } from './chatbot.types';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { ChatMessage, ChatbotContext, QuickAction, AutoFillOptions, NavigationCallbacks, FieldUpdateCallback } from './chatbot.types';
 import { ChatbotMessages } from './ChatbotMessages';
 import { ChatbotInput } from './ChatbotInput';
 import { QuickActions } from './QuickActions';
+import { VoiceModeToggle } from './VoiceModeToggle';
+import { VoiceModePanel } from './VoiceModePanel';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import { useTextToSpeech } from '../../hooks/useTextToSpeech';
+import { useVoiceCommands } from '../../hooks/useVoiceCommands';
 
 interface ChatbotSidebarProps {
   context?: ChatbotContext;
+  onAutoFillRequest?: (options?: AutoFillOptions) => Promise<void>;
+  navigationCallbacks?: NavigationCallbacks;
+  onFieldUpdate?: FieldUpdateCallback;
 }
 
-export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
+export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
+  context,
+  onAutoFillRequest,
+  navigationCallbacks,
+  onFieldUpdate
+}) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+
+  // Voice mode state
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [hasGreeted, setHasGreeted] = useState(false);
+  const [hasHadInteraction, setHasHadInteraction] = useState(false);
+  const lastResponseRef = useRef<string>('');
+
+  // Voice hooks
+  const { speak, stop: stopSpeaking, isSpeaking } = useTextToSpeech();
+  const {
+    isSupported: isSpeechSupported,
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    resetTranscript
+  } = useSpeechRecognition({
+    continuous: true,
+    interimResults: true,
+    lang: 'en-US'
+  });
+
+  // Debug: Log when onAutoFillRequest changes
+  useEffect(() => {
+    console.log('ChatbotSidebar: onAutoFillRequest changed:', !!onAutoFillRequest);
+    console.log('ChatbotSidebar: onAutoFillRequest type:', typeof onAutoFillRequest);
+    console.log('ChatbotSidebar: onAutoFillRequest value:', onAutoFillRequest);
+  }, [onAutoFillRequest]);
 
   // Handle mode change notifications
   useEffect(() => {
@@ -33,9 +74,92 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
     }
   }, [context?.modeChangeNotification]);
 
+  // Voice mode: Auto-greeting when enabled (only once)
+  useEffect(() => {
+    if (isVoiceMode && !hasGreeted && isSpeechSupported) {
+      const greetingMessage = "Hello! I'm ready to help. What would you like to do?";
+      const greeting: ChatMessage = {
+        id: `greeting-${Date.now()}`,
+        content: greetingMessage,
+        sender: 'assistant',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, greeting]);
+
+      // Delay speaking significantly to avoid showing "Speaking..." immediately
+      setTimeout(() => {
+        if (isVoiceMode) {
+          speak(greetingMessage);
+          lastResponseRef.current = greetingMessage;
+        }
+      }, 1500);
+
+      setHasGreeted(true);
+
+      // Start listening after greeting completes
+      setTimeout(() => {
+        if (isVoiceMode) {
+          startListening();
+        }
+      }, 4500);
+    }
+
+    if (!isVoiceMode) {
+      setHasGreeted(false);
+      setHasHadInteraction(false);
+      stopListening();
+      stopSpeaking();
+    }
+  }, [isVoiceMode, hasGreeted, isSpeechSupported]);
+
+  // Voice mode: Handle transcript changes
+  useEffect(() => {
+    if (isVoiceMode && transcript && transcript.trim()) {
+      console.log('Voice transcript received:', transcript);
+
+      // Check if it's a command first
+      const command = detectCommand(transcript);
+      console.log('Detected command:', command);
+
+      if (command) {
+        const executed = executeCommand(command);
+        console.log('Command executed:', executed);
+        if (executed) {
+          setHasHadInteraction(true); // Mark that we've had an interaction
+          resetTranscript();
+          return;
+        }
+      }
+
+      // If not a command or command failed, treat as regular message
+      // Wait for a pause (transcript hasn't changed for 1.5 seconds)
+      const timer = setTimeout(() => {
+        if (transcript.trim()) {
+          console.log('Treating as regular message:', transcript);
+          setHasHadInteraction(true); // Mark that we've had an interaction
+          handleSendMessage(transcript);
+          resetTranscript();
+        }
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [transcript, isVoiceMode]);
+
   // Sample quick actions based on current context
   const getQuickActions = useCallback((): QuickAction[] => {
     const baseActions: QuickAction[] = [
+      {
+        id: 'auto-fill-form',
+        label: '✨ Fill Form with Example',
+        message: 'Help me fill this form with an example',
+        icon: (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        )
+      },
       {
         id: 'implementation-modes',
         label: 'Choose Implementation Mode',
@@ -125,7 +249,172 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
     return baseActions;
   }, [context]);
 
+  // Voice mode: Voice command handlers - wrap in useCallback to prevent stale closures
+  const handleNavigateCommand = useCallback((direction: 'next' | 'previous', sectionName?: string) => {
+    console.log('handleNavigateCommand called:', { direction, sectionName, hasCallbacks: !!navigationCallbacks });
+    stopListening(); // Pause listening during action
+
+    if (sectionName && navigationCallbacks?.onGoToSection) {
+      // Navigate to specific section by name
+      console.log('Calling onGoToSection with:', sectionName);
+      const success = navigationCallbacks.onGoToSection(sectionName);
+      console.log('Navigation result:', success);
+      if (success) {
+        speak(`Navigating to ${sectionName} section`);
+      } else {
+        speak(`Sorry, I couldn't find a section matching ${sectionName}`);
+      }
+    } else if (direction === 'next' && navigationCallbacks?.onNext) {
+      // Navigate to next section
+      console.log('Calling onNext');
+      navigationCallbacks.onNext();
+      speak('Moving to next section');
+    } else if (direction === 'previous' && navigationCallbacks?.onPrevious) {
+      // Navigate to previous section
+      console.log('Calling onPrevious');
+      navigationCallbacks.onPrevious();
+      speak('Going back to previous section');
+    } else {
+      console.log('Navigation not available:', { direction, sectionName, callbacks: navigationCallbacks });
+      speak('Navigation is not available right now');
+    }
+
+    // Resume listening after action completes
+    setTimeout(() => {
+      if (isVoiceMode) startListening();
+    }, 2500);
+  }, [navigationCallbacks, stopListening, speak, isVoiceMode, startListening]);
+
+  // Field update handler
+  const handleFieldUpdate = useCallback(async (fieldName: string, fieldValue: string) => {
+    console.log('handleFieldUpdate called:', { fieldName, fieldValue, hasCallback: !!onFieldUpdate });
+    stopListening(); // Pause listening during update
+
+    if (onFieldUpdate) {
+      try {
+        const result = await onFieldUpdate(fieldName, fieldValue);
+        console.log('Field update result:', result);
+
+        if (result.success) {
+          speak(result.message);
+        } else {
+          speak(result.message || 'Sorry, I could not update that field');
+        }
+      } catch (error) {
+        console.error('Field update error:', error);
+        speak('Sorry, there was an error updating the field');
+      }
+    } else {
+      console.log('No onFieldUpdate callback available');
+      speak('Field updates are not available right now');
+    }
+
+    // Resume listening after update
+    setTimeout(() => {
+      if (isVoiceMode) startListening();
+    }, 2000);
+  }, [onFieldUpdate, stopListening, speak, isVoiceMode, startListening]);
+
+  const { detectCommand, executeCommand } = useVoiceCommands({
+    onNavigate: handleNavigateCommand,
+    onFieldUpdate: handleFieldUpdate,
+    onAutoFill: async (scope) => {
+      console.log('Auto-fill command handler called, scope:', scope);
+      stopListening(); // Pause listening during auto-fill
+
+      // Speak only a short confirmation message
+      speak("Auto-fill activated. I will fill the form for you.");
+
+      // Wait for TTS to finish speaking before starting auto-fill (longer delay)
+      await new Promise(resolve => setTimeout(resolve, 3500));
+
+      if (onAutoFillRequest) {
+        console.log('Calling onAutoFillRequest');
+        await onAutoFillRequest({
+          sectionId: scope === 'section' ? context?.currentSection : undefined
+        });
+        console.log('Auto-fill request completed');
+      } else {
+        console.log('No onAutoFillRequest callback available');
+      }
+
+      // Resume listening after auto-fill completes
+      setTimeout(() => {
+        if (isVoiceMode) startListening();
+      }, 1000);
+    },
+    onSubmit: () => {
+      stopListening(); // Pause listening during submit
+      speak('Submitting');
+      // TODO: Implement submit
+      console.log('Submit form');
+
+      // Resume listening after submit
+      setTimeout(() => {
+        if (isVoiceMode) startListening();
+      }, 2000);
+    },
+    onHelp: (topic) => {
+      stopListening(); // Pause listening while answering
+      if (topic) {
+        handleSendMessage(`What is ${topic}?`);
+      } else {
+        speak('What do you need help with?');
+        // Resume listening after response
+        setTimeout(() => {
+          if (isVoiceMode) startListening();
+        }, 2000);
+      }
+    },
+    onExit: () => {
+      stopListening(); // Stop listening when exiting
+      speak('Goodbye');
+      setIsVoiceMode(false);
+    },
+    onSave: () => {
+      stopListening(); // Pause listening during save
+      speak('Saved');
+      // TODO: Implement save
+      console.log('Save draft');
+
+      // Resume listening after save
+      setTimeout(() => {
+        if (isVoiceMode) startListening();
+      }, 2000);
+    },
+    onShowProgress: () => {
+      stopListening(); // Pause listening while speaking
+      const message = context?.currentSection
+        ? `Currently on ${context.currentSection}`
+        : 'Not started yet';
+      speak(message);
+
+      // Resume listening after response
+      setTimeout(() => {
+        if (isVoiceMode) startListening();
+      }, 2000);
+    },
+    onRepeat: () => {
+      stopListening(); // Pause listening while repeating
+      if (lastResponseRef.current) {
+        speak(lastResponseRef.current);
+      } else {
+        speak('Nothing to repeat');
+      }
+
+      // Resume listening after repeat
+      setTimeout(() => {
+        if (isVoiceMode) startListening();
+      }, 2000);
+    }
+  });
+
   const handleSendMessage = async (messageContent: string) => {
+    // Pause listening in voice mode while processing
+    if (isVoiceMode) {
+      stopListening();
+    }
+
     // Add user message
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -152,7 +441,9 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
       // Simulate AI response (replace with actual API call later)
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const aiResponse = generateSampleResponse(messageContent, context);
+      const result = generateSampleResponse(messageContent, context);
+      const aiResponse = typeof result === 'string' ? result : result.response;
+      const autoFillAction = typeof result === 'object' ? result.autoFillAction : undefined;
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -163,6 +454,45 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
 
       // Remove typing indicator and add real response
       setMessages(prev => prev.filter(msg => msg.id !== 'typing').concat(aiMessage));
+
+      // Speak response in voice mode (read full content)
+      if (isVoiceMode) {
+        // Extract and clean text for TTS
+        const plainText = aiResponse
+          .replace(/\*\*/g, '')  // Remove bold
+          .replace(/\*/g, '')    // Remove italic
+          .replace(/•/g, '')     // Remove bullets
+          .replace(/#{1,6}\s/g, '') // Remove headers
+          .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Remove emojis
+          .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Remove misc symbols
+          .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Remove dingbats
+          .replace(/\n{2,}/g, '. ')  // Replace double newlines with period
+          .replace(/\n/g, ' ')       // Replace single newlines with space
+          .replace(/\s{2,}/g, ' ')   // Collapse multiple spaces
+          .trim();
+
+        if (plainText) {
+          speak(plainText);
+          lastResponseRef.current = plainText;
+
+          // Resume listening after speaking the response (longer delay for full content)
+          setTimeout(() => {
+            if (isVoiceMode) startListening();
+          }, 5000);
+        }
+      }
+
+      // Execute auto-fill action if requested
+      if (autoFillAction && onAutoFillRequest) {
+        console.log('Executing auto-fill action:', autoFillAction);
+        console.log('Type of onAutoFillRequest:', typeof onAutoFillRequest);
+        console.log('onAutoFillRequest is function?', typeof onAutoFillRequest === 'function');
+        if (typeof onAutoFillRequest === 'function') {
+          await onAutoFillRequest(autoFillAction);
+        } else {
+          console.error('onAutoFillRequest is not a function, it is:', onAutoFillRequest);
+        }
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       // Remove typing indicator and show error
@@ -201,7 +531,7 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
         <div className="w-80 h-screen sticky top-0 bg-white border-r border-gray-200 flex flex-col shadow-soft">
           {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-availity-50 flex-shrink-0">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-availity-500 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,6 +556,17 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
               </button>
             </div>
 
+            {/* Voice Mode Toggle */}
+            {isSpeechSupported && (
+              <div className="mb-3">
+                <VoiceModeToggle
+                  isVoiceMode={isVoiceMode}
+                  onToggle={() => setIsVoiceMode(!isVoiceMode)}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+
             {context?.currentSection && (
               <div className="mt-3 px-3 py-2 bg-white rounded-lg border border-gray-200">
                 <p className="text-xs text-gray-500">Current Section</p>
@@ -243,32 +584,54 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
             )}
           </div>
 
-          {/* Quick Actions - Collapsible */}
-          <div className="border-b border-gray-200 flex-shrink-0">
-            <button
-              onClick={() => setIsQuickActionsCollapsed(!isQuickActionsCollapsed)}
-              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
-            >
-              <span className="text-sm font-medium text-gray-700">Quick Help</span>
-              <svg
-                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isQuickActionsCollapsed ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {/* Quick Actions - Collapsible (hide in voice mode) */}
+          {!isVoiceMode && (
+            <div className="border-b border-gray-200 flex-shrink-0">
+              <button
+                onClick={() => setIsQuickActionsCollapsed(!isQuickActionsCollapsed)}
+                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {!isQuickActionsCollapsed && (
-              <QuickActions actions={getQuickActions()} onActionClick={handleQuickAction} />
-            )}
-          </div>
+                <span className="text-sm font-medium text-gray-700">Quick Help</span>
+                <svg
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isQuickActionsCollapsed ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {!isQuickActionsCollapsed && (
+                <QuickActions actions={getQuickActions()} onActionClick={handleQuickAction} />
+              )}
+            </div>
+          )}
+
+          {/* Voice Mode Panel */}
+          {isVoiceMode && (
+            <div className="p-4 flex-shrink-0">
+              <VoiceModePanel
+                isListening={isListening}
+                isSpeaking={isSpeaking}
+                currentTranscript={transcript}
+                hasHadInteraction={hasHadInteraction}
+                onResume={() => {
+                  console.log('Resume listening clicked');
+                  resetTranscript();
+                  startListening();
+                }}
+                onExit={() => setIsVoiceMode(false)}
+              />
+            </div>
+          )}
 
           {/* Messages */}
           <ChatbotMessages messages={messages} />
 
-          {/* Input */}
-          <ChatbotInput onSendMessage={handleSendMessage} disabled={isLoading} />
+          {/* Input - disabled in voice mode */}
+          {!isVoiceMode && (
+            <ChatbotInput onSendMessage={handleSendMessage} disabled={isLoading} />
+          )}
         </div>
       )}
     </>
@@ -276,24 +639,126 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({ context }) => {
 };
 
 // Sample response generator (replace with actual AI integration)
-function generateSampleResponse(message: string, context?: ChatbotContext): string {
+// Returns both the response text and optional auto-fill action
+function generateSampleResponse(
+  message: string,
+  context?: ChatbotContext
+): { response: string; autoFillAction?: AutoFillOptions } {
   const lowerMessage = message.toLowerCase();
+
+  // Handle auto-fill requests
+  // Mode 1: Fill current section only
+  if ((lowerMessage.includes('fill') && lowerMessage.includes('section')) ||
+      (lowerMessage.includes('fill') && lowerMessage.includes('current'))) {
+    if (context?.currentSection) {
+      return {
+        response: `✨ **Filling Current Section**
+
+I'm filling out the "${context.currentSection}" section with example data.
+
+Watch as the fields populate automatically! You can modify any field after auto-fill completes.`,
+        autoFillAction: { sectionId: context.currentSection }
+      };
+    }
+    return {
+      response: `⚠️ Please navigate to a section first, then I can fill it with example data.`
+    };
+  }
+
+  // Mode 2: Fill entire form (no submit)
+  if ((lowerMessage.includes('fill') && lowerMessage.includes('form')) ||
+      (lowerMessage.includes('help') && lowerMessage.includes('filling')) ||
+      (lowerMessage.includes('fill') && lowerMessage.includes('example')) ||
+      lowerMessage.includes('auto fill') ||
+      lowerMessage.includes('autofill') ||
+      lowerMessage.includes('populate')) {
+    return {
+      response: `🎯 **Auto-Fill Activated!**
+
+I'm filling out the entire questionnaire with example data. This will take about 30-60 seconds.
+
+**What's being filled:**
+• Implementation Mode: Real Time B2B
+• Organization: Aetna Health Insurance
+• Contact: John Smith (john.smith@aetna.com)
+• All ISA/GS segments configured
+• All required fields
+
+**I'll stop at the last section** so you can review before clicking "Complete Questionnaire".
+
+You can modify any field after auto-fill completes!`,
+      autoFillAction: { autoSubmit: false, implementationMode: 'real_time_b2b' }
+    };
+  }
+
+  // Mode 3: Fill and submit (with confirmation)
+  if ((lowerMessage.includes('fill') && lowerMessage.includes('submit')) ||
+      (lowerMessage.includes('complete') && lowerMessage.includes('automatically'))) {
+    return {
+      response: `⚠️ **Auto-Submit Confirmation Required**
+
+I can fill out the entire form AND submit it automatically. This will:
+• Fill all sections with example data
+• Navigate through all sections
+• Click "Complete Questionnaire"
+• **Submit to the database** (creates a real submission!)
+
+**Are you sure you want to proceed?**
+
+Reply with:
+• **"confirm submit"** - Fill and submit automatically
+• **"just fill"** - Fill only, I'll review and submit manually`
+    };
+  }
+
+  // Handle confirmation for auto-submit
+  if ((lowerMessage.includes('confirm') && lowerMessage.includes('submit')) ||
+      lowerMessage === 'confirm submit') {
+    return {
+      response: `🚀 **Auto-Fill & Submit Activated!**
+
+I'm filling out the entire questionnaire and will submit it automatically.
+
+⏱️ This will take about 30-60 seconds. Watch as I:
+1. Set implementation mode to Real Time B2B
+2. Fill all sections with example data
+3. Navigate through each section
+4. Click "Complete Questionnaire"
+5. Submit the form
+
+Sit back and watch! 🎬`,
+      autoFillAction: { autoSubmit: true, implementationMode: 'real_time_b2b' }
+    };
+  }
+
+  // Handle "just fill" response
+  if (lowerMessage.includes('just fill') || (lowerMessage.includes('fill') && lowerMessage.includes('only'))) {
+    return {
+      response: `✅ **Filling Form (No Submit)**
+
+I'm filling out the questionnaire with example data in Real Time B2B mode. I'll stop at the last section so you can review before submitting.`,
+      autoFillAction: { autoSubmit: false, implementationMode: 'real_time_b2b' }
+    };
+  }
 
   // Handle audience queries
   if (lowerMessage.includes('audience')) {
-    return `🎯 **Team Collaboration**
+    return {
+      response: `🎯 **Team Collaboration**
 
 You can assign the sections to varied audiences of your implementation team to complete the work faster, they would get notifications when they are assigned to a section.
 
 ✅ **Benefits:**
 • Faster completion through parallel work
 • Automatic notifications to assigned team members
-• Better organization of responsibilities`;
+• Better organization of responsibilities`
+    };
   }
 
   // Handle implementation guide queries
   if (lowerMessage.includes('implementation guide') || lowerMessage.includes('technical requirements')) {
-    return `📖 **Implementation Guide**
+    return {
+      response: `📖 **Implementation Guide**
 
 📋 **Technical Standards:**
 Rules for format, content, and data element values for this transaction are listed in the following ASC X12 Technical Report Type 3 (TR3): Health Care Eligibility Benefit Inquiry and Response (270/271); version/release/industry identifier code: **005010X279**.
@@ -304,82 +769,391 @@ Rules for format, content, and data element values for this transaction are list
 <a href="http://www.wpc-edi.com/" target="_blank" rel="noopener noreferrer">http://www.wpc-edi.com/</a>
 
 📋 **External Code Sets:**
-<a href="https://x12.org/codes" target="_blank" rel="noopener noreferrer">https://x12.org/codes</a>`;
+<a href="https://x12.org/codes" target="_blank" rel="noopener noreferrer">https://x12.org/codes</a>`
+    };
   }
 
-  if (lowerMessage.includes('isa05')) {
-    return `**ISA05 - Sender ID Qualifier** identifies the type of organization sending the transaction.
+  // ISA Field Explanations - Specific field queries
+  // Handle voice input variations: "ISA05", "ISA 05", "ISA-05", "ISA zero five"
+  if (lowerMessage.includes('isa05') ||
+      lowerMessage.includes('isa 05') ||
+      lowerMessage.includes('isa-05') ||
+      lowerMessage.includes('isa zero five') ||
+      lowerMessage.includes('isa 5') ||
+      lowerMessage.includes('isa-5') ||
+      /isa[\s-]*0?5/.test(lowerMessage)) {
+    return {
+      response: `📋 **ISA05 - Sender ID Qualifier**
+
+**Purpose:** Identifies the type of organization sending the transaction.
+
+**Field Details:**
+• **Segment:** ISA05
+• **Length:** 2 characters
+• **Position:** Interchange Control Header
 
 **Common Values:**
 • **01** - DUNS (Data Universal Numbering System)
 • **ZZ** - Mutually Defined
 
-**Recommendation:** For most healthcare payers, choose "01" with Availity's standard configuration. This is the most widely supported option.
+**For 270 Request:**
+• Standard: 01
+• Alternative: ZZ or custom value
 
-**Example:** If you're a health plan, select "01" and let Availity define the sender ID value.`;
+**For 271 Response:**
+• Standard: ZZ
+• Alternative: Custom value
+
+**Recommendation:** For most healthcare payers, use "01" for 270 requests. This is the most widely supported option in the industry.`
+    };
   }
 
-  if (lowerMessage.includes('isa06')) {
-    return `**ISA06 - Sender ID** is your organization's unique identifier in X12 transactions.
+  if (lowerMessage.includes('isa06') ||
+      lowerMessage.includes('isa 06') ||
+      lowerMessage.includes('isa-06') ||
+      lowerMessage.includes('isa zero six') ||
+      lowerMessage.includes('isa 6') ||
+      lowerMessage.includes('isa-6') ||
+      /isa[\s-]*0?6/.test(lowerMessage)) {
+    return {
+      response: `📋 **ISA06 - Sender ID**
 
-**Options:**
-• **Availity Defined** - Recommended for most implementations
-• **Custom Value** - Use if you have a specific organizational identifier
+**Purpose:** The actual identification number of the sender organization.
 
-**Best Practice:** Unless you have regulatory requirements for a specific ID, use Availity's standard value (030240928) for seamless integration.`;
+**Field Details:**
+• **Segment:** ISA06
+• **Length:** 15 characters (max)
+• **Position:** Interchange Control Header
+
+**For 270 Request:**
+• **Standard:** 030240928 (Availity defines)
+• **Alternative:** Custom value (up to 15 chars)
+
+**For 271 Response:**
+• **Standard:** Availity defines
+• **Alternative:** Custom value
+
+**Important:** This value must match the qualifier type specified in ISA05. If ISA05 is "01" (DUNS), then ISA06 should be your DUNS number.
+
+**Example:** If using Availity standard, ISA06 = "030240928"`
+    };
   }
 
-  if (lowerMessage.includes('isa08')) {
-    return `**ISA08 - Receiver ID** identifies who will receive your X12 transactions.
+  if (lowerMessage.includes('isa07') ||
+      lowerMessage.includes('isa 07') ||
+      lowerMessage.includes('isa-07') ||
+      lowerMessage.includes('isa zero seven') ||
+      lowerMessage.includes('isa 7') ||
+      lowerMessage.includes('isa-7') ||
+      /isa[\s-]*0?7/.test(lowerMessage)) {
+    return {
+      response: `📋 **ISA07 - Receiver ID Qualifier**
 
-**For 270 Requests:** Usually "Availity defined" since Availity routes to appropriate payers
-**For 271 Responses:** Typically your organization's ID
+**Purpose:** Identifies the type of organization receiving the transaction.
 
-**Tip:** This field works with ISA07 (Receiver ID Qualifier) to uniquely identify the receiving party.`;
+**Field Details:**
+• **Segment:** ISA07
+• **Length:** 2 characters
+• **Position:** Interchange Control Header
+
+**Common Values:**
+• **01** - DUNS (Data Universal Numbering System)
+• **ZZ** - Mutually Defined
+
+**For 270 Request:**
+• **Standard:** ZZ (fixed)
+• Availity uses ZZ for routing
+
+**For 271 Response:**
+• **Standard:** 01
+• **Alternative:** Custom value
+
+**Note:** This must match the receiver's identification system. For Availity routing, use "ZZ" in 270 requests.`
+    };
   }
 
-  if (lowerMessage.includes('gs02') || lowerMessage.includes('gs03')) {
-    return `**GS02/GS03 - Application Sender/Receiver Codes** identify applications within your organization.
+  if (lowerMessage.includes('isa08') ||
+      lowerMessage.includes('isa 08') ||
+      lowerMessage.includes('isa-08') ||
+      lowerMessage.includes('isa zero eight') ||
+      lowerMessage.includes('isa 8') ||
+      lowerMessage.includes('isa-8') ||
+      /isa[\s-]*0?8/.test(lowerMessage)) {
+    return {
+      response: `📋 **ISA08 - Receiver ID**
 
-**GS02 (Application Sender):**
-• Use "030240928" for standard Availity integration
-• Or define custom value if required by your system
+**Purpose:** The actual identification number of the receiver organization.
 
-**GS03 (Application Receiver):**
-• "Availity defines" for outbound transactions
-• "030240928" for inbound responses
+**Field Details:**
+• **Segment:** ISA08
+• **Length:** 15 characters (max)
+• **Position:** Interchange Control Header
 
-**Note:** These codes help route transactions to the correct application within your organization.`;
+**For 270 Request:**
+• **Standard:** Availity defines (based on payer routing)
+• **Alternative:** Custom value (e.g., 030240928)
+
+**For 271 Response:**
+• **Standard:** 030240928 (fixed)
+
+**Important:**
+• This value is typically assigned by Availity for routing purposes
+• Must match the qualifier type in ISA07
+• For 270 requests, Availity will populate this based on the target payer
+
+**Example:** When sending to Availity, they define the receiver ID for proper routing.`
+    };
   }
 
-  if (lowerMessage.includes('payer name') || lowerMessage.includes('nm103')) {
-    return `**2100A NM103 - Payer Name** is how your organization appears in eligibility transactions.
+  if (lowerMessage.includes('isa11') ||
+      lowerMessage.includes('isa 11') ||
+      lowerMessage.includes('isa-11') ||
+      lowerMessage.includes('isa eleven') ||
+      /isa[\s-]*11/.test(lowerMessage)) {
+    return {
+      response: `📋 **ISA11 - Repetition Separator**
+
+**Purpose:** Character used to separate repeated data elements within a segment.
+
+**Field Details:**
+• **Segment:** ISA11
+• **Length:** 1 character
+• **Position:** Interchange Control Header
+
+**Standard Value:**
+• **^** (caret/circumflex) - Availity standard
+
+**For Both 270 Request & 271 Response:**
+• **Standard:** ^ (caret)
+• This is the industry standard
+
+**Usage Example:**
+When a field can have multiple values, they're separated by this character:
+\`NM1*IL*1*SMITH*JOHN^MIDDLE~\`
+
+**Recommendation:** Always use "^" (caret) as it's the Availity and industry standard. Do not change this unless specifically required by your trading partner.`
+    };
+  }
+
+  if (lowerMessage.includes('isa16') ||
+      lowerMessage.includes('isa 16') ||
+      lowerMessage.includes('isa-16') ||
+      lowerMessage.includes('isa sixteen') ||
+      /isa[\s-]*16/.test(lowerMessage)) {
+    return {
+      response: `📋 **ISA16 - Component Element Separator**
+
+**Purpose:** Character used to separate component data elements within a composite data structure.
+
+**Field Details:**
+• **Segment:** ISA16
+• **Length:** 1 character
+• **Position:** Interchange Control Header
+
+**Standard Value:**
+• **:** (colon) - Availity standard
+
+**For 270 Request:**
+• **Standard:** : (colon/composite separator)
+
+**For 271 Response:**
+• **Standard:** : (colon) - Availity standard
+• **Alternatives:** * (asterisk), ~ (tilde)
+
+**Usage Example:**
+When a data element has sub-components:
+\`REF*0F*123456:789~\`
+The colon separates the composite parts.
+
+**Recommendation:** Use ":" (colon) as it's the Availity standard. Only change if your trading partner specifically requires a different separator.`
+    };
+  }
+
+  // GS Field Explanations
+  if (lowerMessage.includes('gs02') ||
+      lowerMessage.includes('gs 02') ||
+      lowerMessage.includes('gs-02') ||
+      lowerMessage.includes('gs zero two') ||
+      lowerMessage.includes('gs 2') ||
+      lowerMessage.includes('gs-2') ||
+      /gs[\s-]*0?2/.test(lowerMessage)) {
+    return {
+      response: `📋 **GS02 - Application Sender Code**
+
+**Purpose:** Identifies the application or location that is sending the functional group.
+
+**Field Details:**
+• **Segment:** GS02
+• **Length:** 2-15 characters
+• **Position:** Functional Group Header
+
+**Common Values:**
+• **030240928** - Availity standard
+• **Availity defines** - Let Availity set the value
+• **Custom value** - Your organization's code
+
+**For 270 Request:**
+• Standard: 030240928 or Availity defines
+• Alternative: Custom value (2-15 chars)
+
+**Important:** This should match your organization's sender identification. Often the same as ISA06 but at the application level rather than interchange level.
+
+**Recommendation:** Use "030240928" or let Availity define it for consistency with ISA envelope.`
+    };
+  }
+
+  if (lowerMessage.includes('gs03') ||
+      lowerMessage.includes('gs 03') ||
+      lowerMessage.includes('gs-03') ||
+      lowerMessage.includes('gs zero three') ||
+      lowerMessage.includes('gs 3') ||
+      lowerMessage.includes('gs-3') ||
+      /gs[\s-]*0?3/.test(lowerMessage)) {
+    return {
+      response: `📋 **GS03 - Application Receiver Code**
+
+**Purpose:** Identifies the application or location that is receiving the functional group.
+
+**Field Details:**
+• **Segment:** GS03
+• **Length:** 2-15 characters
+• **Position:** Functional Group Header
+
+**Common Values:**
+• **030240928** - Standard value
+• **Custom value** - Receiver's application code
+
+**For 270 Request:**
+• Standard: 030240928
+• Alternative: Custom value (2-15 chars)
+
+**Important:** This identifies the receiving application at the payer. Availity typically manages this value for proper routing to the correct payer system.
+
+**Recommendation:** Use "030240928" or the value specified by your trading partner/payer.`
+    };
+  }
+
+  // Payer-specific fields
+  if (lowerMessage.includes('nm103') || lowerMessage.includes('payer name')) {
+    return {
+      response: `📋 **2100A NM103 - Payer Name**
+
+**Purpose:** The official name of the payer organization in eligibility transactions.
+
+**Field Details:**
+• **Segment:** 2100A NM103
+• **Length:** 1-35 characters
+• **Loop:** 2100A (Payer Name)
+
+**For 270 Request:**
+• Define value: Maximum 35 characters
+• Use official payer name
 
 **Requirements:**
+• Must be the legal or commonly recognized name
 • Maximum 35 characters
-• Should match your official business name
-• Used by providers to identify your organization
+• Should match payer's official records
 
-**Example:** "ACME HEALTH INSURANCE COMPANY"
+**Example:** "AETNA HEALTH INSURANCE" or "BLUE CROSS BLUE SHIELD"
 
-**Tip:** Use a clear, recognizable name that providers will easily identify.`;
+**Important:** This name must match what the payer expects to see in transactions for proper routing and processing.`
+    };
   }
 
-  if (lowerMessage.includes('payer id') || lowerMessage.includes('nm109')) {
-    return `**2100A NM109 - Payer ID** is your unique identifier for eligibility transactions.
+  if (lowerMessage.includes('nm109') || lowerMessage.includes('payer id')) {
+    return {
+      response: `📋 **2100A NM109 - Payer ID**
 
-**Requirements:**
-• Maximum 80 characters
-• Must be unique across all payers
-• Used by providers to route eligibility requests
+**Purpose:** The unique identifier for the payer organization.
 
-**Best Practice:** Use your NAIC number, federal tax ID, or other standard healthcare identifier.
+**Field Details:**
+• **Segment:** 2100A NM109
+• **Length:** 2-80 characters
+• **Loop:** 2100A (Payer Name)
 
-**Note:** This ID will be published in Availity's Health Plan Partners directory unless you opt out.`;
+**For 270 Request:**
+• Define value: 2-80 characters
+• Use payer's assigned ID
+
+**Common ID Types:**
+• **Payer ID** - Assigned by the payer
+• **Tax ID** - Federal tax identification
+• **NPI** - National Provider Identifier
+
+**Example:** "12345" or "87726"
+
+**Important:** This must be the ID that the payer recognizes for your organization. Contact your payer to confirm the correct ID to use.`
+    };
   }
+
+  // General ISA segment query (only if not asking about specific field)
+  if ((lowerMessage.includes('isa segment') ||
+       (lowerMessage.includes('isa') && lowerMessage.includes('what is isa') && !lowerMessage.match(/isa\s*\d/))) &&
+      !lowerMessage.match(/isa\s*0?\d/)) {
+    return {
+      response: `📋 **ISA Segment - Interchange Control Header**
+
+**Purpose:** The ISA segment is the outermost envelope in X12 EDI transactions. It controls the entire interchange between trading partners.
+
+**Key ISA Fields:**
+
+**ISA05** - Sender ID Qualifier (2 chars)
+• Identifies sender type (01=DUNS, ZZ=Mutually Defined)
+
+**ISA06** - Sender ID (15 chars)
+• Your organization's unique identifier
+
+**ISA07** - Receiver ID Qualifier (2 chars)
+• Identifies receiver type
+
+**ISA08** - Receiver ID (15 chars)
+• Receiving organization's identifier
+
+**ISA11** - Repetition Separator (1 char)
+• Standard: ^ (caret)
+
+**ISA16** - Component Element Separator (1 char)
+• Standard: : (colon)
+
+**Ask me about any specific ISA field!**
+Examples: "What is ISA05?", "Explain ISA11", "Tell me about ISA16"`
+    };
+  }
+
+  // General GS segment query (only if not asking about specific field)
+  if ((lowerMessage.includes('gs segment') ||
+       (lowerMessage.includes('gs') && lowerMessage.includes('what is gs') && !lowerMessage.match(/gs\s*\d/))) &&
+      !lowerMessage.match(/gs\s*0?\d/)) {
+    return {
+      response: `📋 **GS Segment - Functional Group Header**
+
+**Purpose:** The GS segment groups related transaction sets together within an interchange. It's the second level of enveloping after ISA.
+
+**Key GS Fields:**
+
+**GS02** - Application Sender Code (2-15 chars)
+• Identifies the sending application
+• Standard: 030240928 or Availity defines
+
+**GS03** - Application Receiver Code (2-15 chars)
+• Identifies the receiving application
+• Standard: 030240928
+
+**Relationship to ISA:**
+• ISA = Interchange level (entire transmission)
+• GS = Functional group level (related transactions)
+• ST = Transaction set level (individual 270/271)
+
+**Ask me about specific GS fields!**
+Examples: "What is GS02?", "Explain GS03"`
+    };
+  }
+
+
 
   if (lowerMessage.includes('uppercase') || lowerMessage.includes('character')) {
-    return `**Character Set Requirements** ensure your system can process X12 data correctly.
+    return {
+      response: `**Character Set Requirements** ensure your system can process X12 data correctly.
 
 **Uppercase Characters:** Availity's standard is uppercase. Most systems accept this.
 
@@ -387,11 +1161,13 @@ Rules for format, content, and data element values for this transaction are list
 
 **Extended Characters:** Special characters beyond basic ASCII. Only enable if your system supports them.
 
-**Recommendation:** Accept Availity's standards unless you have specific system limitations.`;
+**Recommendation:** Accept Availity's standards unless you have specific system limitations.`
+    };
   }
 
   if (lowerMessage.includes('xml wrapper') || lowerMessage.includes('envelope')) {
-    return `**XML Wrapper** adds an XML envelope around your X12 transactions.
+    return {
+      response: `**XML Wrapper** adds an XML envelope around your X12 transactions.
 
 **When to Use:**
 • Your system requires XML formatting
@@ -400,7 +1176,8 @@ Rules for format, content, and data element values for this transaction are list
 
 **Standard Option:** Most implementations don't need XML wrapper - raw X12 format works fine.
 
-**If Yes:** You'll need to provide XML envelope specifications as an attachment.`;
+**If Yes:** You'll need to provide XML envelope specifications as an attachment.`
+    };
   }
 
   if ((lowerMessage.includes('implementation') && lowerMessage.includes('mode')) ||
@@ -413,7 +1190,8 @@ Rules for format, content, and data element values for this transaction are list
       currentMode === 'edi_batch' ? '📦 EDI Batch' : currentMode
     }` : '';
 
-    return `**Implementation Modes** - Choose the transaction type that best fits your organization:
+    return {
+      response: `**Implementation Modes** - Choose the transaction type that best fits your organization:
 
 **🌐 Real-time Web Transaction**
 Physicians and other healthcare professionals submit patient eligibility inquiries via Availity Essentials. Availity then formats the data into a valid HIPAA 270 request and routes it to the payer. The payer returns valid HIPAA 271 responses to Availity.
@@ -432,11 +1210,13 @@ Physicians and other healthcare professionals submit patient eligibility inquiry
 
 ${context?.currentSection ? `\n**Current Section:** ${context.currentSection}` : ''}
 
-${currentMode ? 'Need help with your selected mode?' : 'Which mode fits your organization\'s technical capabilities?'}`;
+${currentMode ? 'Need help with your selected mode?' : 'Which mode fits your organization\'s technical capabilities?'}`
+    };
   }
 
   if (lowerMessage.includes('isa') || lowerMessage.includes('segment')) {
-    return `**ISA Segments** are the foundation of X12 transactions - they're like the "envelope" for your data.
+    return {
+      response: `**ISA Segments** are the foundation of X12 transactions - they're like the "envelope" for your data.
 
 **Key ISA Fields:**
 • **ISA05/ISA06:** Who's sending (Sender ID Qualifier/ID)
@@ -448,11 +1228,13 @@ ${currentMode ? 'Need help with your selected mode?' : 'Which mode fits your org
 
 **Pro Tip:** Use Availity's standard values unless you have specific regulatory requirements.
 
-Need help with a specific ISA field?`;
+Need help with a specific ISA field?`
+    };
   }
 
   if (lowerMessage.includes('enveloping') || lowerMessage.includes('envelope')) {
-    return `**Enveloping Requirements** define how your X12 transactions are packaged and transmitted.
+    return {
+      response: `**Enveloping Requirements** define how your X12 transactions are packaged and transmitted.
 
 **Components:**
 • **ISA Envelope:** Interchange control (sender/receiver info)
@@ -464,12 +1246,14 @@ Need help with a specific ISA field?`;
 
 ${context?.currentSection ? `**Current Section:** ${context.currentSection}` : ''}
 
-Which specific enveloping field do you need help with?`;
+Which specific enveloping field do you need help with?`
+    };
   }
 
   // Section-specific help
   if (lowerMessage.includes('organization information') || (context?.currentSection?.toLowerCase().includes('organization') && lowerMessage.includes('help'))) {
-    return `**Organization Information** section collects basic details about your company.
+    return {
+      response: `**Organization Information** section collects basic details about your company.
 
 **Required Fields:**
 • **Organization Name:** Your official business name
@@ -484,11 +1268,13 @@ Which specific enveloping field do you need help with?`;
 
 ${context?.currentSection ? `**Current Section:** ${context.currentSection}` : ''}
 
-Need help with any specific organization field?`;
+Need help with any specific organization field?`
+    };
   }
 
   if (lowerMessage.includes('contact information') || (context?.currentSection?.toLowerCase().includes('contact') && lowerMessage.includes('help'))) {
-    return `**Contact Information** section identifies key people for your implementation.
+    return {
+      response: `**Contact Information** section identifies key people for your implementation.
 
 **Contact Types Required:**
 • **Trading Partner Technical Contact:** Your IT/technical lead
@@ -506,7 +1292,8 @@ Need help with any specific organization field?`;
 
 ${context?.currentSection ? `**Current Section:** ${context.currentSection}` : ''}
 
-Which contact type do you need help with?`;
+Which contact type do you need help with?`
+    };
   }
 
   // Default helpful response with real context
@@ -516,7 +1303,8 @@ Which contact type do you need help with?`;
 ${context.implementationMode ? `• Mode: ${context.implementationMode.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}` : ''}
 ${context.sectionDescription ? `• About: ${context.sectionDescription}` : ''}` : '';
 
-  return `I'm here to help with your X12 270/271 questionnaire!
+  return {
+    response: `I'm here to help with your X12 270/271 questionnaire!
 
 **I can explain:**
 • ISA/GS segment fields and their purposes
@@ -532,5 +1320,6 @@ ${context.sectionDescription ? `• About: ${context.sectionDescription}` : ''}`
 • "What are the character set options?"
 ${context?.currentSection ? `• "Help with ${context.currentSection}"` : ''}
 
-What specific topic would you like help with?`;
+What specific topic would you like help with?`
+  };
 }

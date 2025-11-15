@@ -23,11 +23,11 @@ export const EnvelopingRequirementsTable: React.FC<EnvelopingRequirementsTablePr
   const [customValues, setCustomValues] = useState<CustomValueState>({});
   const [validationErrors, setValidationErrors] = useState<ValidationErrorState>({});
 
-  // Initialize default values for ISA05, ISA07, ISA08, ISA11, ISA16, and Payer Name
+  // Initialize default values for ISA05, ISA06, ISA07, ISA08, ISA11, ISA16, and Payer Name
   useEffect(() => {
     requirements.forEach((requirement) => {
-      // Set default values for ISA05, ISA07, ISA11, and ISA16 (both 270 and 271)
-      if (requirement.field === 'ISA05' || requirement.field === 'ISA07' || requirement.field === 'ISA11' || requirement.field === 'ISA16') {
+      // Set default values for ISA05, ISA06, ISA07, ISA11, and ISA16 (both 270 and 271)
+      if (requirement.field === 'ISA05' || requirement.field === 'ISA06' || requirement.field === 'ISA07' || requirement.field === 'ISA11' || requirement.field === 'ISA16') {
         if (!responses[requirement.request270.id]) {
           onResponseChange(requirement.request270.id, requirement.request270.defaultValue);
         }

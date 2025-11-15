@@ -5,10 +5,12 @@ import { ImplementationsList } from '../pages/ImplementationsList';
 import { UserManagement } from '../pages/UserManagement';
 import { PayerConfigurations } from './PayerConfigurations';
 import { PayerTesting } from './PayerTesting';
+import { Dashboard } from './Dashboard';
 import { AIChatbotContainer } from './chatbot';
 import { apiService } from '../services/api';
 import { Section, QuestionnaireResponse } from '../types/questionnaire';
 import { useAuth } from '../contexts/AuthContext';
+import { AutoFillOptions, NavigationCallbacks, FieldUpdateCallback } from './chatbot/chatbot.types';
 
 type TabId = 'dashboard' | 'questionnaire' | 'implementations' | 'configurations' | 'testing' | 'users';
 
@@ -130,6 +132,46 @@ export const MainDashboard: React.FC = () => {
     sectionDescription: ''
   });
 
+  // Auto-fill callback state
+  const [autoFillCallback, setAutoFillCallback] = useState<((options?: AutoFillOptions) => Promise<void>) | undefined>(undefined);
+
+  // Navigation callbacks state
+  const [navigationCallbacks, setNavigationCallbacks] = useState<NavigationCallbacks | undefined>(undefined);
+
+  // Field update callback state
+  const [fieldUpdateCallback, setFieldUpdateCallback] = useState<FieldUpdateCallback | undefined>(undefined);
+
+  // Wrapper function to properly register the auto-fill callback
+  const handleAutoFillReady = useCallback((callback: (options?: AutoFillOptions) => Promise<void>) => {
+    console.log('MainDashboard: Registering auto-fill callback');
+    setAutoFillCallback(() => callback);
+  }, []);
+
+  // Wrapper function to register navigation callbacks
+  const handleNavigationReady = useCallback((callbacks: NavigationCallbacks) => {
+    console.log('MainDashboard: Registering navigation callbacks');
+    setNavigationCallbacks(callbacks);
+  }, []);
+
+  // Wrapper function to register field update callback
+  const handleFieldUpdateReady = useCallback((callback: FieldUpdateCallback) => {
+    console.log('MainDashboard: Registering field update callback');
+    setFieldUpdateCallback(() => callback);
+  }, []);
+
+  // Debug: Log when callbacks change
+  useEffect(() => {
+    console.log('MainDashboard: autoFillCallback changed:', !!autoFillCallback);
+  }, [autoFillCallback]);
+
+  useEffect(() => {
+    console.log('MainDashboard: navigationCallbacks changed:', !!navigationCallbacks);
+  }, [navigationCallbacks]);
+
+  useEffect(() => {
+    console.log('MainDashboard: fieldUpdateCallback changed:', !!fieldUpdateCallback);
+  }, [fieldUpdateCallback]);
+
   useEffect(() => {
     loadQuestionnaire();
   }, []);
@@ -137,7 +179,7 @@ export const MainDashboard: React.FC = () => {
   // Safety check: If payer user is on a restricted tab, redirect to questionnaire
   useEffect(() => {
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['configurations', 'testing', 'users'];
+      const restrictedTabs: TabId[] = ['dashboard', 'configurations', 'testing', 'users'];
       if (restrictedTabs.includes(activeTab)) {
         setActiveTab('questionnaire');
       }
@@ -184,6 +226,15 @@ export const MainDashboard: React.FC = () => {
 
   // Define all available tabs
   const allTabs: Tab[] = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    },
     {
       id: 'questionnaire',
       label: 'Questionnaire',
@@ -234,9 +285,9 @@ export const MainDashboard: React.FC = () => {
 
   // Filter tabs based on user role - hide restricted tabs for payer users
   const tabs: Tab[] = allTabs.filter(tab => {
-    // If user is a payer, hide configurations, testing, and users tabs
+    // If user is a payer, hide dashboard, configurations, testing, and users tabs
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['configurations', 'testing', 'users'];
+      const restrictedTabs: TabId[] = ['dashboard', 'configurations', 'testing', 'users'];
       return !restrictedTabs.includes(tab.id);
     }
     // Availity users see all tabs
@@ -245,6 +296,8 @@ export const MainDashboard: React.FC = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard />;
       case 'questionnaire':
         if (loading) {
           return (
@@ -289,7 +342,12 @@ export const MainDashboard: React.FC = () => {
               <div className="flex gap-8">
                 {/* AI Chatbot - Desktop Only */}
                 <div className="hidden xl:block w-80 flex-shrink-0">
-                  <AIChatbotContainer context={chatbotContext} />
+                  <AIChatbotContainer
+                    context={chatbotContext}
+                    onAutoFillRequest={autoFillCallback}
+                    navigationCallbacks={navigationCallbacks}
+                    onFieldUpdate={fieldUpdateCallback}
+                  />
                 </div>
 
                 {/* Existing Questionnaire - Unchanged Logic */}
@@ -312,6 +370,9 @@ export const MainDashboard: React.FC = () => {
                     onSectionComplete={handleSectionComplete}
                     onAutoSave={handleAutoSave}
                     onChatbotContextUpdate={handleChatbotContextUpdate}
+                    onAutoFillReady={handleAutoFillReady}
+                    onNavigationReady={handleNavigationReady}
+                    onFieldUpdateReady={handleFieldUpdateReady}
                   />
                 </div>
               </div>
