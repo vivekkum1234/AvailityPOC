@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams, useLocation } from 'react-router-dom';
 import { Section, Question, QuestionnaireResponse, QuestionType } from '../types/questionnaire';
@@ -410,15 +410,27 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     return availableUsers.find(user => user.id === userId);
   };
 
+  // Use refs for values that change frequently to keep callbacks stable
+  const visibleSectionsRef = useRef(visibleSections);
+  const currentSectionRef = useRef(currentSection);
+
+  useEffect(() => {
+    visibleSectionsRef.current = visibleSections;
+  }, [visibleSections]);
+
+  useEffect(() => {
+    currentSectionRef.current = currentSection;
+  }, [currentSection]);
+
   const handleNext = useCallback(() => {
     setCurrentSectionIndex(prev => {
-      if (prev < visibleSections.length - 1) {
+      if (prev < visibleSectionsRef.current.length - 1) {
         scrollToTop();
         return prev + 1;
       }
       return prev;
     });
-  }, [visibleSections.length]);
+  }, []);
 
   const handlePrevious = useCallback(() => {
     setCurrentSectionIndex(prev => {
@@ -734,7 +746,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     const normalizedInput = sectionName.toLowerCase().trim();
 
     // Try to find matching section
-    const matchIndex = visibleSections.findIndex(section => {
+    const matchIndex = visibleSectionsRef.current.findIndex(section => {
       const normalizedTitle = section.title.toLowerCase();
 
       // Exact match
@@ -749,7 +761,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     });
 
     if (matchIndex !== -1) {
-      console.log(`Navigating to section: ${visibleSections[matchIndex].title}`);
+      console.log(`Navigating to section: ${visibleSectionsRef.current[matchIndex].title}`);
       setCurrentSectionIndex(matchIndex);
       scrollToTop();
       return true;
@@ -757,23 +769,24 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
 
     console.log(`Section not found: ${sectionName}`);
     return false;
-  }, [visibleSections]);
+  }, []);
+
+  // Create stable navigation callbacks
+  const stableNavigationCallbacks = useCallback((): NavigationCallbacks => ({
+    onNext: handleNext,
+    onPrevious: handlePrevious,
+    onGoToSection: handleGoToSection,
+    getSectionNames: () => visibleSectionsRef.current.map(s => s.title),
+    getCurrentSectionName: () => currentSectionRef.current?.title || ''
+  }), [handleNext, handlePrevious, handleGoToSection]);
 
   // Register navigation callbacks with parent component
   useEffect(() => {
     if (onNavigationReady) {
-      const navigationCallbacks: NavigationCallbacks = {
-        onNext: handleNext,
-        onPrevious: handlePrevious,
-        onGoToSection: handleGoToSection,
-        getSectionNames: () => visibleSections.map(s => s.title),
-        getCurrentSectionName: () => currentSection?.title || ''
-      };
-
       console.log('Registering navigation callbacks');
-      onNavigationReady(navigationCallbacks);
+      onNavigationReady(stableNavigationCallbacks());
     }
-  }, [onNavigationReady, handleNext, handlePrevious, handleGoToSection, visibleSections, currentSection]);
+  }, [onNavigationReady, stableNavigationCallbacks]);
 
   // Field update handler for voice commands
   const handleFieldUpdate = useCallback(async (fieldName: string, fieldValue: string): Promise<{ success: boolean; message: string }> => {
@@ -842,13 +855,26 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     };
   }, [currentSection, visibleQuestions, setValue, setResponses, onAutoSave]);
 
-  // Register field update callback with parent component
+  // Use a ref to store the latest callback
+  const handleFieldUpdateRef = useRef(handleFieldUpdate);
+
+  // Update the ref whenever the callback changes
+  useEffect(() => {
+    handleFieldUpdateRef.current = handleFieldUpdate;
+  }, [handleFieldUpdate]);
+
+  // Create a stable wrapper function that always calls the latest callback
+  const stableFieldUpdateCallback = useCallback(async (fieldName: string, fieldValue: string) => {
+    return handleFieldUpdateRef.current(fieldName, fieldValue);
+  }, []);
+
+  // Register field update callback with parent component (only once)
   useEffect(() => {
     if (onFieldUpdateReady) {
       console.log('Registering field update callback');
-      onFieldUpdateReady(handleFieldUpdate);
+      onFieldUpdateReady(stableFieldUpdateCallback);
     }
-  }, [onFieldUpdateReady, handleFieldUpdate]);
+  }, [onFieldUpdateReady, stableFieldUpdateCallback]);
 
   const calculateProgress = () => {
     return ((currentSectionIndex + 1) / visibleSections.length) * 100;
