@@ -8,6 +8,7 @@ import { VoiceModePanel } from './VoiceModePanel';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { useVoiceCommands } from '../../hooks/useVoiceCommands';
+import { apiService } from '../../services/api'; // NEW: For X12 code lookup
 
 interface ChatbotSidebarProps {
   context?: ChatbotContext;
@@ -409,6 +410,36 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
     }
   });
 
+  /**
+   * NEW: Helper function to detect X12 code lookup queries
+   * SEPARATE from existing chatbot logic
+   */
+  const detectX12CodeQuery = (message: string): boolean => {
+    const lowerMessage = message.toLowerCase();
+
+    // Keywords that indicate code lookup
+    const codeKeywords = [
+      'code',
+      'codes',
+      'service type',
+      'claim status',
+      'claim adjustment',
+      'error reason',
+      'payment type',
+      'provider taxonomy',
+      'remittance',
+      'what is code',
+      'what does code',
+      'show me code',
+      'list code',
+      'tell me about code',
+      'explain code'
+    ];
+
+    // Check if message contains any code-related keywords
+    return codeKeywords.some(keyword => lowerMessage.includes(keyword));
+  };
+
   const handleSendMessage = async (messageContent: string) => {
     // Pause listening in voice mode while processing
     if (isVoiceMode) {
@@ -438,12 +469,29 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
     setMessages(prev => [...prev, typingMessage]);
 
     try {
-      // Simulate AI response (replace with actual API call later)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // NEW: Check if this is an X12 code lookup query (SEPARATE from existing chatbot)
+      const isCodeQuery = detectX12CodeQuery(messageContent);
 
-      const result = generateSampleResponse(messageContent, context);
-      const aiResponse = typeof result === 'string' ? result : result.response;
-      const autoFillAction = typeof result === 'object' ? result.autoFillAction : undefined;
+      let aiResponse: string;
+      let autoFillAction: AutoFillOptions | undefined;
+
+      if (isCodeQuery) {
+        // Use NEW separate X12 code lookup service
+        console.log('[Chatbot] Detected X12 code query, using code lookup service');
+        try {
+          const contextInfo = context ? `Current section: ${context.currentSection || 'unknown'}` : undefined;
+          aiResponse = await apiService.lookupX12Code(messageContent, contextInfo);
+        } catch (error) {
+          console.error('[Chatbot] X12 code lookup error:', error);
+          aiResponse = "I'm having trouble looking up that code right now. Please try again or visit https://x12.org/codes directly.";
+        }
+      } else {
+        // EXISTING chatbot logic (UNCHANGED)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const result = generateSampleResponse(messageContent, context);
+        aiResponse = typeof result === 'string' ? result : result.response;
+        autoFillAction = typeof result === 'object' ? result.autoFillAction : undefined;
+      }
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

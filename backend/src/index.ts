@@ -13,6 +13,7 @@ import submissionRoutes from './routes/submissions';
 import userRoutes from './routes/users';
 import payerRoutes from './routes/payers';
 import mockPayerRoutes from './routes/mockPayer';
+import x12CodesRoutes from './routes/x12Codes'; // NEW: X12 Code Lookup
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -69,6 +70,7 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api', payerRoutes);
 app.use('/api/mock-payer', mockPayerRoutes);
+app.use('/api/x12-codes', x12CodesRoutes); // NEW: X12 Code Lookup
 
 // 404 handler
 app.use('*', (req, res) => {

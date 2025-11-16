@@ -389,6 +389,38 @@ class ApiService {
   async getMockPayerStatus(): Promise<any> {
     return this.request<any>('/mock-payer/status');
   }
+
+  /**
+   * NEW: X12 Code Lookup
+   * Separate from existing chatbot functionality
+   * Uses AI to fetch and explain X12 codes from x12.org
+   */
+  async lookupX12Code(query: string, context?: string): Promise<string> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/x12-codes/lookup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query, context }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        return data.response;
+      } else {
+        throw new Error(data.error || 'Failed to lookup code');
+      }
+    } catch (error) {
+      console.error('[API] X12 Code Lookup Error:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();
