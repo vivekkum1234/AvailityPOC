@@ -4,9 +4,11 @@ import { QuestionnaireWizard } from './components/QuestionnaireWizard';
 import { MainDashboard } from './components/MainDashboard';
 import { ImplementationsList } from './pages/ImplementationsList';
 import { UserManagement } from './pages/UserManagement';
+import { PDFExtractor } from './pages/PDFExtractor';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ExtractionDataProvider } from './contexts/ExtractionDataContext';
 import { apiService } from './services/api';
 import { Section, QuestionnaireResponse } from './types/questionnaire';
 import './App.css';
@@ -100,9 +102,7 @@ const QuestionnaireApp: React.FC = () => {
 
   const handleAutoSave = async (sectionId: string, questionId: string, value: any) => {
     try {
-      console.log('Auto-saving:', { sectionId, questionId, value });
-      // Here you would typically auto-save the data
-      // For now, we'll just log it
+      // Auto-save silently - only log errors
     } catch (err) {
       console.error('Auto-save failed:', err);
     }
@@ -208,47 +208,65 @@ const QuestionnaireApp: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route
-            path="/login"
-            element={<LoginWrapper />}
-          />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <MainDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/questionnaire/edit/:responseId"
-            element={
-              <ProtectedRoute>
-                <QuestionnaireApp />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/implementations"
-            element={
-              <ProtectedRoute>
-                <ImplementationsList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute>
-                <UserManagement />
-              </ProtectedRoute>
-            }
-          />
+      <ExtractionDataProvider>
+        <Router>
+          <Routes>
+            <Route
+              path="/login"
+              element={<LoginWrapper />}
+            />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <MainDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <QuestionnaireApp />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/questionnaire/edit/:responseId"
+              element={
+                <ProtectedRoute>
+                  <QuestionnaireApp />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/implementations"
+              element={
+                <ProtectedRoute>
+                  <ImplementationsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <UserManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pdf-extractor"
+              element={
+                <ProtectedRoute>
+                  <PDFExtractor />
+                </ProtectedRoute>
+              }
+            />
 
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
+      </ExtractionDataProvider>
     </AuthProvider>
   );
 }

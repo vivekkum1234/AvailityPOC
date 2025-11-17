@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { QuestionnaireWizard } from './QuestionnaireWizard';
 import { ImplementationsList } from '../pages/ImplementationsList';
 import { UserManagement } from '../pages/UserManagement';
+import { PDFExtractor } from '../pages/PDFExtractor';
 import { PayerConfigurations } from './PayerConfigurations';
 import { PayerTesting } from './PayerTesting';
 import { Dashboard } from './Dashboard';
@@ -12,7 +13,7 @@ import { Section, QuestionnaireResponse } from '../types/questionnaire';
 import { useAuth } from '../contexts/AuthContext';
 import { AutoFillOptions, NavigationCallbacks, FieldUpdateCallback } from './chatbot/chatbot.types';
 
-type TabId = 'dashboard' | 'questionnaire' | 'implementations' | 'configurations' | 'testing' | 'users';
+type TabId = 'dashboard' | 'questionnaire' | 'implementations' | 'pdf-extractor' | 'configurations' | 'testing' | 'users';
 
 interface Tab {
   id: TabId;
@@ -254,6 +255,15 @@ export const MainDashboard: React.FC = () => {
       )
     },
     {
+      id: 'pdf-extractor',
+      label: 'PDF Extractor',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      )
+    },
+    {
       id: 'configurations',
       label: 'Payer Configurations',
       icon: (
@@ -381,6 +391,8 @@ export const MainDashboard: React.FC = () => {
         );
       case 'implementations':
         return <ImplementationsList />;
+      case 'pdf-extractor':
+        return <PDFExtractor />;
       case 'configurations':
         return <PayerConfigurations />;
       case 'users':

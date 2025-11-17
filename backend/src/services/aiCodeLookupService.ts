@@ -56,7 +56,10 @@ async function fetchX12CodePage(codeType: string): Promise<string> {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; APOC-Bot/1.0)'
       },
-      timeout: 10000
+      timeout: 10000,
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false // Bypass SSL certificate validation
+      })
     });
 
     const $ = cheerio.load(response.data);

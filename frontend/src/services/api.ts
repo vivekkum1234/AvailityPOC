@@ -421,6 +421,40 @@ class ApiService {
       throw error;
     }
   }
+
+  /**
+   * Upload and extract PDF form fields
+   */
+  async uploadAndExtractPDF(file: File): Promise<any> {
+    try {
+      console.log('[API] Uploading PDF for extraction:', file.name);
+
+      const formData = new FormData();
+      formData.append('pdf', file);
+
+      const response = await fetch(`${API_BASE_URL}/pdf-extractor/extract`, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('[API] PDF extraction successful:', data.data.summary);
+        return data.data;
+      } else {
+        throw new Error(data.error || 'Failed to extract PDF');
+      }
+    } catch (error) {
+      console.error('[API] PDF Extraction Error:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();

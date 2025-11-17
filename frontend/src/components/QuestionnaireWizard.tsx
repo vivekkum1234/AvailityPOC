@@ -6,6 +6,8 @@ import { QuestionRenderer } from './QuestionRenderer';
 import { EnvelopingRequirementsTable } from './EnvelopingRequirementsTable';
 import { apiService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useExtractionData } from '../contexts/ExtractionDataContext';
+import { transformExtractionDataForAutoFill } from '../utils/extractionDataTransformer';
 import { getSampleDataForSection, getSectionsToFill } from '../utils/sampleDataGenerator';
 import { AutoFillOptions, NavigationCallbacks, FieldUpdateCallback } from './chatbot/chatbot.types';
 import { findMatchingQuestion, validateAndFormatValue } from '../utils/voiceFieldMatcher';
@@ -32,6 +34,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   onFieldUpdateReady
 }) => {
   const { user } = useAuth(); // Get authenticated user
+  const { extractionData, clearExtractionData } = useExtractionData(); // Get PDF extraction data
   const { responseId } = useParams<{ responseId: string }>();
   const location = useLocation();
 
@@ -49,6 +52,8 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftResponseId, setDraftResponseId] = useState<string | null>(null);
   const [draftSaveMessage, setDraftSaveMessage] = useState<string>('');
+  const [showExtractionBanner, setShowExtractionBanner] = useState(false);
+  const [extractionFileName, setExtractionFileName] = useState<string>('');
   const [isLoadingEditData, setIsLoadingEditData] = useState(false);
   const [editData, setEditData] = useState<any>(null);
 
@@ -70,7 +75,8 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     watch,
     setValue,
     formState: { errors },
-    reset
+    reset,
+    trigger
   } = useForm();
 
   const currentSection = visibleSections[currentSectionIndex];
@@ -119,6 +125,29 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     }
   }, [initialData, setValue]);
 
+  // Auto-fill from PDF extraction data - Step 1: Set mode
+  useEffect(() => {
+    if (extractionData && !implementationMode) {
+      // Step 1: Set mode to Real-Time B2B first
+      setImplementationMode('real_time_b2b');
+      setValue('implementation-mode-selection', 'real_time_b2b');
+      setResponses(prev => ({ ...prev, 'implementation-mode-selection': 'real_time_b2b' }));
+
+      // Also trigger DOM event for the radio button to visually update
+      setTimeout(() => {
+        const radio = document.querySelector('[name="implementation-mode-selection"][value="real_time_b2b"]') as HTMLInputElement;
+        if (radio) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, 100);
+
+      // Show banner
+      setShowExtractionBanner(true);
+      setExtractionFileName(extractionData.fileName);
+    }
+  }, [extractionData, implementationMode, setValue]);
+
   // Load edit data when in edit mode
   useEffect(() => {
     const loadEditData = async () => {
@@ -146,7 +175,6 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
           }
 
         } catch (error) {
-          console.error('Error loading edit data:', error);
           alert('Failed to load submission data for editing');
         } finally {
           setIsLoadingEditData(false);
@@ -340,7 +368,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
         setSectionAssignments(JSON.parse(stored));
       }
     } catch (error) {
-      console.error('Failed to load assignments:', error);
+      // Silent error
     }
   }, [responseId]);
 
@@ -388,7 +416,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
       localStorage.setItem(getAssignmentStorageKey(), JSON.stringify(assignments));
       setSectionAssignments(assignments);
     } catch (error) {
-      console.error('Failed to save assignments:', error);
+      // Silent error
     }
   };
 
@@ -481,11 +509,9 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
           updatedByName: user ? `${user.name}` : 'Anonymous User'
         };
 
-        console.log('Updating questionnaire:', updateData);
         const result = await apiService.updateQuestionnaire(draftResponseId, updateData);
 
         setSubmissionResult(result);
-        console.log('Update successful:', result);
       } else {
         // Create new submission
         const submissionData = {
@@ -496,18 +522,15 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
           submittedByName: user ? `${user.name}` : 'Anonymous User'
         };
 
-        console.log('Submitting questionnaire:', submissionData);
         const result = await apiService.submitQuestionnaire(submissionData);
 
         setSubmissionResult(result);
-        console.log('Submission successful:', result);
       }
 
       // Show success modal
       setShowSuccessModal(true);
 
     } catch (error) {
-      console.error('Failed to submit questionnaire:', error);
       alert('Failed to submit questionnaire. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -540,8 +563,6 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
         submittedByName: user ? `${user.name}` : 'Anonymous User' // Add user name for display
       };
 
-      console.log('Saving draft:', draftData);
-
       // Save draft to API
       const result = await apiService.saveDraft(draftData);
 
@@ -549,15 +570,12 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
       setDraftResponseId(result.responseId);
       setDraftSaveMessage('Draft saved successfully!');
 
-      console.log('Draft saved successfully:', result);
-
       // Clear message after 3 seconds
       setTimeout(() => {
         setDraftSaveMessage('');
       }, 3000);
 
     } catch (error) {
-      console.error('Failed to save draft:', error);
       setDraftSaveMessage('Failed to save draft. Please try again.');
 
       // Clear error message after 5 seconds
@@ -583,6 +601,150 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     element.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
+  /**
+   * ISOLATED PDF Auto-Fill Handler
+   * This function is separate from the chatbot auto-fill to avoid breaking existing functionality
+   * It uses the same DOM manipulation logic but with PDF extraction data
+   */
+  const handlePDFAutoFill = useCallback(async (pdfData: Record<string, any>) => {
+    try {
+      // Fill fields WITHOUT animation (instant fill)
+      // Sort fields to ensure radio buttons are filled before their associated text inputs
+      // This is important for enveloping requirements fields where text input visibility depends on radio selection
+      const fieldEntries = Object.entries(pdfData).sort(([keyA], [keyB]) => {
+        const isCustomA = keyA.endsWith('-custom');
+        const isCustomB = keyB.endsWith('-custom');
+        // Non-custom fields (radio buttons) come first
+        if (!isCustomA && isCustomB) return -1;
+        if (isCustomA && !isCustomB) return 1;
+        return 0;
+      });
+
+      let successCount = 0;
+      let failCount = 0;
+      const failedFields: string[] = [];
+
+      for (let i = 0; i < fieldEntries.length; i++) {
+        const [fieldId, value] = fieldEntries[i];
+
+        // For -custom fields, wait a bit for the radio button to trigger DOM update
+        if (fieldId.endsWith('-custom')) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        // Find the input element
+        const element = document.querySelector(`[name="${fieldId}"]`) as HTMLElement | null;
+
+        if (element) {
+          // Handle different field types with proper DOM events
+          if (Array.isArray(value)) {
+            // Multi-select checkbox - check each option
+            for (const optionValue of value) {
+              const checkbox = document.querySelector(`[name="${fieldId}"][value="${optionValue}"]`) as HTMLInputElement;
+              if (fieldId === 'supported-search-options') {
+                console.log(`[DEBUG] Checkbox for ${optionValue}:`, checkbox, checkbox?.checked);
+              }
+              if (checkbox) {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }
+            setValue(fieldId, value);
+            successCount++;
+          } else if (element.tagName === 'SELECT') {
+            // Dropdown select
+            const selectElement = element as HTMLSelectElement;
+            selectElement.value = String(value);
+            selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+            setValue(fieldId, value);
+            successCount++;
+          } else if (element.tagName === 'INPUT' && (element as HTMLInputElement).type === 'radio') {
+            // Radio button - find the specific radio with matching value
+            const radio = document.querySelector(`[name="${fieldId}"][value="${value}"]`) as HTMLInputElement;
+            if (radio) {
+              radio.checked = true;
+              radio.dispatchEvent(new Event('change', { bubbles: true }));
+              setValue(fieldId, value);
+              successCount++;
+            } else {
+              // Try setting value anyway
+              setValue(fieldId, value);
+              failCount++;
+              failedFields.push(fieldId);
+            }
+          } else if (element.tagName === 'INPUT' && (element as HTMLInputElement).type === 'checkbox') {
+            // Single checkbox
+            const checkboxElement = element as HTMLInputElement;
+            checkboxElement.checked = Boolean(value);
+            checkboxElement.dispatchEvent(new Event('change', { bubbles: true }));
+            setValue(fieldId, value);
+            successCount++;
+          } else if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            // Text input or textarea - set value directly (no typing animation)
+            const inputElement = element as HTMLInputElement | HTMLTextAreaElement;
+            inputElement.value = String(value);
+            inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+            inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+            setValue(fieldId, value);
+            successCount++;
+          } else {
+            // Other types - set directly
+            setValue(fieldId, value);
+            successCount++;
+          }
+
+          // Update responses state
+          setResponses(prev => ({ ...prev, [fieldId]: value }));
+
+          // Trigger auto-save for the section that contains this field
+          const fieldSection = sections.find(s =>
+            s.questions?.some(q => q.id === fieldId)
+          );
+          if (fieldSection) {
+            onAutoSave(fieldSection.id, fieldId, value);
+          }
+        } else {
+          // Still set the value even if element not found
+          setValue(fieldId, value);
+          setResponses(prev => ({ ...prev, [fieldId]: value }));
+          failCount++;
+          failedFields.push(fieldId);
+        }
+      }
+
+      // Silent completion
+
+      // PDF AUTO-FILL SPECIFIC: Force re-validation to update section completion status
+      // This is needed because enveloping requirements fields are filled via DOM manipulation
+      // and the form state needs to be synchronized with the DOM values
+      setTimeout(() => {
+        // Trigger form validation to update watchedValues
+        trigger();
+
+        // Force a state update to trigger re-render of section completion indicators
+        // This ensures the "Enveloping Requirements" section shows as completed
+        setResponses(prev => ({ ...prev }));
+      }, 300);
+    } catch (error) {
+      // Silent error handling
+    }
+  }, [sections, setValue, setResponses, onAutoSave, trigger]);
+
+  // Auto-fill from PDF extraction data - Step 2: Fill fields after mode is set
+  // This useEffect is placed AFTER handlePDFAutoFill is defined to avoid "used before declaration" error
+  useEffect(() => {
+    if (extractionData && implementationMode === 'real_time_b2b' && visibleSections.length > 0 && visibleQuestions.length > 0) {
+      // Transform extraction data to flat format with value validation
+      const transformedData = transformExtractionDataForAutoFill(extractionData, sections);
+
+      // Wait for DOM to be fully ready, then fill
+      // Increased timeout to 1200ms to ensure enveloping requirements table and all sections are rendered
+      setTimeout(() => {
+        handlePDFAutoFill(transformedData);
+      }, 1200);
+    }
+  }, [extractionData, implementationMode, visibleSections, visibleQuestions, sections, handlePDFAutoFill]);
+
   const handleAutoFillRequest = useCallback(async (options?: AutoFillOptions) => {
     const { autoSubmit = false, sectionId, implementationMode: optionsMode } = options || {};
 
@@ -590,11 +752,8 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
       // Use implementation mode from options, or fall back to current mode, or default to 'real_time_b2b'
       const modeToUse = optionsMode || implementationMode || 'real_time_b2b';
 
-      console.log('Auto-fill requested:', { autoSubmit, sectionId, implementationMode: modeToUse });
-
       // If implementation mode is not set yet, set it first
       if (!implementationMode && modeToUse) {
-        console.log('Setting implementation mode to:', modeToUse);
         setImplementationMode(modeToUse);
         setValue('implementation-mode', modeToUse);
 
@@ -615,18 +774,13 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
         sectionsToFill = sections.filter(s => sectionIdsToFill.includes(s.id));
       }
 
-      console.log('Sections to fill:', sectionsToFill.map(s => s.id));
-
       // Fill each section with animation
       for (let i = 0; i < sectionsToFill.length; i++) {
         const section = sectionsToFill[i];
         const sampleData = getSampleDataForSection(section.id, { implementationMode: modeToUse });
 
-        console.log(`Filling section ${section.id}:`, sampleData);
-
         // Skip sections with no data
         if (Object.keys(sampleData).length === 0) {
-          console.log(`Skipping section ${section.id} - no sample data available`);
           continue;
         }
 
@@ -637,19 +791,14 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
         // Find the section in visible sections after state updates
         const sectionIndex = sections.findIndex(s => s.id === section.id);
         if (sectionIndex !== -1) {
-          console.log(`Navigating to section ${section.id} at index ${sectionIndex}`);
           setCurrentSectionIndex(sectionIndex);
           await new Promise(resolve => setTimeout(resolve, 500)); // Wait for navigation animation
-        } else {
-          console.log(`Section ${section.id} not found in visible sections`);
         }
 
         // Fill fields with typing animation
         const fieldEntries = Object.entries(sampleData);
         for (let j = 0; j < fieldEntries.length; j++) {
           const [fieldId, value] = fieldEntries[j];
-
-          console.log(`Filling field ${fieldId} with value:`, value);
 
           // Small delay before starting to fill the field
           await new Promise(resolve => setTimeout(resolve, 300));
@@ -704,7 +853,6 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
               element.classList.remove('auto-fill-highlight');
             }, 1000);
           } else {
-            console.log(`Element not found for field: ${fieldId}`);
             // Still set the value even if element not found
             setValue(fieldId, value);
             setResponses(prev => ({ ...prev, [fieldId]: value }));
@@ -723,20 +871,15 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
         await new Promise(resolve => setTimeout(resolve, 1000)); // Brief pause before submit
         await handleQuestionnaireSubmit();
       }
-
-      console.log('Auto-fill completed');
     } catch (error) {
-      console.error('Auto-fill error:', error);
       alert('Auto-fill failed. Please try again.');
     }
   }, [visibleSections, implementationMode, currentSectionIndex, setValue, onAutoSave, handleNext, handleQuestionnaireSubmit]);
 
   // Register auto-fill handler with parent component
   useEffect(() => {
-    console.log('Registering auto-fill handler, onAutoFillReady:', !!onAutoFillReady);
     if (onAutoFillReady) {
       onAutoFillReady(handleAutoFillRequest);
-      console.log('Auto-fill handler registered successfully');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onAutoFillReady]);
@@ -761,13 +904,11 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     });
 
     if (matchIndex !== -1) {
-      console.log(`Navigating to section: ${visibleSectionsRef.current[matchIndex].title}`);
       setCurrentSectionIndex(matchIndex);
       scrollToTop();
       return true;
     }
 
-    console.log(`Section not found: ${sectionName}`);
     return false;
   }, []);
 
@@ -783,43 +924,34 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   // Register navigation callbacks with parent component
   useEffect(() => {
     if (onNavigationReady) {
-      console.log('Registering navigation callbacks');
       onNavigationReady(stableNavigationCallbacks());
     }
   }, [onNavigationReady, stableNavigationCallbacks]);
 
   // Field update handler for voice commands
   const handleFieldUpdate = useCallback(async (fieldName: string, fieldValue: string): Promise<{ success: boolean; message: string }> => {
-    console.log('QuestionnaireWizard: handleFieldUpdate called:', { fieldName, fieldValue });
-
     if (!currentSection) {
       return { success: false, message: 'No section is currently active' };
     }
 
     // Get visible questions in current section
     const currentQuestions = visibleQuestions;
-    console.log('Current section questions:', currentQuestions.map(q => q.title));
 
     // Find matching question
     const matchedQuestion = findMatchingQuestion(fieldName, currentQuestions);
 
     if (!matchedQuestion) {
-      console.log('No matching question found for:', fieldName);
       return { success: false, message: `I couldn't find a field matching "${fieldName}" in this section` };
     }
-
-    console.log('Matched question:', matchedQuestion.title, matchedQuestion.id);
 
     // Validate and format the value
     const validation = validateAndFormatValue(fieldValue, matchedQuestion);
 
     if (!validation.valid) {
-      console.log('Validation failed:', validation.error);
       return { success: false, message: validation.error || 'Invalid value for this field' };
     }
 
     const formattedValue = validation.formattedValue!;
-    console.log('Formatted value:', formattedValue);
 
     // Update the form
     setValue(matchedQuestion.id, formattedValue);
@@ -871,7 +1003,6 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   // Register field update callback with parent component (only once)
   useEffect(() => {
     if (onFieldUpdateReady) {
-      console.log('Registering field update callback');
       onFieldUpdateReady(stableFieldUpdateCallback);
     }
   }, [onFieldUpdateReady, stableFieldUpdateCallback]);
@@ -920,7 +1051,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
           {submissionResult && (
             <button
               className="btn-secondary"
-              onClick={() => console.log('View submission:', submissionResult.submissionId)}
+              onClick={() => {}}
             >
               View Submission
             </button>
@@ -1033,6 +1164,32 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* PDF Extraction Banner */}
+      {showExtractionBanner && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start justify-between animate-fade-in">
+          <div className="flex items-start gap-3">
+            <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-semibold text-blue-900">Form Pre-filled from PDF Extraction</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Values from <span className="font-medium">{extractionFileName}</span> have been automatically populated in the form.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowExtractionBanner(false)}
+            className="text-blue-400 hover:text-blue-600 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Enhanced Questions Form */}
       <form onSubmit={handleSubmit(handleSectionSubmit)} className="space-y-8">

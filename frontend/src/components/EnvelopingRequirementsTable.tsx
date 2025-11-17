@@ -245,6 +245,7 @@ export const EnvelopingRequirementsTable: React.FC<EnvelopingRequirementsTablePr
                     <div className="custom-input-container">
                       <input
                         type="text"
+                        name={`${requirement.request270.id}-custom`}
                         placeholder={`Enter value (max ${requirement.length} characters)`}
                         value={getCustomValue(requirement.request270.id)}
                         onChange={(e) => handleCustomValueChange(
@@ -296,6 +297,7 @@ export const EnvelopingRequirementsTable: React.FC<EnvelopingRequirementsTablePr
                     <div className="custom-input-container">
                       <input
                         type="text"
+                        name={`${requirement.response271.id}-custom`}
                         placeholder={`Enter value (max ${requirement.length} characters)`}
                         value={getCustomValue(requirement.response271.id)}
                         onChange={(e) => handleCustomValueChange(
