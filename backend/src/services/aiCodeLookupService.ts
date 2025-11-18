@@ -10,12 +10,9 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import https from 'https';
 
-// Initialize OpenAI client with SSL workaround for corporate networks
+// Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  httpAgent: new https.Agent({
-    rejectUnauthorized: false // Workaround for SSL certificate issues
-  })
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 // Map of code types to their X12.org URLs
@@ -185,12 +182,16 @@ Context: ${context || 'User is filling out an X12 270/271 implementation questio
       temperature: 0.3
     });
 
-    const toolCalls = response.choices[0].message.tool_calls;
+    const toolCalls = response.choices[0]?.message?.tool_calls;
 
     if (toolCalls && toolCalls.length > 0) {
       // OpenAI wants to fetch code information
-      const functionCall = toolCalls[0].function;
-      const args = JSON.parse(functionCall.arguments);
+      const toolCall = toolCalls[0];
+      if (!toolCall || toolCall.type !== 'function') {
+        throw new Error('Function call data is missing or invalid');
+      }
+
+      const args = JSON.parse(toolCall.function.arguments);
 
       console.log(`[X12 Code Lookup] OpenAI requesting code type: ${args.code_type}`);
 
@@ -198,7 +199,12 @@ Context: ${context || 'User is filling out an X12 270/271 implementation questio
       const codeContent = await fetchX12CodePage(args.code_type);
 
       // Add function result to conversation
-      messages.push(response.choices[0].message);
+      const assistantMessage = response.choices[0]?.message;
+      if (!assistantMessage) {
+        throw new Error('Assistant message is missing');
+      }
+
+      messages.push(assistantMessage);
       messages.push({
         role: "tool",
         tool_call_id: toolCalls[0].id,
@@ -213,7 +219,7 @@ Context: ${context || 'User is filling out an X12 270/271 implementation questio
       });
     }
 
-    const finalResponse = response.choices[0].message.content ||
+    const finalResponse = response.choices[0]?.message?.content ||
       "I couldn't find information about that code. Please try rephrasing your question.";
 
     console.log(`[X12 Code Lookup] Response generated successfully`);

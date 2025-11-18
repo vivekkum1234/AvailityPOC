@@ -40,15 +40,16 @@ interface MappedField {
  * POST /api/pdf-extractor/extract
  * Upload and extract PDF form fields
  */
-router.post('/extract', upload.single('pdf'), async (req: Request, res: Response) => {
+router.post('/extract', upload.single('pdf'), async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('[PDF Extractor] Received PDF upload request');
 
     if (!req.file) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'No PDF file uploaded'
       });
+      return;
     }
 
     console.log(`[PDF Extractor] Processing file: ${req.file.originalname} (${req.file.size} bytes)`);
@@ -196,10 +197,12 @@ router.post('/extract', upload.single('pdf'), async (req: Request, res: Response
     // Merge static multi-select fields (e.g., supported-search-options)
     const staticCommonFieldsGrouped = new Map<string, MappedField[]>();
     staticCommonFieldsRaw.forEach(field => {
-      if (!staticCommonFieldsGrouped.has(field.questionId)) {
-        staticCommonFieldsGrouped.set(field.questionId, []);
+      if (field.questionId) {
+        if (!staticCommonFieldsGrouped.has(field.questionId)) {
+          staticCommonFieldsGrouped.set(field.questionId, []);
+        }
+        staticCommonFieldsGrouped.get(field.questionId)!.push(field);
       }
-      staticCommonFieldsGrouped.get(field.questionId)!.push(field);
     });
 
     const staticCommonFields: MappedField[] = [];

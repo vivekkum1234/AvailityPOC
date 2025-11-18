@@ -187,11 +187,11 @@ function extractFieldData(field: PDFField, form: any, fieldIndex: number, pages:
           // Method 2: If Method 1 failed, try to get from appearance dictionary (AP)
           if (!exportValue) {
             const apDict = widgetDict.lookup(widgetDict.context.obj('AP'));
-            if (apDict) {
-              const normalDict = apDict.lookup(apDict.context.obj('N'));
-              if (normalDict) {
+            if (apDict && typeof apDict === 'object' && 'lookup' in apDict && 'context' in apDict) {
+              const normalDict = (apDict as any).lookup((apDict as any).context.obj('N'));
+              if (normalDict && typeof normalDict === 'object' && 'entries' in normalDict) {
                 // Get all keys from the normal appearance dictionary
-                const keys = normalDict.entries();
+                const keys = (normalDict as any).entries();
                 for (const [key] of keys) {
                   const keyStr = key.toString().replace(/^\//, '');
                   if (keyStr && keyStr !== 'Off') {
@@ -275,7 +275,8 @@ function extractFieldData(field: PDFField, form: any, fieldIndex: number, pages:
           if (annots) {
             const annotArray = annots.asArray();
             for (const annotRef of annotArray) {
-              if (annotRef.toString() === widget.ref.toString()) {
+              const widgetRef = (widget as any).ref;
+              if (widgetRef && annotRef.toString() === widgetRef.toString()) {
                 pageNumber = i;
                 break;
               }
@@ -345,9 +346,11 @@ function categorizeFieldsBySection(fields: ExtractedField[]): PDFExtractionResul
 
   return {
     totalFields: fields.length,
+    totalPages: 0, // This will be set by the caller
     commonFields,
     mode2B2BFields,
-    allFields
+    allFields,
+    fieldsByPage: {} // This will be set by the caller
   };
 }
 

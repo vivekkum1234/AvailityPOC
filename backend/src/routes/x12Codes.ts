@@ -29,16 +29,17 @@ const router = express.Router();
  *   "timestamp": "2025-01-16T10:30:00.000Z"
  * }
  */
-router.post('/lookup', async (req: Request, res: Response) => {
+router.post('/lookup', async (req: Request, res: Response): Promise<void> => {
   try {
     const { query, context } = req.body;
-    
+
     // Validate input
     if (!query || typeof query !== 'string') {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Query is required and must be a string'
       });
+      return;
     }
     
     console.log(`[X12 Code API] Received lookup request: "${query}"`);
