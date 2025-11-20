@@ -349,10 +349,28 @@ class ApiService {
     return this.request<any>(`/payers/${payerId}/configuration`);
   }
 
-  async generateTestRecommendations(payerId: string): Promise<any> {
-    return this.request<any>(`/payers/${payerId}/test-recommendations`, {
+  async generateTestRecommendations(payerId: string): Promise<{
+    recommendations: any[];
+    totalCount: number;
+    predefinedCount: number;
+    aiGeneratedCount: number;
+  }> {
+    const response = await this.request<any>(`/payers/${payerId}/test-recommendations`, {
       method: 'POST',
     });
+
+    // Handle both old and new response formats
+    if (response.recommendations) {
+      return response;
+    } else {
+      // Old format - wrap in new structure
+      return {
+        recommendations: response,
+        totalCount: response.length,
+        predefinedCount: 0,
+        aiGeneratedCount: response.length
+      };
+    }
   }
 
   async generateTestData(payerId: string, selectedTestCases: any[]): Promise<any> {

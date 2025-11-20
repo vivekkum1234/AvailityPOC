@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { TestGenerationAgent } from './TestGenerationAgent';
+import { TestDataGenerationAgent } from './TestDataGenerationAgent';
 
 interface Implementation {
   id: string;
@@ -24,8 +26,11 @@ interface TestRecommendation {
   title: string;
   description: string;
   category: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: 'Critical' | 'High' | 'Medium';
   estimatedDuration: string;
+  hasPreConfiguredData: boolean;
+  dataSource: 'predefined' | 'ai-generated';
+  implementationSpecific: boolean;
 }
 
 interface DetailedTestCase {
@@ -218,9 +223,12 @@ const CustomScenarioForm: React.FC<CustomScenarioFormProps> = ({ onSubmit, onCan
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium' as 'high' | 'medium' | 'low',
+    priority: 'Medium' as 'Critical' | 'High' | 'Medium',
     category: 'Additional Testing' as 'Core Functionality' | 'Additional Testing',
-    estimatedDuration: ''
+    estimatedDuration: '',
+    hasPreConfiguredData: false,
+    dataSource: 'predefined' as 'predefined' | 'ai-generated',
+    implementationSpecific: false
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -233,9 +241,12 @@ const CustomScenarioForm: React.FC<CustomScenarioFormProps> = ({ onSubmit, onCan
     setFormData({
       title: '',
       description: '',
-      priority: 'medium',
+      priority: 'Medium',
       category: 'Additional Testing',
-      estimatedDuration: ''
+      estimatedDuration: '',
+      hasPreConfiguredData: false,
+      dataSource: 'predefined',
+      implementationSpecific: false
     });
   };
 
@@ -292,12 +303,12 @@ const CustomScenarioForm: React.FC<CustomScenarioFormProps> = ({ onSubmit, onCan
             </label>
             <select
               value={formData.priority}
-              onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as 'Critical' | 'High' | 'Medium' }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             >
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
             </select>
           </div>
           <div>
@@ -351,6 +362,19 @@ export const PayerTesting: React.FC = () => {
   const [payerEndpoint, setPayerEndpoint] = useState('https://availitypoc-production.up.valuelabs.app/api/mock-payer/execute-tests');
   const [executionMode, setExecutionMode] = useState('Simulated (Demo)');
 
+  // Test generation agent states
+  const [showGenerationAgent, setShowGenerationAgent] = useState(false);
+  const [generationStep, setGenerationStep] = useState<'analyzing' | 'generating-critical' | 'generating-high' | 'generating-medium' | 'finalizing' | 'complete' | null>(null);
+  const [predefinedCount, setPredefinedCount] = useState(0);
+  const [criticalCount, setCriticalCount] = useState(0);
+  const [highCount, setHighCount] = useState(0);
+  const [mediumCount, setMediumCount] = useState(0);
+  const [totalGeneratedCount, setTotalGeneratedCount] = useState(0);
+
+  // Test data generation agent states
+  const [showDataGenerationAgent, setShowDataGenerationAgent] = useState(false);
+  const [dataGenerationStep, setDataGenerationStep] = useState<'fetching-scenarios' | 'fetching-config' | 'fetching-envelope' | 'preparing-ai' | 'generating-270' | 'generating-271' | 'validating' | 'complete' | null>(null);
+
   useEffect(() => {
     loadImplementations();
   }, []);
@@ -378,20 +402,96 @@ export const PayerTesting: React.FC = () => {
     if (!selectedImplementation) return;
 
     setLoading(true);
+    setShowGenerationAgent(true);
+
     try {
       const selectedImpl = implementations.find(impl => impl.id === selectedImplementation);
       if (!selectedImpl) {
         throw new Error('Selected implementation not found');
       }
 
-      // Generate AI-powered test recommendations based on payer configuration
-      const testRecommendations = await apiService.generateTestRecommendations(selectedImpl.organization_id);
+      console.log('🎯 Generating 50 test recommendations...');
 
-      // The API now returns just recommendations, not detailed test cases
-      setRecommendations(testRecommendations);
+      // Step 1: Analyzing questionnaire
+      setGenerationStep('analyzing');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Step 2: Start generating critical priority tests
+      setGenerationStep('generating-critical');
+      setCriticalCount(0);
+
+      // Make the actual API call
+      const apiCallPromise = apiService.generateTestRecommendations(selectedImpl.organization_id);
+
+      // Simulate progress updates while waiting for API (spread across all phases)
+      let criticalProgress = 0;
+      let highProgress = 0;
+      let mediumProgress = 0;
+      let currentPhase = 'critical';
+
+      const progressInterval = setInterval(() => {
+        if (currentPhase === 'critical') {
+          criticalProgress = Math.min(criticalProgress + 1, 20);
+          setCriticalCount(criticalProgress);
+          if (criticalProgress >= 20) {
+            currentPhase = 'high';
+            setGenerationStep('generating-high');
+          }
+        } else if (currentPhase === 'high') {
+          highProgress = Math.min(highProgress + 1, 15);
+          setHighCount(highProgress);
+          if (highProgress >= 15) {
+            currentPhase = 'medium';
+            setGenerationStep('generating-medium');
+          }
+        } else if (currentPhase === 'medium') {
+          mediumProgress = Math.min(mediumProgress + 1, 12);
+          setMediumCount(mediumProgress);
+        }
+      }, 600); // Update every 600ms (20+15+12 = 47 updates * 600ms ≈ 28 seconds)
+
+      // Wait for API response
+      const response = await apiCallPromise;
+      clearInterval(progressInterval);
+
+      // Ensure all counts are at max
+      setCriticalCount(20);
+      setHighCount(15);
+      setMediumCount(12);
+      setGenerationStep('generating-medium');
+
+      // Step 5: Finalizing
+      setGenerationStep('finalizing');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Step 6: Complete
+      setGenerationStep('complete');
+      setTotalGeneratedCount(response.totalCount);
+
+      console.log(`✅ Received ${response.totalCount} test recommendations`);
+      console.log(`   - Predefined: ${response.predefinedCount} (ready-to-use)`);
+      console.log(`   - AI-generated: ${response.aiGeneratedCount} (implementation-specific)`);
+
+      // Wait for completion animation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // The API now returns structured response with metadata
+      setRecommendations(response.recommendations);
       setCurrentStep(2);
+      setShowGenerationAgent(false);
+      setGenerationStep(null);
+
+      // Reset counts
+      setPredefinedCount(0);
+      setCriticalCount(0);
+      setHighCount(0);
+      setMediumCount(0);
+      setTotalGeneratedCount(0);
     } catch (error) {
       console.error('Error generating recommendations:', error);
+      setShowGenerationAgent(false);
+      setGenerationStep(null);
+      alert('Failed to generate test recommendations. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -414,6 +514,10 @@ export const PayerTesting: React.FC = () => {
     if (!selectedImplementation) return;
 
     setLoading(true);
+
+    // Show progress modal
+    setShowDataGenerationAgent(true);
+
     try {
       const selectedImpl = implementations.find(impl => impl.id === selectedImplementation);
       if (!selectedImpl) {
@@ -433,11 +537,40 @@ export const PayerTesting: React.FC = () => {
       console.log('Total custom scenarios:', customScenarios.length);
       console.log('Total available scenarios:', allRecommendations.length);
 
-      // Generate detailed test data using AI
-      const detailedTestCases = await apiService.generateTestData(
-        selectedImpl.organization_id,
+      // Start API call immediately in the background
+      const apiCallPromise = apiService.generateTestData(
+        selectedImpl.id,  // Use implementation ID to fetch correct questionnaire responses
         selectedTestCases
       );
+
+      // Show progress workflow while API call is running
+      // Step 1: Fetching scenarios (2s)
+      setDataGenerationStep('fetching-scenarios');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Step 2: Fetching implementation config (2s)
+      setDataGenerationStep('fetching-config');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Step 3: Fetching envelope data (2s)
+      setDataGenerationStep('fetching-envelope');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Step 4: Preparing AI context (3s)
+      setDataGenerationStep('preparing-ai');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Step 5: Generating 270 requests (4s)
+      setDataGenerationStep('generating-270');
+      await new Promise(resolve => setTimeout(resolve, 4000));
+
+      // Step 6: Generating 271 responses (wait for API to complete)
+      setDataGenerationStep('generating-271');
+      const detailedTestCases = await apiCallPromise;
+
+      // Step 7: Validating (1s)
+      setDataGenerationStep('validating');
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Store detailed test cases
       setDetailedTestCases(detailedTestCases);
@@ -466,11 +599,18 @@ export const PayerTesting: React.FC = () => {
       });
 
       setTestData(generatedTestData);
+
+      // Step 6: Mark as complete
+      setDataGenerationStep('complete');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       setCurrentStep(3);
     } catch (error) {
       console.error('Error generating test data:', error);
+      setShowDataGenerationAgent(false);
     } finally {
       setLoading(false);
+      setShowDataGenerationAgent(false);
     }
   };
 
@@ -693,8 +833,20 @@ export const PayerTesting: React.FC = () => {
 
             {/* Core Recommendations Section */}
             <div className="space-y-4">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">✅ Core Recommendations (Pre-selected)</h3>
+              <div className="flex items-center space-x-2 mb-4">
+                <input
+                  type="checkbox"
+                  defaultChecked={true}
+                  id="select-all-core"
+                  onChange={(e) => {
+                    const checkboxes = document.querySelectorAll('[data-category="core"]');
+                    checkboxes.forEach((checkbox) => {
+                      (checkbox as HTMLInputElement).checked = e.target.checked;
+                    });
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <h3 className="text-lg font-semibold text-gray-900">✅ Core Recommendations</h3>
               </div>
 
               {recommendations
@@ -706,13 +858,18 @@ export const PayerTesting: React.FC = () => {
                         type="checkbox"
                         defaultChecked={true}
                         data-test-id={rec.id}
+                        data-category="core"
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
                       />
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-base font-semibold text-gray-900">{rec.title}</h4>
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                            Critical
+                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                            rec.priority === 'Critical' ? 'bg-red-100 text-red-800' :
+                            rec.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {rec.priority}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">{rec.description}</p>
@@ -728,6 +885,13 @@ export const PayerTesting: React.FC = () => {
                 <input
                   type="checkbox"
                   defaultChecked={false}
+                  id="select-all-additional"
+                  onChange={(e) => {
+                    const checkboxes = document.querySelectorAll('[data-category="additional"]');
+                    checkboxes.forEach((checkbox) => {
+                      (checkbox as HTMLInputElement).checked = e.target.checked;
+                    });
+                  }}
                   className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                 />
                 <h3 className="text-lg font-semibold text-gray-900">📋 Additional Test Cases (Optional)</h3>
@@ -742,13 +906,18 @@ export const PayerTesting: React.FC = () => {
                         type="checkbox"
                         defaultChecked={false}
                         data-test-id={rec.id}
+                        data-category="additional"
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
                       />
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-base font-semibold text-gray-900">{rec.title}</h4>
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            Medium
+                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                            rec.priority === 'Critical' ? 'bg-red-100 text-red-800' :
+                            rec.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {rec.priority}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">{rec.description}</p>
@@ -795,11 +964,11 @@ export const PayerTesting: React.FC = () => {
                           <div className="flex items-center space-x-3 mb-2">
                             <h4 className="text-base font-semibold text-gray-900">{scenario.title}</h4>
                             <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                              scenario.priority === 'high' ? 'bg-red-100 text-red-800' :
-                              scenario.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-green-100 text-green-800'
+                              scenario.priority === 'Critical' ? 'bg-red-100 text-red-800' :
+                              scenario.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                              'bg-blue-100 text-blue-800'
                             }`}>
-                              {scenario.priority.charAt(0).toUpperCase() + scenario.priority.slice(1)}
+                              {scenario.priority}
                             </span>
                             <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
                               Custom
@@ -869,7 +1038,7 @@ export const PayerTesting: React.FC = () => {
                     </span>
                   </div>
                   <div className="bg-gray-50 rounded-md p-4">
-                    <code className="text-sm text-gray-800 break-all">{data.payload}</code>
+                    <pre className="text-sm text-gray-800 break-all whitespace-pre-wrap overflow-x-auto"><code>{data.payload}</code></pre>
                   </div>
                 </div>
               ))}
@@ -986,16 +1155,30 @@ export const PayerTesting: React.FC = () => {
                   <div className="mb-4">
                     <h4 className="text-sm font-medium text-gray-900 mb-2">Business Rules Validation</h4>
                     <div className="space-y-1">
-                      {getBusinessRulesForTestCase(result.testId).map((rule, vIndex) => (
-                        <div key={vIndex} className="flex items-center space-x-2 text-sm">
-                          <span className="inline-flex items-center w-4 h-4 rounded-full bg-green-100">
-                            <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </span>
-                          <span className="text-gray-700">{rule}</span>
-                        </div>
-                      ))}
+                      {result.validationResults && result.validationResults.length > 0 ? (
+                        result.validationResults.map((validation, vIndex) => (
+                          <div key={vIndex} className="flex items-center space-x-2 text-sm">
+                            <span className={`inline-flex items-center w-4 h-4 rounded-full ${
+                              validation.passed ? 'bg-green-100' : 'bg-red-100'
+                            }`}>
+                              {validation.passed ? (
+                                <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-3 h-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </span>
+                            <span className={validation.passed ? 'text-gray-700' : 'text-red-700'}>
+                              {validation.description}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-gray-500">No validation results available</div>
+                      )}
                     </div>
                   </div>
 
@@ -1030,6 +1213,27 @@ export const PayerTesting: React.FC = () => {
 
   return (
     <div className="py-8 px-4 sm:px-6 lg:px-8">
+      {/* Test Generation Agent Modal */}
+      <TestGenerationAgent
+        isGenerating={showGenerationAgent}
+        currentStep={generationStep}
+        predefinedCount={predefinedCount}
+        criticalCount={criticalCount}
+        highCount={highCount}
+        mediumCount={mediumCount}
+        totalCount={totalGeneratedCount}
+      />
+
+      {/* Test Data Generation Agent Modal */}
+      <TestDataGenerationAgent
+        isGenerating={showDataGenerationAgent}
+        currentStep={dataGenerationStep}
+        selectedCount={getAllRecommendations().filter(rec => {
+          const checkbox = document.querySelector(`input[data-test-id="${rec.id}"]`) as HTMLInputElement;
+          return checkbox?.checked;
+        }).length}
+      />
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

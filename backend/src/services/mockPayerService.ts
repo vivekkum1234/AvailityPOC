@@ -249,27 +249,99 @@ export class MockPayerService {
     console.log(`  - isFamilyCoverageTest: ${isFamilyCoverageTest}`);
 
     if (isActiveTest) {
-      // Active Member – General Health Benefits
+      // TC_001: Active Member – General Health Benefits
+      // For demo purposes, all rules pass
       results.push(
-        { passed: true, rule: 'EB01_ACTIVE', description: 'EB segment must show EB01=1 (Active Coverage)', severity: 'info' },
-        { passed: true, rule: 'SERVICE_TYPE_30', description: 'Service Type in EB must be 30 (Health Benefit Plan Coverage)', severity: 'info' },
-        { passed: true, rule: 'COVERAGE_IND', description: 'Coverage Level must be IND (individual)', severity: 'info' },
-        { passed: true, rule: 'EFFECTIVE_DATE', description: 'Effective Date (DTP*356) must be ≤ service date', severity: 'info' },
-        { passed: true, rule: 'TERMINATION_DATE', description: 'Termination Date (DTP*357) must be either not present, or > service date', severity: 'info' },
-        { passed: true, rule: 'NO_AAA_REJECTION', description: 'No AAA rejection segments should be returned', severity: 'info' },
-        { passed: true, rule: 'MSG_ACTIVE', description: 'MSG should clearly indicate active coverage', severity: 'info' }
+        {
+          passed: true,
+          rule: 'EB01_ACTIVE',
+          description: '✓ EB segment shows EB01=1 (Active Coverage)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'SERVICE_TYPE_30',
+          description: '✓ Service Type is 30 (Health Benefit Plan Coverage)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'COVERAGE_LEVEL',
+          description: '✓ Coverage Level is EMP (Employee/Individual)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'PLAN_DATES',
+          description: '✓ DTP segment present with plan effective dates',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'NO_AAA_REJECTION',
+          description: '✓ No AAA rejection segments (member is active)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'TRANSACTION_STRUCTURE',
+          description: '✓ Proper X12 271 transaction structure (ST*271...SE)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'PAYER_IDENTIFICATION',
+          description: '✓ Payer identification present (NM1*PR segment)',
+          severity: 'info'
+        }
       );
+
     } else if (isInactiveTest) {
-      // Inactive Member – Coverage Verification
+      // TC_002: Inactive Member – Coverage Verification
+      // For demo purposes, all rules pass
       results.push(
-        { passed: true, rule: 'EB01_INACTIVE', description: 'EB segment must show EB01=6 (Inactive Coverage)', severity: 'info' },
-        { passed: true, rule: 'SERVICE_TYPE_30', description: 'Service Type must still be 30', severity: 'info' },
-        { passed: true, rule: 'COVERAGE_IND', description: 'Coverage Level must be IND', severity: 'info' },
-        { passed: true, rule: 'EFFECTIVE_PAST', description: 'Effective Date (DTP*356) must be in the past', severity: 'info' },
-        { passed: true, rule: 'TERMINATION_BEFORE', description: 'Termination Date (DTP*357) must be < service date (coverage ended before request)', severity: 'info' },
-        { passed: true, rule: 'NO_ACTIVE_EB', description: 'No EB01=1 segments (cannot show active benefits for inactive member)', severity: 'info' },
-        { passed: true, rule: 'MSG_TERMINATION', description: 'MSG must state coverage termination with termination date', severity: 'info' },
-        { passed: true, rule: 'NO_AAA_REJECTION', description: 'No AAA rejection segments should be present (since member is valid, just inactive)', severity: 'info' }
+        {
+          passed: true,
+          rule: 'EB01_INACTIVE',
+          description: '✓ EB segment shows EB01=6 (Inactive Coverage)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'SERVICE_TYPE_30',
+          description: '✓ Service Type is 30 (Health Benefit Plan Coverage)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'TERMINATION_DATE',
+          description: '✓ Termination date present (DTP*357) showing coverage end date',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'NO_ACTIVE_EB',
+          description: '✓ No active coverage segments (EB*1) for inactive member',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'NO_AAA_REJECTION',
+          description: '✓ No AAA rejection segments (member is valid, just inactive)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'TRANSACTION_STRUCTURE',
+          description: '✓ Proper X12 271 transaction structure (ST*271...SE)',
+          severity: 'info'
+        },
+        {
+          passed: true,
+          rule: 'PAYER_IDENTIFICATION',
+          description: '✓ Payer identification present (NM1*PR segment)',
+          severity: 'info'
+        }
       );
     } else if (isNotFoundTest) {
       // Member Not Found – Error Handling

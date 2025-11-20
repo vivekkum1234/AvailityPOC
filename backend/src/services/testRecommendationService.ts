@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { supabase } from './supabaseService';
 dotenv.config();
 
 // Types for test recommendations (Step 1)
@@ -6,9 +7,12 @@ export interface TestRecommendation {
   id: string;
   title: string;
   description: string;
-  priority: 'Critical' | 'Medium' | 'Low';
-  category: 'Core Functionality' | 'Additional Testing';
+  priority: 'Critical' | 'High' | 'Medium';
+  category: 'Core Functionality' | 'Additional Testing' | 'Edge Cases' | 'Performance';
   estimatedDuration: string;
+  hasPreConfiguredData: boolean;
+  dataSource: 'predefined' | 'ai-generated';
+  implementationSpecific: boolean;
 }
 
 // Types for detailed test data (Step 3)
@@ -16,7 +20,7 @@ export interface TestCase {
   id: string;
   title: string;
   description: string;
-  priority: 'Critical' | 'Medium' | 'Low';
+  priority: 'Critical' | 'High' | 'Medium';
   category: 'Core' | 'Additional';
   memberData: {
     memberId: string;
@@ -59,6 +63,7 @@ export interface PayerInfo {
   id: string;
   name: string;
   implementationMode: string;
+  organizationId: string;
 }
 
 export interface PayerConfiguration {
@@ -386,67 +391,439 @@ IEA*1*000000103~
 
   /**
    * Generate test recommendations using AI (Step 1)
+   * Returns 50 test cases: 6 predefined + 44 AI-generated
    */
   static async generateTestRecommendations(
     payerInfo: PayerInfo,
-    configuration: PayerConfiguration
-  ): Promise<TestRecommendation[]> {
-    console.log('🎯 Starting test recommendations generation...');
+    configuration: PayerConfiguration,
+    questionnaireResponses: Record<string, any>
+  ): Promise<{
+    recommendations: TestRecommendation[];
+    totalCount: number;
+    predefinedCount: number;
+    aiGeneratedCount: number;
+  }> {
+    console.log('🎯 Starting test recommendations generation (50 cases)...');
     console.log('🔑 OpenAI API key status:', this.AI_API_KEY ? 'Available' : 'Missing');
 
     try {
-      // Create the AI prompt with specific instructions for the 12 test cases
-      const prompt = this.createAIPrompt(payerInfo, configuration);
-      console.log('📝 Created AI prompt, calling OpenAI API...');
+      // STEP 1: Get 6 predefined test cases instantly
+      const predefinedCases = this.getPredefinedTestCases(payerInfo, configuration);
+      console.log(`✅ Generated ${predefinedCases.length} predefined test cases (instant)`);
 
-      // Call AI API
+      // STEP 2: Generate 44 AI test cases in parallel batches
       const startTime = Date.now();
-      const aiResponse = await this.callAI(prompt);
+      const aiGeneratedCases = await this.generateAITestCasesInParallel(
+        payerInfo,
+        configuration,
+        questionnaireResponses,
+        44  // Generate 44 additional cases
+      );
       const endTime = Date.now();
-      console.log(`🤖 Received AI response in ${endTime - startTime}ms`);
-      console.log('📄 AI response length:', aiResponse.length);
+      console.log(`✅ Generated ${aiGeneratedCases.length} AI test cases in ${endTime - startTime}ms`);
 
-      // Parse and structure the response
-      const testCases = this.parseAIResponse(aiResponse, payerInfo);
-      console.log(`✅ Successfully parsed ${testCases.length} test recommendations`);
+      // STEP 3: Sort AI-generated cases by priority (Critical > High > Medium)
+      const priorityOrder = { 'Critical': 1, 'High': 2, 'Medium': 3 };
+      const sortedAICases = aiGeneratedCases.sort((a, b) => {
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      });
 
-      return testCases;
+      // STEP 4: Combine results (first 6 predefined, then sorted AI cases)
+      const allRecommendations = [...predefinedCases, ...sortedAICases];
+      console.log(`✅ Total: ${allRecommendations.length} test recommendations (sorted by priority)`);
+
+      return {
+        recommendations: allRecommendations,
+        totalCount: allRecommendations.length,
+        predefinedCount: predefinedCases.length,
+        aiGeneratedCount: aiGeneratedCases.length
+      };
     } catch (error) {
       console.error('❌ Error generating test recommendations:', error);
       console.error('🔍 Error details:', error instanceof Error ? error.message : String(error));
-      // Return fallback test cases if AI fails
-      console.log('🔄 Falling back to template-based test recommendations');
-      return this.getFallbackTestCases(payerInfo, configuration);
+      // Return only predefined test cases if AI fails
+      console.log('🔄 Falling back to predefined test recommendations only');
+      const predefinedCases = this.getPredefinedTestCases(payerInfo, configuration);
+      return {
+        recommendations: predefinedCases,
+        totalCount: predefinedCases.length,
+        predefinedCount: predefinedCases.length,
+        aiGeneratedCount: 0
+      };
     }
   }
 
   /**
-   * Create AI prompt for test recommendations (Step 1)
+   * Get 6 predefined test cases with pre-configured data (instant)
    */
-  private static createAIPrompt(payerInfo: PayerInfo, configuration: PayerConfiguration): string {
+  private static getPredefinedTestCases(
+    payerInfo: PayerInfo,
+    configuration: PayerConfiguration
+  ): TestRecommendation[] {
+    return [
+      {
+        id: 'TC_001',
+        title: 'Active Member - General Health Benefits',
+        description: 'Test active member eligibility verification for general health benefits',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
+      },
+      {
+        id: 'TC_002',
+        title: 'Inactive Member - Coverage Verification',
+        description: 'Test inactive/expired member response handling',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
+      },
+      {
+        id: 'TC_003',
+        title: 'Member Not Found - Error Handling',
+        description: 'Test invalid member ID error handling and response codes',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '1 minute',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
+      },
+      {
+        id: 'TC_004',
+        title: 'Service Type 88 Coverage (Pharmacy)',
+        description: 'Test pharmacy service type coverage verification',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '3 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
+      },
+      {
+        id: 'TC_005',
+        title: 'Member ID Format Test',
+        description: 'Test member ID format validation and requirements',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
+      },
+      {
+        id: 'TC_006',
+        title: 'Coverage Level Test (Family vs Individual)',
+        description: 'Test family vs individual coverage level verification',
+        priority: 'Critical',
+        category: 'Core Functionality',
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
+      }
+    ];
+  }
+
+  /**
+   * Generate AI test cases in parallel batches
+   */
+  private static async generateAITestCasesInParallel(
+    payerInfo: PayerInfo,
+    configuration: PayerConfiguration,
+    questionnaireResponses: Record<string, any>,
+    totalCases: number
+  ): Promise<TestRecommendation[]> {
+    const batchSize = 9;  // 9 cases per batch
+    const numBatches = 5;  // 5 batches for 44 cases (9+9+5+9+12)
+
+    // Define batch configurations with specific test areas to avoid duplicates
+    const batchConfigs = [
+      {
+        startIndex: 7,
+        count: 9,
+        priority: 'Critical',
+        focus: 'Implementation mode specific core tests',
+        category: 'Core Functionality',
+        specificAreas: [
+          'Threading/concurrency limits (if real-time B2B)',
+          'Timeout handling (if real-time B2B)',
+          'XML wrapper validation (if required)',
+          'System hours validation (if specified)',
+          'Session management (if real-time web)',
+          'File naming conventions (if EDI batch)',
+          'Batch aggregation schedules (if EDI batch)',
+          'ISA/GS envelope validation',
+          'Character set validation (uppercase/spaces/extended)'
+        ]
+      },
+      {
+        startIndex: 16,
+        count: 9,
+        priority: 'Critical',
+        focus: 'Search options and service types',
+        category: 'Core Functionality',
+        specificAreas: [
+          'Each supported search option (Member ID, SSN, DOB+Name, etc.)',
+          'Primary service types from questionnaire',
+          'Service type combinations',
+          'Search option validation',
+          'Invalid search option handling',
+          'Service type code validation',
+          'Coverage level testing (IND vs FAM)',
+          'Dependent coverage scenarios',
+          'Multi-service type requests'
+        ]
+      },
+      {
+        startIndex: 25,
+        count: 5,
+        priority: 'Critical',
+        focus: 'Member ID format and enveloping',
+        category: 'Core Functionality',
+        specificAreas: [
+          'Member ID format validation (based on questionnaire)',
+          'Member ID length validation',
+          'Member ID prefix/suffix requirements',
+          'Invalid member ID format handling',
+          'Payer-specific ID requirements'
+        ]
+      },
+      {
+        startIndex: 30,
+        count: 9,
+        priority: 'High',
+        focus: 'Additional service types and configurations',
+        category: 'Core Functionality',
+        specificAreas: [
+          'Secondary service types from questionnaire',
+          'Specialty service types (DME, Vision, Dental, etc.)',
+          'Date range validations',
+          'Provider type variations',
+          'Subscriber vs dependent scenarios',
+          'Multiple dependent scenarios',
+          'Coordination of benefits',
+          'Prior authorization requirements',
+          'Network status validation'
+        ]
+      },
+      {
+        startIndex: 39,
+        count: 12,
+        priority: 'Medium',
+        focus: 'Edge cases and validation',
+        category: 'Additional Testing',
+        specificAreas: [
+          'Missing required fields',
+          'Invalid date formats',
+          'Future dates validation',
+          'Past dates validation',
+          'Special characters in names',
+          'Maximum field length testing',
+          'Minimum field length testing',
+          'Invalid provider NPI',
+          'Invalid payer ID',
+          'Malformed segments',
+          'Missing segments',
+          'Duplicate segments'
+        ]
+      }
+    ];
+
+    // Create batch prompts with specific areas
+    const batchPrompts = batchConfigs.map((config, index) =>
+      this.createEnhancedAIPrompt(
+        payerInfo,
+        configuration,
+        questionnaireResponses,
+        config.startIndex,
+        config.count,
+        config.priority,
+        config.focus,
+        config.category,
+        index,
+        config.specificAreas
+      )
+    );
+
+    console.log(`🚀 Launching ${numBatches} parallel AI batch requests...`);
+    const batchStartTime = Date.now();
+
+    // Execute all batches in parallel
+    const batchResults = await Promise.all(
+      batchPrompts.map((prompt, index) => {
+        console.log(`📤 Batch ${index + 1}: Generating ${batchConfigs[index].count} test cases...`);
+        return this.callAIOptimized(prompt);
+      })
+    );
+
+    const batchTotalTime = Date.now() - batchStartTime;
+    console.log(`⏱️ All ${numBatches} batches completed in ${batchTotalTime}ms (${(batchTotalTime/1000).toFixed(2)}s)`);
+
+    // Combine and parse results
+    const allRecommendations: TestRecommendation[] = [];
+    batchResults.forEach((result, batchIndex) => {
+      try {
+        const parsed = this.parseAIResponse(result, payerInfo, true);
+        console.log(`✅ Batch ${batchIndex + 1}: Parsed ${parsed.length} test cases (expected: ${batchConfigs[batchIndex].count})`);
+        if (parsed.length < batchConfigs[batchIndex].count) {
+          console.warn(`⚠️ Batch ${batchIndex + 1}: Got ${parsed.length} test cases, expected ${batchConfigs[batchIndex].count}`);
+          console.warn(`⚠️ Raw AI response length: ${result.length} characters`);
+        }
+        allRecommendations.push(...parsed);
+      } catch (error) {
+        console.error(`❌ Batch ${batchIndex + 1}: Failed to parse`, error);
+        console.error(`❌ Raw response: ${result.substring(0, 500)}...`);
+      }
+    });
+
+    console.log(`📊 Total AI-generated test cases: ${allRecommendations.length} (expected: 44)`);
+    return allRecommendations;
+  }
+
+  /**
+   * Create enhanced AI prompt with full questionnaire context
+   */
+  private static createEnhancedAIPrompt(
+    payerInfo: PayerInfo,
+    configuration: PayerConfiguration,
+    questionnaireResponses: Record<string, any>,
+    startIndex: number,
+    numCases: number,
+    priorityGuidance: string,
+    focusArea: string,
+    categoryGuidance: string,
+    batchNumber: number,
+    specificAreas: string[] = []
+  ): string {
+    const implementationGuidance = this.getImplementationModeGuidance(configuration.implementationMode);
+
+    // Extract only relevant questionnaire fields to reduce prompt size
+    const relevantConfig = {
+      implementationMode: configuration.implementationMode,
+      xmlWrapper: configuration.xmlWrapper,
+      systemHours: configuration.systemHours,
+      maxThreads: configuration.maxThreads,
+      supportedSearchOptions: configuration.supportedSearchOptions,
+      supportedServiceTypes: configuration.supportedServiceTypes,
+      memberIdFormat: configuration.memberIdFormat,
+      validMemberRecordsRequired: configuration.validMemberRecordsRequired,
+      // Add specific envelope fields if needed
+      isa08: questionnaireResponses['isa08-receiver-id'],
+      payerName: questionnaireResponses['payer-name'],
+      payerId: questionnaireResponses['payer-id']
+    };
+
     return `
-Generate 12 test case recommendations for ${payerInfo.name} (${payerInfo.implementationMode}).
+Generate ${numCases} UNIQUE implementation-specific test case recommendations for ${payerInfo.name}.
 
-Configuration: ${this.extractConfigurationContext(configuration)}
+IMPLEMENTATION MODE: ${configuration.implementationMode}
 
-Create relevant test cases based on the payer configuration. Include 6-8 "Core Functionality" (Critical priority) and 4-6 "Additional Testing" (Medium priority).
+RELEVANT CONFIGURATION:
+${JSON.stringify(relevantConfig, null, 2)}
 
-Return JSON array with 12 test cases:
+KEY CONFIGURATION:
+- Implementation Mode: ${configuration.implementationMode}
+- XML Wrapper: ${configuration.xmlWrapper ? 'Required' : 'Not Required'}
+- System Hours: ${configuration.systemHours || '24/7'}
+- Max Threads: ${configuration.maxThreads || 'Not specified'}
+- Supported Search Options: ${configuration.supportedSearchOptions?.join(', ') || 'All'}
+- Supported Service Types: ${configuration.supportedServiceTypes?.join(', ') || 'All'}
+- Member ID Format: ${configuration.memberIdFormat || 'Not specified'}
+- Valid Member Records Required: ${configuration.validMemberRecordsRequired ? 'Yes' : 'No'}
+
+BATCH FOCUS: ${focusArea}
+PRIORITY GUIDANCE: ${priorityGuidance}
+CATEGORY: ${categoryGuidance}
+
+SPECIFIC TEST AREAS FOR THIS BATCH (Generate ONE test case for EACH area):
+${specificAreas.map((area, i) => `${i + 1}. ${area}`).join('\n')}
+
+${implementationGuidance}
+
+CRITICAL INSTRUCTIONS TO AVOID DUPLICATES:
+1. Generate EXACTLY ONE test case for EACH specific area listed above
+2. Each test case MUST be UNIQUE - no duplicate scenarios
+3. Base test scenarios ONLY on the questionnaire responses provided
+4. If a feature is NOT in the questionnaire, DO NOT generate a test for it
+5. For example:
+   - If XML wrapper is NOT required, skip XML wrapper tests
+   - If max threads is NOT specified, skip threading tests
+   - If only certain search options are supported, test ONLY those
+   - If only certain service types are supported, test ONLY those
+6. DO NOT generate generic "Test Service Type XX" scenarios
+7. Make each test scenario implementation-specific and unique
+8. Test titles should clearly describe the SPECIFIC scenario being tested
+9. ALL Critical and High priority tests MUST be in "Core Functionality" category
+10. ONLY Medium priority tests can be in "Additional Testing" category
+
+EXAMPLES OF GOOD vs BAD TEST TITLES:
+❌ BAD: "Test Service Type 30" (too generic)
+✅ GOOD: "Verify Active Coverage for Service Type 30 (General Health) with Member ID Format Validation"
+
+❌ BAD: "Concurrent Request Handling" (duplicate-prone)
+✅ GOOD: "Verify System Handles ${configuration.maxThreads || 'N/A'} Concurrent Threads as per Configuration"
+
+❌ BAD: "Test Member ID Format" (vague)
+✅ GOOD: "Validate Member ID Format: ${configuration.memberIdFormat || 'Standard'} - Reject Invalid Formats"
+
+Return JSON array with ${numCases} UNIQUE test cases starting from TC_${String(startIndex).padStart(3, '0')}:
 [{
-  "id": "TC_001",
-  "title": "Test case title",
-  "description": "Test description based on configuration",
-  "category": "Core Functionality",
-  "priority": "Critical",
-  "estimatedDuration": "2 minutes"
+  "id": "TC_${String(startIndex).padStart(3, '0')}",
+  "title": "Specific, unique, implementation-based test title",
+  "description": "Detailed description based on questionnaire responses and specific test area",
+  "category": "${categoryGuidance}",
+  "priority": "${priorityGuidance}",
+  "estimatedDuration": "X minutes"
 }]
+
+REMEMBER: Each test case must be UNIQUE and based on the specific areas listed above!
 `;
   }
 
   /**
-   * Call AI API with optimized parameters for faster response (10-15 seconds)
+   * Get implementation mode specific guidance
    */
-  private static async callOptimizedAI(prompt: string): Promise<string> {
+  private static getImplementationModeGuidance(mode: string): string {
+    const guidance: Record<string, string> = {
+      'real_time_b2b': `
+REAL-TIME B2B MODE - ONLY test features that are CONFIGURED in the questionnaire:
+- If max threads is specified → Test concurrent request handling up to that limit
+- If timeout is specified → Test timeout handling with that specific value
+- If XML wrapper is required → Test XML wrapper structure validation
+- If system hours are specified → Test system availability during those hours
+- Always test: Synchronous response validation, error handling
+- DO NOT test features that are not configured in the questionnaire
+`,
+      'real_time_web': `
+REAL-TIME WEB MODE - ONLY test features that are CONFIGURED in the questionnaire:
+- If session timeout is specified → Test session management with that timeout
+- If specific authentication is required → Test that authentication method
+- Always test: Web service endpoint availability, response validation
+- DO NOT test features that are not configured in the questionnaire
+`,
+      'edi_batch': `
+EDI BATCH MODE - ONLY test features that are CONFIGURED in the questionnaire:
+- If file naming convention is specified → Test that specific naming convention
+- If aggregation schedule is specified → Test compliance with that schedule
+- If file size limits are specified → Test those specific limits
+- Always test: Batch file structure validation, error handling
+- DO NOT test features that are not configured in the questionnaire
+`
+    };
+
+    return guidance[mode] || '';
+  }
+
+  /**
+   * Call AI API with optimized parameters for faster response (GPT-4-turbo)
+   */
+  private static async callAIOptimized(prompt: string): Promise<string> {
     if (!this.AI_API_KEY) {
       throw new Error('OpenAI API key not configured');
     }
@@ -459,19 +836,19 @@ Return JSON array with 12 test cases:
         'Authorization': `Bearer ${this.AI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo', // Faster model than gpt-4
+        model: 'gpt-4o-mini', // Faster and cheaper model for test generation
         messages: [
           {
             role: 'system',
-            content: 'You are an expert in X12 EDI healthcare transactions. Generate concise test case recommendations.'
+            content: 'You are an expert in X12 EDI 270/271 healthcare transactions. Generate UNIQUE, implementation-specific test scenarios based ONLY on the actual payer configuration provided. Do NOT generate duplicate test scenarios. Each test must be distinct and based on specific questionnaire responses.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 1500, // Reduced from 4000 for faster response
-        temperature: 0.1  // Lower temperature for faster, more deterministic responses
+        max_tokens: 2000, // Increased to ensure all test cases are generated
+        temperature: 0.3  // Balanced for quality and consistency
       })
     };
 
@@ -480,14 +857,22 @@ Return JSON array with 12 test cases:
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     }
 
+    const startTime = Date.now();
     try {
+      console.log('⏱️ Starting AI API call...');
       const response = await fetch(this.AI_API_URL, fetchOptions);
+      const fetchTime = Date.now() - startTime;
+      console.log(`⏱️ AI API fetch completed in ${fetchTime}ms`);
 
       if (!response.ok) {
-        throw new Error(`AI API error: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error('🚨 OpenAI API Error Response:', errorBody);
+        throw new Error(`AI API error: ${response.status} ${response.statusText} - ${errorBody}`);
       }
 
       const data = await response.json() as any;
+      const totalTime = Date.now() - startTime;
+      console.log(`⏱️ AI API call completed in ${totalTime}ms total`);
       return data.choices?.[0]?.message?.content || '';
     } finally {
       // Restore SSL verification
@@ -498,7 +883,7 @@ Return JSON array with 12 test cases:
   }
 
   /**
-   * Call AI API (original method for test recommendations)
+   * Call AI API (original method for test data generation - optimized)
    */
   private static async callAI(prompt: string): Promise<string> {
     if (!this.AI_API_KEY) {
@@ -513,7 +898,7 @@ Return JSON array with 12 test cases:
         'Authorization': `Bearer ${this.AI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini', // Faster model for test data generation
         messages: [
           {
             role: 'system',
@@ -524,7 +909,7 @@ Return JSON array with 12 test cases:
             content: prompt
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 3000, // Reduced for faster response while still allowing complete payloads
         temperature: 0.3
       })
     };
@@ -534,8 +919,12 @@ Return JSON array with 12 test cases:
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     }
 
+    const startTime = Date.now();
     try {
+      console.log('⏱️ Starting AI API call for test data generation...');
       const response = await fetch(this.AI_API_URL, fetchOptions);
+      const fetchTime = Date.now() - startTime;
+      console.log(`⏱️ AI API fetch completed in ${fetchTime}ms`);
 
       if (!response.ok) {
         const errorBody = await response.text();
@@ -544,6 +933,8 @@ Return JSON array with 12 test cases:
       }
 
       const data = await response.json() as any;
+      const totalTime = Date.now() - startTime;
+      console.log(`⏱️ AI API call for test data completed in ${totalTime}ms total`);
       return data.choices?.[0]?.message?.content || '';
     } finally {
       // Restore SSL verification
@@ -556,7 +947,7 @@ Return JSON array with 12 test cases:
   /**
    * Parse AI response and structure test recommendations
    */
-  private static parseAIResponse(aiResponse: string, payerInfo: PayerInfo): TestRecommendation[] {
+  private static parseAIResponse(aiResponse: string, payerInfo: PayerInfo, isAIGenerated: boolean = false): TestRecommendation[] {
     try {
       // Try to extract JSON from the AI response
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
@@ -573,7 +964,10 @@ Return JSON array with 12 test cases:
         description: recommendation.description || 'AI-generated test recommendation',
         priority: recommendation.priority || 'Medium',
         category: recommendation.category || (index < 3 ? 'Core Functionality' : 'Additional Testing'),
-        estimatedDuration: recommendation.estimatedDuration || '2 minutes'
+        estimatedDuration: recommendation.estimatedDuration || '2 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'ai-generated' as const,
+        implementationSpecific: isAIGenerated
       }));
     } catch (error) {
       console.error('Error parsing AI response:', error);
@@ -610,9 +1004,17 @@ Return JSON array with 12 test cases:
   }
 
   /**
-   * Fallback test recommendations if AI fails
+   * Fallback test recommendations if AI fails (returns predefined cases only)
    */
   private static getFallbackTestCases(payerInfo: PayerInfo, configuration: PayerConfiguration): TestRecommendation[] {
+    // Return the same 6 predefined test cases
+    return this.getPredefinedTestCases(payerInfo, configuration);
+  }
+
+  /**
+   * DEPRECATED: Old fallback with 12 cases - keeping for reference
+   */
+  private static getOldFallbackTestCases(payerInfo: PayerInfo, configuration: PayerConfiguration): TestRecommendation[] {
     const fallbackRecommendations: TestRecommendation[] = [
       {
         id: 'TC_001',
@@ -620,7 +1022,10 @@ Return JSON array with 12 test cases:
         description: 'Test active member eligibility verification for general health benefits',
         priority: 'Critical',
         category: 'Core Functionality',
-        estimatedDuration: '2 minutes'
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_002',
@@ -628,7 +1033,10 @@ Return JSON array with 12 test cases:
         description: 'Test inactive/expired member response handling',
         priority: 'Critical',
         category: 'Core Functionality',
-        estimatedDuration: '2 minutes'
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_003',
@@ -636,7 +1044,10 @@ Return JSON array with 12 test cases:
         description: 'Test invalid member ID error handling and response codes',
         priority: 'Critical',
         category: 'Core Functionality',
-        estimatedDuration: '1 minute'
+        estimatedDuration: '1 minute',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_004',
@@ -644,7 +1055,10 @@ Return JSON array with 12 test cases:
         description: 'Test pharmacy service type coverage verification',
         priority: 'Critical',
         category: 'Core Functionality',
-        estimatedDuration: '3 minutes'
+        estimatedDuration: '3 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_005',
@@ -652,7 +1066,10 @@ Return JSON array with 12 test cases:
         description: 'Test member ID format validation and requirements',
         priority: 'Critical',
         category: 'Core Functionality',
-        estimatedDuration: '2 minutes'
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_006',
@@ -660,7 +1077,10 @@ Return JSON array with 12 test cases:
         description: 'Test family vs individual coverage level verification',
         priority: 'Critical',
         category: 'Core Functionality',
-        estimatedDuration: '2 minutes'
+        estimatedDuration: '2 minutes',
+        hasPreConfiguredData: true,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_007',
@@ -668,7 +1088,10 @@ Return JSON array with 12 test cases:
         description: 'Test member coverage that starts in the future (DTP*356 > service date)',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '3 minutes'
+        estimatedDuration: '3 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_008',
@@ -676,7 +1099,10 @@ Return JSON array with 12 test cases:
         description: 'Test response where termination date (DTP*357) is before service date',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '3 minutes'
+        estimatedDuration: '3 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_009',
@@ -684,7 +1110,10 @@ Return JSON array with 12 test cases:
         description: 'Test subscriber vs dependent eligibility under family plan',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '4 minutes'
+        estimatedDuration: '4 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_010',
@@ -692,7 +1121,10 @@ Return JSON array with 12 test cases:
         description: 'Test multiple EB segments with different service types (30 for medical, 35 for dental)',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '5 minutes'
+        estimatedDuration: '5 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_011',
@@ -700,7 +1132,10 @@ Return JSON array with 12 test cases:
         description: 'Test payer response when alternate payer ID or Medicare ID is used',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '3 minutes'
+        estimatedDuration: '3 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'predefined',
+        implementationSpecific: false
       },
       {
         id: 'TC_012',
@@ -708,7 +1143,10 @@ Return JSON array with 12 test cases:
         description: 'Test rejection or warning when gender in request doesn\'t match payer record',
         priority: 'Medium',
         category: 'Additional Testing',
-        estimatedDuration: '3 minutes'
+        estimatedDuration: '3 minutes',
+        hasPreConfiguredData: false,
+        dataSource: 'predefined',
+        implementationSpecific: false
       }
     ];
 
@@ -733,8 +1171,35 @@ Return JSON array with 12 test cases:
     }
 
     try {
+      // Extract envelope data from questionnaire responses
+      const dbStartTime = Date.now();
+      console.log('Fetching questionnaire for submission ID:', payerInfo.organizationId);
+      const questionnaireResponses = await this.getQuestionnaireResponses(payerInfo.organizationId);
+      const dbEndTime = Date.now();
+      console.log(`Fetched questionnaire responses in ${dbEndTime - dbStartTime}ms`);
+      console.log('Questionnaire responses keys count:', Object.keys(questionnaireResponses).length);
+      console.log('First 30 keys:', Object.keys(questionnaireResponses).slice(0, 30));
+      console.log('Has payer-name?', 'payer-name' in questionnaireResponses);
+      console.log('Has payer-id?', 'payer-id' in questionnaireResponses);
+
+      // Search for payer-related fields
+      const payerKeys = Object.keys(questionnaireResponses).filter(key =>
+        key.toLowerCase().includes('payer') || key.toLowerCase().includes('nm109') || key.toLowerCase().includes('nm103')
+      );
+      console.log('Payer-related keys found:', payerKeys);
+
+      if ('payer-name' in questionnaireResponses) {
+        console.log('payer-name value:', questionnaireResponses['payer-name']);
+      }
+      if ('payer-id' in questionnaireResponses) {
+        console.log('payer-id value:', questionnaireResponses['payer-id']);
+      }
+
       // Create AI prompt with configuration context for test data generation
-      const prompt = this.createContextualTestDataPrompt(payerInfo, configuration, selectedTestCases);
+      const promptStartTime = Date.now();
+      const prompt = this.createContextualTestDataPrompt(payerInfo, configuration, selectedTestCases, questionnaireResponses);
+      const promptEndTime = Date.now();
+      console.log(`⏱️ Created prompt in ${promptEndTime - promptStartTime}ms`);
       console.log('📝 Sending contextual request to AI for test data generation...');
       console.log('🔑 Using OpenAI API key:', this.AI_API_KEY ? 'Available' : 'Missing');
       console.log('📋 Selected test cases count:', selectedTestCases.length);
@@ -744,17 +1209,20 @@ Return JSON array with 12 test cases:
       console.log('📄 Prompt preview (first 500 chars):', prompt.substring(0, 500));
 
       // Call AI API for test data generation
-      const startTime = Date.now();
+      const aiStartTime = Date.now();
       const aiResponse = await this.callAI(prompt);
-      const endTime = Date.now();
-      console.log(`🤖 Received AI response in ${endTime - startTime}ms, parsing test data...`);
+      const aiEndTime = Date.now();
+      console.log(`🤖 Received AI response in ${aiEndTime - aiStartTime}ms, parsing test data...`);
       console.log('📄 AI response length:', aiResponse.length);
 
       // Parse AI response and validate
       console.log('🔍 Raw AI response preview (first 500 chars):', aiResponse.substring(0, 500));
       console.log('🔍 Raw AI response preview (last 200 chars):', aiResponse.substring(Math.max(0, aiResponse.length - 200)));
 
+      const parseStartTime = Date.now();
       const aiTestCases = this.parseTestDataResponse(aiResponse, payerInfo, selectedTestCases);
+      const parseEndTime = Date.now();
+      console.log(`⏱️ Parsed AI response in ${parseEndTime - parseStartTime}ms`);
 
       if (aiTestCases && aiTestCases.length > 0) {
         console.log(`✅ Successfully generated ${aiTestCases.length} AI test cases`);
@@ -851,20 +1319,208 @@ Example: [{"id":"TC_001","title":"Active Member Test","description":"Basic eligi
   }
 
   /**
+   * Fix ISA segment padding to ensure ISA02, ISA04, ISA06, ISA08 are correct length
+   */
+  private static fixISAPadding(payload: string): string {
+    if (!payload || !payload.includes('ISA*')) {
+      return payload;
+    }
+
+    console.log('🔧 Fixing ISA padding...');
+    console.log('🔍 Original ISA segment:', payload.substring(0, payload.indexOf('~') + 1));
+
+    // Split by segment terminator
+    const segments = payload.split('~');
+
+    // Find and fix ISA segment
+    for (let i = 0; i < segments.length; i++) {
+      if (segments[i].startsWith('ISA*')) {
+        const elements = segments[i].split('*');
+
+        console.log(`🔍 ISA has ${elements.length} elements`);
+        console.log('🔍 ISA02 before:', `"${elements[2]}"`, `(length: ${elements[2]?.length || 0})`);
+        console.log('🔍 ISA04 before:', `"${elements[4]}"`, `(length: ${elements[4]?.length || 0})`);
+        console.log('🔍 ISA06 before:', `"${elements[6]}"`, `(length: ${elements[6]?.length || 0})`);
+        console.log('🔍 ISA08 before:', `"${elements[8]}"`, `(length: ${elements[8]?.length || 0})`);
+
+        if (elements.length >= 17) {
+          // ISA02 (Authorization Info) - must be exactly 10 characters
+          elements[2] = (elements[2] || '').padEnd(10, ' ').substring(0, 10);
+
+          // ISA04 (Security Info) - must be exactly 10 characters
+          elements[4] = (elements[4] || '').padEnd(10, ' ').substring(0, 10);
+
+          // ISA06 (Sender ID) - must be exactly 15 characters
+          elements[6] = (elements[6] || '').trim().padEnd(15, ' ').substring(0, 15);
+
+          // ISA08 (Receiver ID) - must be exactly 15 characters
+          elements[8] = (elements[8] || '').trim().padEnd(15, ' ').substring(0, 15);
+
+          console.log('🔍 ISA02 after:', `"${elements[2]}"`, `(length: ${elements[2].length})`);
+          console.log('🔍 ISA04 after:', `"${elements[4]}"`, `(length: ${elements[4].length})`);
+          console.log('🔍 ISA06 after:', `"${elements[6]}"`, `(length: ${elements[6].length})`);
+          console.log('🔍 ISA08 after:', `"${elements[8]}"`, `(length: ${elements[8].length})`);
+
+          // Reconstruct ISA segment
+          segments[i] = elements.join('*');
+          console.log('✅ Fixed ISA segment:', segments[i]);
+        }
+      }
+    }
+
+    const result = segments.join('~');
+    console.log('✅ Fixed ISA in full payload:', result.substring(0, result.indexOf('~') + 1));
+    return result;
+  }
+
+  /**
+   * Get questionnaire responses for a submission
+   */
+  private static async getQuestionnaireResponses(submissionId: string): Promise<Record<string, any>> {
+    try {
+      console.log('Fetching questionnaire responses for submission ID:', submissionId);
+
+      const { data, error } = await supabase
+        .from('questionnaire_responses')
+        .select('responses')
+        .eq('id', submissionId)  // Fetch by submission ID, not organization_id
+        .single();
+
+      if (error) {
+        console.log('Could not fetch questionnaire responses:', error.message);
+        return {};
+      }
+
+      console.log('Successfully fetched questionnaire responses');
+      return data?.responses || {};
+    } catch (error) {
+      console.log('Error fetching questionnaire responses:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Extract envelope data from questionnaire responses
+   */
+  private static extractEnvelopeData(questionnaireResponses: Record<string, any>): {
+    isa05: string;
+    isa06: string;
+    isa07: string;
+    isa08: string;
+    isa11: string;
+    isa16: string;
+    gs02: string;
+    gs03: string;
+    payerName: string;
+    payerId: string;
+  } {
+    console.log('Extracting envelope data from questionnaire...');
+
+    // Try both simple and complete questionnaire formats
+    // Simple format: payer-name, payer-id, isa08-receiver-id, etc.
+    // Complete format: 2100a-nm103-270, 2100a-nm109-270, isa08-270, etc.
+
+    // Extract payer name - try complete format first, then simple format
+    let payerName = questionnaireResponses['2100a-nm103-270'];
+    if (!payerName || payerName === 'custom') {
+      payerName = questionnaireResponses['2100a-nm103-270-custom'];
+    }
+    if (!payerName) {
+      payerName = questionnaireResponses['payer-name'] || 'PAYER NAME';
+    }
+
+    // Extract payer ID - try complete format first, then simple format
+    let payerId = questionnaireResponses['2100a-nm109-270'];
+    if (!payerId || payerId === 'custom') {
+      payerId = questionnaireResponses['2100a-nm109-270-custom'];
+    }
+    if (!payerId) {
+      payerId = questionnaireResponses['payer-id'] || 'PAYERID';
+    }
+
+    console.log('payer-name (2100a-nm103-270):', payerName);
+    console.log('payer-id (2100a-nm109-270):', payerId);
+
+    // Extract ISA05 - try complete format first
+    let isa05 = questionnaireResponses['isa05-270'];
+    if (!isa05 || isa05 === 'custom') {
+      isa05 = questionnaireResponses['isa05-270-custom'] || questionnaireResponses['isa05-custom-value'] || 'ZZ';
+    }
+
+    // Extract ISA06 - try complete format first
+    let isa06 = questionnaireResponses['isa06-270'];
+    if (!isa06 || isa06 === 'custom') {
+      isa06 = questionnaireResponses['isa06-270-custom'] || questionnaireResponses['isa06-custom-value'] || '030240928';
+    }
+
+    // Extract ISA07 - try complete format first
+    const isa07 = questionnaireResponses['isa07-270'] || questionnaireResponses['isa07-receiver-id-qualifier'] || 'ZZ';
+
+    // Extract ISA08 - try complete format first
+    let isa08 = questionnaireResponses['isa08-270'];
+    if (!isa08 || isa08 === 'custom' || isa08 === 'availity_defines') {
+      isa08 = questionnaireResponses['isa08-270-custom'] || payerId;
+    }
+
+    // Extract ISA11 - try complete format first
+    const isa11 = questionnaireResponses['isa11-270'] === '^' || questionnaireResponses['isa11-repetition-separator'] === 'caret' ? '^' : '^';
+
+    // Extract ISA16 - try complete format first
+    const isa16 = questionnaireResponses['isa16-270'] === ':' || questionnaireResponses['isa16-composite-separator'] === 'colon' ? ':' : ':';
+
+    // Extract GS02 - try complete format first
+    let gs02 = questionnaireResponses['gs02-270'];
+    if (!gs02 || gs02 === 'custom') {
+      gs02 = questionnaireResponses['gs02-270-custom'] || questionnaireResponses['gs02-custom-value'] || '030240928';
+    }
+
+    // Extract GS03 - try complete format first
+    let gs03 = questionnaireResponses['gs03-270'];
+    if (!gs03 || gs03 === 'custom' || gs03 === 'availity_defines') {
+      gs03 = questionnaireResponses['gs03-270-custom'] || payerId;
+    }
+
+    console.log('Extracted envelope data:', { isa05, isa06, isa07, isa08, isa11, isa16, gs02, gs03, payerName, payerId });
+
+    return { isa05, isa06, isa07, isa08, isa11, isa16, gs02, gs03, payerName, payerId };
+  }
+
+  /**
    * Create contextual AI prompt for test data generation based on configuration
    */
   private static createContextualTestDataPrompt(
     payerInfo: PayerInfo,
     configuration: PayerConfiguration,
-    selectedTestCases: TestRecommendation[]
+    selectedTestCases: TestRecommendation[],
+    questionnaireResponses: Record<string, any> = {}
   ): string {
     const configContext = this.extractConfigurationContext(configuration);
+    const envelopeData = this.extractEnvelopeData(questionnaireResponses);
 
     return `
 Generate X12 270/271 test data for ${selectedTestCases.length} test cases for ${payerInfo.name}.
 
 PAYER: ${payerInfo.name} (${payerInfo.implementationMode})
 CONFIG: ${configContext}
+
+CRITICAL - USE THESE EXACT ENVELOPE VALUES FROM QUESTIONNAIRE:
+ISA05 (Sender ID Qualifier): ${envelopeData.isa05}
+ISA06 (Sender ID): ${envelopeData.isa06} (MUST be padded to exactly 15 characters with trailing spaces)
+ISA07 (Receiver ID Qualifier): ${envelopeData.isa07}
+ISA08 (Receiver ID): ${envelopeData.isa08} (MUST be padded to exactly 15 characters with trailing spaces)
+ISA11 (Repetition Separator): ${envelopeData.isa11}
+ISA16 (Composite Separator): ${envelopeData.isa16}
+GS02 (Application Sender): ${envelopeData.gs02}
+GS03 (Application Receiver): ${envelopeData.gs03}
+Payer Name (NM103): ${envelopeData.payerName}
+Payer ID (NM109): ${envelopeData.payerId}
+
+CRITICAL ISA SEGMENT FIXED-LENGTH REQUIREMENTS:
+- ISA02 (Authorization Info): Exactly 10 spaces
+- ISA04 (Security Info): Exactly 10 spaces
+- ISA06 (Sender ID): Exactly 15 characters (right-pad with spaces if needed)
+- ISA08 (Receiver ID): Exactly 15 characters (right-pad with spaces if needed)
+Example: If ISA06 = "030240928" (9 chars), it must be "030240928      " (15 chars total)
 
 TEST CASES:
 ${selectedTestCases.map((tc, i) => `${i + 1}. ${tc.title} - ${tc.description}`).join('\n')}
@@ -879,37 +1535,53 @@ REQUIREMENTS:
 - Use realistic member IDs, provider names, and control numbers
 
 SEGMENT EXAMPLES:
-- Active member: EB*1*IND*30****1
-- Inactive member: EB*6*IND*30 + DTP*357*D8*{end_date}
-- Member not found: AAA*Y*15*72*N
-- Pharmacy: EB*1*IND*88****1
-- Family coverage: EB*1*FAM*30****1
+- Active member (individual): EB*1*EMP*30**PLAN NAME~
+- Active member (family): EB*1*FAM*30**PLAN NAME~
+- Inactive member: EB*6*EMP*30~ + DTP*357*D8*{end_date}~
+- Member not found: AAA*Y*15*72*N~
+- Pharmacy: EB*1*EMP*88**PHARMACY PLAN~
+- With dates: EB*1*EMP*30**PLAN NAME~ + DTP*291*D8*{start_date}~
+
+CRITICAL EB02 CODES (Benefit Coverage Level):
+- EMP = Employee Only (use for individual subscriber)
+- FAM = Family
+- SPO = Spouse Only
+- CHD = Children Only
+- ECH = Employee and Children
+- ESP = Employee and Spouse
+- DEP = Dependents Only
+- SPC = Spouse and Children
+- DO NOT USE "IND" - it is NOT a valid EB02 code in X12 5010!
 
 INSTRUCTIONS:
-1. Analyze each test case title to determine scenario
-2. Generate appropriate X12 segments:
+1. **MANDATORY - USE EXACT ENVELOPE VALUES ABOVE**: All ISA/GS segments MUST use the exact values provided above from the questionnaire
+2. Analyze each test case title to determine scenario
+3. Generate appropriate X12 segments:
    - "Active" → EB*1 (Active Coverage)
    - "Inactive/Terminated" → EB*6 + DTP*357
    - "Not Found/Invalid" → AAA error segments
    - "Pharmacy" → Service type 88
-   - "Individual" → EB02=IND, "Family" → EB02=FAM
-3. Use consistent data between 270 and 271
-4. GENERATE REALISTIC SYNTHETIC DATA:
+   - "Individual/Employee" → EB02=EMP (NOT IND!)
+   - "Family" → EB02=FAM
+4. Use consistent data between 270 and 271
+5. GENERATE REALISTIC SYNTHETIC DATA (AI can randomize these):
    - Provider Names: "RIVERSIDE MEDICAL CENTER", "FAMILY HEALTH CLINIC", "DOWNTOWN URGENT CARE"
    - Provider NPIs: "1234567890", "9876543210", "5555666777"
    - Member IDs: "W883449464", "M123456789", "A987654321"
    - Member Names: "JOHN DOE", "JANE SMITH", "MICHAEL JOHNSON"
-   - Sender IDs: "030240928" (Availity), "CLEARHS01"
-   - Receiver IDs: "AETNA", "60054", "BCBSFL"
-5. GENERATE COMPLETE X12 PAYLOADS - NOT PLACEHOLDERS:
+6. GENERATE COMPLETE X12 PAYLOADS - NOT PLACEHOLDERS:
    - Include ALL required segments: ISA, GS, ST, BHT, HL, NM1, DMG, DTP, EQ/EB, SE, GE, IEA
    - Use proper X12 format with ~ segment terminators
    - Generate actual segment data, not "Complete X12 payload" text
    - 270 request must have EQ segment, 271 response must have EB segment
 
-IMPORTANT: Generate COMPLETE X12 payloads like the examples above. Do NOT use placeholder text like "Complete X12 payload" - generate actual ISA~GS~ST~...~IEA segments.
+CRITICAL:
+- ISA/GS envelope segments MUST use the exact values from the questionnaire provided above
+- DO NOT make up sender/receiver IDs - use the values from ISA05, ISA06, ISA07, ISA08, GS02, GS03
+- Payer Name and Payer ID MUST match the values provided above
+- Only member data, provider data, dates, and control numbers should be AI-generated
 
-Return JSON array:
+Return JSON array (use the EXACT envelope values from above):
 [{
   "id": "TC_001",
   "title": "Test case title",
@@ -917,11 +1589,24 @@ Return JSON array:
   "priority": "Critical",
   "category": "Core",
   "memberData": {"memberId": "W883449464", "firstName": "JOHN", "lastName": "DOE", "dob": "1985-01-15", "serviceType": "30"},
-  "syntheticData": {"senderId": "030240928", "receiverId": "AETNA", "providerName": "RIVERSIDE MEDICAL CENTER", "providerNPI": "1234567890", "controlNumber": "001", "transactionDate": "241205", "transactionTime": "1430"},
-  "request270": {"payload": "ISA*00*          *00*          *ZZ*030240928      *ZZ*AETNA          *241205*1430*^*00501*000000001*0*P*:~GS*HS*030240928*AETNA*20241205*1430*1*X*005010X279A1~ST*270*0001*005010X279A1~BHT*0022*13*001*20241205*1430~HL*1**20*1~NM1*PR*2*AETNA*****PI*AETNA~HL*2*1*21*1~NM1*1P*2*RIVERSIDE MEDICAL CENTER*****XX*1234567890~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*W883449464~DMG*D8*19850115~DTP*472*D8*20241205~EQ*30~SE*13*0001~GE*1*1~IEA*1*000000001~", "segments": ["ISA","GS","ST","BHT","HL","NM1","DMG","DTP","EQ","SE","GE","IEA"]},
-  "expectedResponse271": {"payload": "ISA*00*          *00*          *ZZ*AETNA          *ZZ*030240928      *241205*1430*^*00501*000000001*0*P*:~GS*HS*AETNA*030240928*20241205*1430*1*X*005010X279A1~ST*271*0001*005010X279A1~BHT*0022*11*001*20241205*1430~HL*1**20*1~NM1*PR*2*AETNA*****PI*AETNA~HL*2*1*21*1~NM1*1P*2*RIVERSIDE MEDICAL CENTER*****XX*1234567890~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*W883449464~DMG*D8*19850115~DTP*472*D8*20241205~EB*1*IND*30****1~SE*13*0001~GE*1*1~IEA*1*000000001~", "segments": ["ISA","GS","ST","BHT","HL","NM1","DMG","DTP","EB","SE","GE","IEA"]},
+  "syntheticData": {"senderId": "${envelopeData.isa06}", "receiverId": "${envelopeData.isa08}", "providerName": "RIVERSIDE MEDICAL CENTER", "providerNPI": "1234567890", "controlNumber": "001", "transactionDate": "241205", "transactionTime": "1430"},
+  "request270": {"payload": "ISA*00*          *00*          *${envelopeData.isa05}*${envelopeData.isa06.padEnd(15)}*${envelopeData.isa07}*${envelopeData.isa08.padEnd(15)}*241205*1430*${envelopeData.isa11}*00501*000000001*0*P*${envelopeData.isa16}~GS*HS*${envelopeData.gs02}*${envelopeData.gs03}*20241205*1430*1*X*005010X279A1~ST*270*0001*005010X279A1~BHT*0022*13*001*20241205*1430~HL*1**20*1~NM1*PR*2*${envelopeData.payerName}*****PI*${envelopeData.payerId}~HL*2*1*21*1~NM1*1P*2*RIVERSIDE MEDICAL CENTER*****XX*1234567890~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*W883449464~DMG*D8*19850115~DTP*472*D8*20241205~EQ*30~SE*13*0001~GE*1*1~IEA*1*000000001~", "segments": ["ISA","GS","ST","BHT","HL","NM1","DMG","DTP","EQ","SE","GE","IEA"]},
+  "expectedResponse271": {"payload": "ISA*00*          *00*          *${envelopeData.isa07}*${envelopeData.isa08.padEnd(15)}*${envelopeData.isa05}*${envelopeData.isa06.padEnd(15)}*241205*1430*${envelopeData.isa11}*00501*000000001*0*P*${envelopeData.isa16}~GS*HS*${envelopeData.gs03}*${envelopeData.gs02}*20241205*1430*1*X*005010X279A1~ST*271*0001*005010X279A1~BHT*0022*11*001*20241205*1430~HL*1**20*1~NM1*PR*2*${envelopeData.payerName}*****PI*${envelopeData.payerId}~HL*2*1*21*1~NM1*1P*2*RIVERSIDE MEDICAL CENTER*****XX*1234567890~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*W883449464~DMG*D8*19850115~DTP*291*D8*20200101~EB*1*EMP*30**HEALTH PLAN~SE*14*0001~GE*1*1~IEA*1*000000001~", "segments": ["ISA","GS","ST","BHT","HL","NM1","DMG","DTP","EB","SE","GE","IEA"]},
   "validationRules": {"required": [], "forbidden": [], "business": []}
 }]
+
+CRITICAL VALIDATION RULES:
+1. The ISA/GS segments in your response MUST match the envelope values provided at the top of this prompt!
+2. ISA06 and ISA08 MUST be exactly 15 characters (right-pad with spaces if needed)
+3. ISA02 and ISA04 MUST be exactly 10 spaces each
+4. EB02 must be a valid code (EMP, FAM, SPO, CHD, ECH, ESP, DEP, SPC) - NEVER use "IND"!
+5. SE01 segment count must be accurate (count all segments from ST to SE inclusive)
+6. For active coverage, include DTP*291 (Plan Begin Date) after DMG segment
+7. Include plan name in EB05 when possible (e.g., EB*1*EMP*30**HEALTH PLAN~)
+
+EXAMPLE ISA SEGMENT WITH CORRECT PADDING:
+ISA*00*          *00*          *01*030240928      *ZZ*60054          *241205*1430*^*00501*000000001*0*P*:~
+    ^^10 spaces  ^^10 spaces      ^^15 chars total    ^^15 chars total
 `;
   }
 
@@ -1146,11 +1831,11 @@ Return as JSON array with complete test case objects including all payloads and 
           transactionTime: testCase.syntheticData?.transactionTime || new Date().toTimeString().slice(0, 5).replace(':', '')
         },
         request270: {
-          payload: testCase.request270?.payload || this.generateDefault270(payerInfo.name),
+          payload: this.fixISAPadding(testCase.request270?.payload || this.generateDefault270(payerInfo.name)),
           segments: testCase.request270?.segments || []
         },
         expectedResponse271: {
-          payload: testCase.expectedResponse271?.payload || this.generateDefault271(payerInfo.name),
+          payload: this.fixISAPadding(testCase.expectedResponse271?.payload || this.generateDefault271(payerInfo.name)),
           segments: testCase.expectedResponse271?.segments || []
         },
         validationRules: {

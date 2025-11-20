@@ -61,6 +61,13 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   const [sectionAssignments, setSectionAssignments] = useState<Record<string, string>>({});
   const [showAssignDropdown, setShowAssignDropdown] = useState<string | null>(null);
 
+  // Agentic Mode State
+  const [agenticModeEnabled, setAgenticModeEnabled] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [agentStatus, setAgentStatus] = useState<'idle' | 'analyzing' | 'fixing' | 'creating-pr' | 'success' | 'error'>('idle');
+  const [agentMessage, setAgentMessage] = useState('');
+  const [prUrl, setPrUrl] = useState('');
+
   // Hardcoded users for assignment
   const availableUsers = [
     { id: 'bd7e174f-71b7-4c76-a13f-98a484f5ce5d', name: 'David Brown', email: 'support@availity.com' },
@@ -407,6 +414,45 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
       top: 0,
       behavior: 'smooth'
     });
+  };
+
+  // Agentic Mode Handlers
+  const handleBrokenButtonClick = () => {
+    setShowErrorPopup(true);
+  };
+
+  const handleTriggerAgent = async () => {
+    try {
+      setAgentStatus('analyzing');
+      setAgentMessage('AI Agent is analyzing the codebase...');
+
+      const response = await fetch('http://localhost:3002/api/ai-agent/fix-button', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          issue: 'Take Me Home button is broken - missing onClick handler to navigate to home page',
+          file: 'frontend/src/components/QuestionnaireWizard.tsx',
+          section: 'testing'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAgentStatus('success');
+        setAgentMessage(data.message || 'AI Agent successfully created a PR with the fix!');
+        setPrUrl(data.prUrl || '');
+      } else {
+        setAgentStatus('error');
+        setAgentMessage(data.error || 'Failed to trigger AI agent');
+      }
+    } catch (error) {
+      console.error('Error triggering agent:', error);
+      setAgentStatus('error');
+      setAgentMessage('Failed to connect to AI agent service');
+    }
   };
 
 
@@ -1165,6 +1211,36 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
         </div>
       </div>
 
+      {/* Agentic Mode Toggle - Only show in Testing section */}
+      {(currentSection?.id === 'testing' || currentSection?.id === 'testing-b2b') && (
+        <div className="mb-6 flex justify-end">
+          <div className="flex items-center space-x-3 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-xl px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <span className="text-sm font-bold text-red-700">Agentic Mode</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAgenticModeEnabled(!agenticModeEnabled)}
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                agenticModeEnabled ? 'bg-red-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${
+                  agenticModeEnabled ? 'translate-x-8' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            {agenticModeEnabled && (
+              <span className="text-xs font-semibold text-red-600 animate-pulse">ON</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* PDF Extraction Banner */}
       {showExtractionBanner && (
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start justify-between animate-fade-in">
@@ -1333,7 +1409,137 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Broken "Take Me Home" Button - Only shows when Agentic Mode is ON and in Testing section */}
+        {agenticModeEnabled && (currentSection?.id === 'testing' || currentSection?.id === 'testing-b2b') && (
+          <div className="mt-8 p-6 bg-yellow-50 border-2 border-yellow-300 rounded-xl">
+            <div className="flex items-start space-x-3">
+              <svg className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-900 mb-2">🤖 Agentic Mode Demo</h3>
+                <p className="text-sm text-yellow-800 mb-4">
+                  This button is intentionally broken to demonstrate the AI agent's ability to detect and fix issues automatically.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleBrokenButtonClick}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span>Take Me Home</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </form>
+
+      {/* Error Popup Modal */}
+      {showErrorPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-slide-up">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Something's Wrong!</h2>
+              <p className="text-gray-600 text-center mb-6">
+                It's not working. The button doesn't seem to do anything.
+              </p>
+
+              {agentStatus === 'idle' && (
+                <div className="space-y-3">
+                  <button
+                    onClick={handleTriggerAgent}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>🤖 Call AI Agent to Fix It</span>
+                  </button>
+                  <button
+                    onClick={() => setShowErrorPopup(false)}
+                    className="w-full px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+
+              {agentStatus === 'analyzing' && (
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600 mx-auto mb-4"></div>
+                  <p className="text-purple-600 font-semibold">{agentMessage}</p>
+                </div>
+              )}
+
+              {agentStatus === 'success' && (
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p className="text-green-800 font-semibold mb-2">{agentMessage}</p>
+                        {prUrl && (
+                          <a
+                            href={prUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline text-sm flex items-center space-x-1"
+                          >
+                            <span>View Pull Request</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowErrorPopup(false);
+                      setAgentStatus('idle');
+                    }}
+                    className="w-full px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+
+              {agentStatus === 'error' && (
+                <div className="space-y-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800">{agentMessage}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowErrorPopup(false);
+                      setAgentStatus('idle');
+                    }}
+                    className="w-full px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Draft Save Message */}
       {draftSaveMessage && (

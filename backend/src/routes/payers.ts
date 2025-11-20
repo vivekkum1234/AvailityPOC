@@ -347,8 +347,9 @@ router.post('/payers/:payerId/test-recommendations', async (req, res) => {
     // Add payer info to configuration
     const payerInfo = {
       id: payerId,
-      name: 'Test Payer', // Use simple name instead of long UUID
-      implementationMode: latestSubmission.implementation_mode || 'real_time_b2b'
+      name: latestSubmission.organization_id || 'Test Payer',
+      implementationMode: latestSubmission.implementation_mode || 'real_time_b2b',
+      organizationId: latestSubmission.organization_id || payerId
     };
 
     // Convert to the format expected by TestRecommendationService
@@ -367,15 +368,27 @@ router.post('/payers/:payerId/test-recommendations', async (req, res) => {
       validProviderDataRequired: baseConfiguration.validProviderDataRequired
     };
 
-    // Generate test recommendations using AI
-    const testRecommendations = await TestRecommendationService.generateTestRecommendations(
+    console.log('🎯 Generating 50 test recommendations (6 predefined + 44 AI-generated)...');
+
+    // Generate test recommendations using AI (50 total: 6 predefined + 44 AI-generated)
+    const result = await TestRecommendationService.generateTestRecommendations(
       payerInfo,
-      serviceConfiguration
+      serviceConfiguration,
+      responses  // Pass full questionnaire responses for AI context
     );
+
+    console.log(`✅ Generated ${result.totalCount} test recommendations`);
+    console.log(`   - Predefined: ${result.predefinedCount} (ready-to-use)`);
+    console.log(`   - AI-generated: ${result.aiGeneratedCount} (implementation-specific)`);
 
     return res.json({
       success: true,
-      data: testRecommendations
+      data: {
+        recommendations: result.recommendations,
+        totalCount: result.totalCount,
+        predefinedCount: result.predefinedCount,
+        aiGeneratedCount: result.aiGeneratedCount
+      }
     });
   } catch (error) {
     console.error('Error generating test recommendations:', error);
@@ -411,41 +424,33 @@ router.post('/payers/:payerId/generate-test-data', async (req, res) => {
       });
     }
 
-    // Get the payer configuration
-    const submissions = await supabaseService.getQuestionnaireResponses({
-      organization_id: payerId,
-      status: 'submitted'
-    });
+    // Get the specific submission by ID (payerId is actually the submission/implementation ID)
+    console.log(`Fetching submission by ID: ${payerId}`);
+    const submission = await supabaseService.getQuestionnaireResponse(payerId);
 
-    if (submissions.length === 0) {
+    if (!submission) {
       return res.status(404).json({
         success: false,
-        error: 'No configuration found for this payer'
+        error: 'No configuration found for this implementation'
       });
     }
 
-    // Get the most recent submission
-    const latestSubmission = submissions[0];
-    if (!latestSubmission) {
-      return res.status(404).json({
-        success: false,
-        error: 'No configuration found for this payer'
-      });
-    }
+    console.log(`Found submission for organization: ${submission.organization_id}`);
 
-    const responses = latestSubmission.responses || {};
-    const baseConfiguration = extractPayerConfiguration(responses, latestSubmission.implementation_mode);
+    const responses = submission.responses || {};
+    const baseConfiguration = extractPayerConfiguration(responses, submission.implementation_mode);
 
-    // Add payer info to configuration
+    // Add payer info to configuration - use the submission ID for fetching questionnaire
     const payerInfo = {
       id: payerId,
-      name: 'Test Payer', // Use simple name instead of long UUID
-      implementationMode: latestSubmission.implementation_mode || 'real_time_b2b'
+      name: submission.organizations?.name || 'Test Payer',
+      implementationMode: submission.implementation_mode || 'real_time_b2b',
+      organizationId: payerId  // Use submission ID to fetch correct questionnaire responses
     };
 
     // Convert to the format expected by TestRecommendationService
     const serviceConfiguration = {
-      implementationMode: latestSubmission.implementation_mode || 'real_time_b2b',
+      implementationMode: submission.implementation_mode || 'real_time_b2b',
       xmlWrapper: baseConfiguration.xmlWrapper,
       systemHours: baseConfiguration.systemHours,
       maxThreads: baseConfiguration.maxThreads || 10,

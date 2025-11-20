@@ -15,6 +15,7 @@ import payerRoutes from './routes/payers';
 import mockPayerRoutes from './routes/mockPayer';
 import x12CodesRoutes from './routes/x12Codes'; // NEW: X12 Code Lookup
 import pdfExtractorRoutes from './routes/pdfExtractor'; // NEW: PDF Extractor
+import aiAgentRoutes from './routes/aiAgent'; // NEW: AI Agent
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -73,6 +74,7 @@ app.use('/api', payerRoutes);
 app.use('/api/mock-payer', mockPayerRoutes);
 app.use('/api/x12-codes', x12CodesRoutes); // NEW: X12 Code Lookup
 app.use('/api/pdf-extractor', pdfExtractorRoutes); // NEW: PDF Extractor
+app.use('/api/ai-agent', aiAgentRoutes); // NEW: AI Agent
 
 // 404 handler
 app.use('*', (req, res) => {
