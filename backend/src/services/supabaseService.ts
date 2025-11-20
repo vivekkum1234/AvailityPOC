@@ -36,6 +36,11 @@ export interface QuestionnaireResponse {
   created_by?: string | null;
   updated_by?: string | null;
   updated_by_name?: string | null;
+  organizations?: {
+    id: string;
+    name: string;
+    email?: string;
+  };
 }
 
 export interface Attachment {
