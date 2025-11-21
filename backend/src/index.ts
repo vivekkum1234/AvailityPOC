@@ -6,6 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import { createServer } from 'http';
 
 import questionnaireRoutes from './routes/questionnaire';
 import responseRoutes from './routes/response';
@@ -17,6 +18,7 @@ import x12CodesRoutes from './routes/x12Codes'; // NEW: X12 Code Lookup
 import pdfExtractorRoutes from './routes/pdfExtractor'; // NEW: PDF Extractor
 import aiAgentRoutes from './routes/aiAgent'; // NEW: AI Agent
 import { errorHandler } from './middleware/errorHandler';
+import { initializeWebSocket } from './websocket/agentWebSocket'; // NEW: WebSocket for AI Agent
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -87,11 +89,16 @@ app.use('*', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
+// Create HTTP server and initialize WebSocket
+const httpServer = createServer(app);
+initializeWebSocket(httpServer);
+
 // Start server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`📋 API docs: http://localhost:${PORT}/api`);
+  console.log(`🔌 WebSocket server ready for real-time updates`);
 });
 
 export default app;

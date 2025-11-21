@@ -5,6 +5,7 @@ import { MainDashboard } from './components/MainDashboard';
 import { ImplementationsList } from './pages/ImplementationsList';
 import { UserManagement } from './pages/UserManagement';
 import { PDFExtractor } from './pages/PDFExtractor';
+import AgentActivityPage from './pages/AgentActivityPage';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -260,6 +261,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <PDFExtractor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agent-activity/:taskId"
+              element={
+                <ProtectedRoute>
+                  <AgentActivityPage />
                 </ProtectedRoute>
               }
             />

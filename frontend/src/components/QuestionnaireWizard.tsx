@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Section, Question, QuestionnaireResponse, QuestionType } from '../types/questionnaire';
 import { QuestionRenderer } from './QuestionRenderer';
 import { EnvelopingRequirementsTable } from './EnvelopingRequirementsTable';
@@ -37,6 +37,7 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   const { extractionData, clearExtractionData } = useExtractionData(); // Get PDF extraction data
   const { responseId } = useParams<{ responseId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Detect edit mode
   const isEditMode = location.pathname.includes('/edit/');
@@ -424,9 +425,9 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
   const handleTriggerAgent = async () => {
     try {
       setAgentStatus('analyzing');
-      setAgentMessage('AI Agent is analyzing the codebase...');
+      setAgentMessage('Starting AI Agent workflow...');
 
-      const response = await fetch('http://localhost:3002/api/ai-agent/fix-button', {
+      const response = await fetch('http://localhost:3002/api/ai-agent/fix-button-enhanced', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -440,10 +441,11 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
 
       const data = await response.json();
 
-      if (data.success) {
-        setAgentStatus('success');
-        setAgentMessage(data.message || 'AI Agent successfully created a PR with the fix!');
-        setPrUrl(data.prUrl || '');
+      if (data.success && data.taskId) {
+        // Close the modal and navigate to the tracking page
+        setShowErrorPopup(false);
+        setAgentStatus('idle');
+        navigate(`/agent-activity/${data.taskId}`);
       } else {
         setAgentStatus('error');
         setAgentMessage(data.error || 'Failed to trigger AI agent');
