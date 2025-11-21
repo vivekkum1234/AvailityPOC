@@ -249,73 +249,103 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        {/* Summary Cards - Professional Modern Design with Vibrant Colors */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Total Payers Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-                <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
+          <div className="group bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-slate-200 hover:border-slate-300">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Total Payers</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-slate-800">{stats.total}</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Total Payers</p>
-            <p className="text-4xl font-bold text-gray-900 mt-2">{stats.total}</p>
           </div>
 
           {/* Active Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-blue-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+          <div className="group bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-blue-300 hover:border-blue-400">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Active</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-blue-900">{stats.active}</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Active</p>
-            <p className="text-4xl font-bold text-blue-900 mt-2">{stats.active}</p>
           </div>
 
           {/* Stuck Card */}
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-yellow-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <svg className="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          <div className="group bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-amber-300 hover:border-amber-400">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Stuck</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-amber-900">{stats.stuck}</p>
+                <p className="text-xs text-amber-700 mt-2 font-medium">≥ {thresholds.stuckDays} days in step</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-yellow-700 uppercase tracking-wide">Stuck</p>
-            <p className="text-4xl font-bold text-yellow-900 mt-2">{stats.stuck}</p>
-            <p className="text-xs text-yellow-700 mt-2 font-medium">≥ {thresholds.stuckDays} days in step</p>
           </div>
 
           {/* Abandoned Card */}
-          <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-red-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+          <div className="group bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-rose-300 hover:border-rose-400">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-rose-700 uppercase tracking-wider">Abandoned</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-rose-900">{stats.abandoned}</p>
+                <p className="text-xs text-rose-700 mt-2 font-medium">≥ {thresholds.abandonedDays} days inactive</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-red-700 uppercase tracking-wide">Abandoned</p>
-            <p className="text-4xl font-bold text-red-900 mt-2">{stats.abandoned}</p>
-            <p className="text-xs text-red-700 mt-2 font-medium">≥ {thresholds.abandonedDays} days inactive</p>
           </div>
 
           {/* Completed Card */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-green-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+          <div className="group bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-emerald-300 hover:border-emerald-400">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Completed</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-emerald-900">{stats.completed}</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-green-700 uppercase tracking-wide">Completed</p>
-            <p className="text-4xl font-bold text-green-900 mt-2">{stats.completed}</p>
           </div>
         </div>
 
