@@ -86,6 +86,10 @@ export class TestRecommendationService {
   private static readonly AI_API_URL = process.env.OPENAI_API_URL || 'https://api.openai.com/v1/chat/completions';
   private static readonly AI_API_KEY = process.env.OPENAI_API_KEY;
 
+  // In-memory cache for test data generation
+  private static testDataCache: Map<string, { data: TestCase[], timestamp: number }> = new Map();
+  private static CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache TTL
+
   static {
     // Debug API key loading
     console.log('🔑 TestRecommendationService: OpenAI API Key status:',
@@ -1154,6 +1158,68 @@ EDI BATCH MODE - ONLY test features that are CONFIGURED in the questionnaire:
   }
 
   /**
+   * Generate cache key for test data
+   */
+  private static generateCacheKey(
+    payerInfo: PayerInfo,
+    selectedTestCases: TestRecommendation[]
+  ): string {
+    const testCaseIds = selectedTestCases.map(tc => tc.id).sort().join(',');
+    return `${payerInfo.organizationId}:${testCaseIds}`;
+  }
+
+  /**
+   * Check if cached data is still valid
+   */
+  private static isCacheValid(timestamp: number): boolean {
+    return Date.now() - timestamp < this.CACHE_TTL;
+  }
+
+  /**
+   * Clear expired cache entries
+   */
+  private static clearExpiredCache(): void {
+    const now = Date.now();
+    let expiredCount = 0;
+
+    for (const [key, value] of this.testDataCache.entries()) {
+      if (!this.isCacheValid(value.timestamp)) {
+        this.testDataCache.delete(key);
+        expiredCount++;
+      }
+    }
+
+    if (expiredCount > 0) {
+      console.log(`🧹 Cleared ${expiredCount} expired cache entries`);
+    }
+  }
+
+  /**
+   * Clear all cache (useful for testing or manual refresh)
+   */
+  static clearCache(): void {
+    const size = this.testDataCache.size;
+    this.testDataCache.clear();
+    console.log(`🧹 Cleared all ${size} cache entries`);
+  }
+
+  /**
+   * Get cache statistics
+   */
+  static getCacheStats(): { size: number, entries: Array<{ key: string, age: number }> } {
+    const now = Date.now();
+    const entries = Array.from(this.testDataCache.entries()).map(([key, value]) => ({
+      key,
+      age: Math.floor((now - value.timestamp) / 1000) // age in seconds
+    }));
+
+    return {
+      size: this.testDataCache.size,
+      entries
+    };
+  }
+
+  /**
    * Generate detailed test data for selected test cases (Step 3)
    */
   static async generateTestData(
@@ -1162,12 +1228,32 @@ EDI BATCH MODE - ONLY test features that are CONFIGURED in the questionnaire:
     selectedTestCases: TestRecommendation[]
   ): Promise<TestCase[]> {
     console.log('🧪 Generating test data for selected test cases:', selectedTestCases);
+
+    // Periodically clear expired cache entries
+    this.clearExpiredCache();
+
+    // Generate cache key
+    const cacheKey = this.generateCacheKey(payerInfo, selectedTestCases);
+
+    // Check cache first
+    const cached = this.testDataCache.get(cacheKey);
+    if (cached && this.isCacheValid(cached.timestamp)) {
+      const cacheAge = Math.floor((Date.now() - cached.timestamp) / 1000);
+      console.log(`✅ Cache HIT! Returning cached test data (age: ${cacheAge}s, TTL: ${this.CACHE_TTL / 1000}s)`);
+      console.log(`💾 Cache stats:`, this.getCacheStats());
+      return cached.data;
+    }
+
+    console.log('❌ Cache MISS - generating new test data...');
     console.log('🤖 Using AI to generate contextual test data...');
 
     // Check if AI API key is available
     if (!this.AI_API_KEY) {
       console.warn('⚠️ OpenAI API key not found, using proven template test data');
-      return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+      const templateData = this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+      // Cache template data as well
+      this.testDataCache.set(cacheKey, { data: templateData, timestamp: Date.now() });
+      return templateData;
     }
 
     try {
@@ -1226,16 +1312,25 @@ EDI BATCH MODE - ONLY test features that are CONFIGURED in the questionnaire:
 
       if (aiTestCases && aiTestCases.length > 0) {
         console.log(`✅ Successfully generated ${aiTestCases.length} AI test cases`);
+        // Cache the successful AI response
+        this.testDataCache.set(cacheKey, { data: aiTestCases, timestamp: Date.now() });
+        console.log('💾 Cached test data for future requests');
         return aiTestCases;
       } else {
         console.warn('⚠️ AI response was empty or invalid, falling back to templates');
-        return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+        const templateData = this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+        // Cache template data as well
+        this.testDataCache.set(cacheKey, { data: templateData, timestamp: Date.now() });
+        return templateData;
       }
 
     } catch (error) {
       console.error('❌ AI call failed, using proven templates:', error);
       console.error('🔍 Error details:', error instanceof Error ? error.message : String(error));
-      return this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+      const templateData = this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+      // Cache template data as well
+      this.testDataCache.set(cacheKey, { data: templateData, timestamp: Date.now() });
+      return templateData;
     }
 
     // TODO: Re-enable AI response parsing after POC if needed
