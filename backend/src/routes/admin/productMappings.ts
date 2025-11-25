@@ -59,13 +59,14 @@ router.get('/:productType', async (req, res) => {
  * Update product assignments for a specific product type (UI only for MVP)
  * Body: { organizationIds: string[] }
  */
-router.post('/:productType', async (req, res) => {
+router.post('/:productType', async (req, res): Promise<void> => {
   try {
     const { productType } = req.params;
     const { organizationIds } = req.body;
 
     if (!Array.isArray(organizationIds)) {
-      return res.status(400).json({ error: 'organizationIds must be an array' });
+      res.status(400).json({ error: 'organizationIds must be an array' });
+      return;
     }
 
     // For MVP: Just return success without persisting

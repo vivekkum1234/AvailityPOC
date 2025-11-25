@@ -233,7 +233,7 @@ router.post('/:id/new-version', async (req, res, next) => {
     const updated = await supabaseService.updateQuestionnaireTemplate(id, {
       version: newVersion,
       status: 'draft',
-      published_at: null
+      published_at: undefined
     });
 
     res.json({
