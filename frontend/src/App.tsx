@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { QuestionnaireWizard } from './components/QuestionnaireWizard';
 import { MainDashboard } from './components/MainDashboard';
 import { ImplementationsList } from './pages/ImplementationsList';
-import { UserManagement } from './pages/UserManagement';
 import { PDFExtractor } from './pages/PDFExtractor';
 import AgentActivityPage from './pages/AgentActivityPage';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { MasterConfiguration } from './pages/admin/MasterConfiguration';
+import { PayerConfigurations } from './pages/admin/PayerConfigurations';
+import { UserManagement } from './pages/admin/UserManagement';
+import { ProductMappings } from './pages/admin/ProductMappings';
+import { TemplateEditor } from './pages/TemplateEditor';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -17,6 +22,7 @@ import './App.css';
 // Header Actions Component
 const HeaderActions: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
@@ -28,6 +34,20 @@ const HeaderActions: React.FC = () => {
       {/* User Welcome & Logout */}
       {user && (
         <div className="flex items-center space-x-4">
+          {/* Admin Button (only for admin users) */}
+          {user.isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white border border-purple-700 hover:bg-purple-700 transition-all duration-200 shadow-sm"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Admin
+            </button>
+          )}
+
           {/* Welcome Message */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-availity-500 rounded-full flex items-center justify-center shadow-sm">
@@ -81,8 +101,9 @@ const QuestionnaireApp: React.FC = () => {
   const loadQuestionnaire = async () => {
     try {
       setLoading(true);
-      // Load the complete X12 270/271 questionnaire with all PDF fields
-      const questionnaireSections = await apiService.getQuestionnaireSections('x12-270-271-complete');
+      // Load the latest published X12 270/271 questionnaire from database
+      // Falls back to hardcoded version if no published template exists
+      const questionnaireSections = await apiService.getLatestQuestionnaireSections('270/271');
       setSections(questionnaireSections);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load questionnaire');
@@ -249,14 +270,6 @@ function App() {
               }
             />
             <Route
-              path="/users"
-              element={
-                <ProtectedRoute>
-                  <UserManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/pdf-extractor"
               element={
                 <ProtectedRoute>
@@ -272,6 +285,22 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Admin Routes with Nested Layout */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/admin/templates" replace />} />
+              <Route path="templates" element={<MasterConfiguration />} />
+              <Route path="payers" element={<PayerConfigurations />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="product-mappings" element={<ProductMappings />} />
+              <Route path="templates/:id" element={<TemplateEditor />} />
+            </Route>
 
           </Routes>
         </Router>

@@ -17,6 +17,8 @@ import mockPayerRoutes from './routes/mockPayer';
 import x12CodesRoutes from './routes/x12Codes'; // NEW: X12 Code Lookup
 import pdfExtractorRoutes from './routes/pdfExtractor'; // NEW: PDF Extractor
 import aiAgentRoutes from './routes/aiAgent'; // NEW: AI Agent
+import adminQuestionnaireTemplatesRoutes from './routes/admin/questionnaireTemplates'; // NEW: Admin Master Config
+import adminProductMappingsRoutes from './routes/admin/productMappings'; // NEW: Admin Product Mappings
 import { errorHandler } from './middleware/errorHandler';
 import { initializeWebSocket } from './websocket/agentWebSocket'; // NEW: WebSocket for AI Agent
 
@@ -48,7 +50,7 @@ app.use(cors({
   ].filter((url): url is string => Boolean(url)),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-user-id']
 }));
 
 // Body parsing middleware
@@ -77,6 +79,8 @@ app.use('/api/mock-payer', mockPayerRoutes);
 app.use('/api/x12-codes', x12CodesRoutes); // NEW: X12 Code Lookup
 app.use('/api/pdf-extractor', pdfExtractorRoutes); // NEW: PDF Extractor
 app.use('/api/ai-agent', aiAgentRoutes); // NEW: AI Agent
+app.use('/api/admin/questionnaire-templates', adminQuestionnaireTemplatesRoutes); // NEW: Admin Master Config
+app.use('/api/admin/product-mappings', adminProductMappingsRoutes); // NEW: Admin Product Mappings
 
 // 404 handler
 app.use('*', (req, res) => {

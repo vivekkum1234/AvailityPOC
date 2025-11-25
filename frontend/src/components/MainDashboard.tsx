@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { QuestionnaireWizard } from './QuestionnaireWizard';
 import { ImplementationsList } from '../pages/ImplementationsList';
-import { UserManagement } from '../pages/UserManagement';
 import { PDFExtractor } from '../pages/PDFExtractor';
-import { PayerConfigurations } from './PayerConfigurations';
 import { PayerTesting } from './PayerTesting';
 import { Dashboard } from './Dashboard';
 import { AIChatbotContainer } from './chatbot';
@@ -13,7 +11,7 @@ import { Section, QuestionnaireResponse } from '../types/questionnaire';
 import { useAuth } from '../contexts/AuthContext';
 import { AutoFillOptions, NavigationCallbacks, FieldUpdateCallback } from './chatbot/chatbot.types';
 
-type TabId = 'dashboard' | 'questionnaire' | 'implementations' | 'pdf-extractor' | 'configurations' | 'testing' | 'users';
+type TabId = 'dashboard' | 'questionnaire' | 'implementations' | 'pdf-extractor' | 'testing' | 'admin';
 
 interface Tab {
   id: TabId;
@@ -114,6 +112,7 @@ const HeaderActions: React.FC = () => {
 
 export const MainDashboard: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isEditMode = location.pathname.includes('/edit/');
   const { user } = useAuth(); // Get current user for role-based access
 
@@ -180,7 +179,7 @@ export const MainDashboard: React.FC = () => {
   // Safety check: If payer user is on a restricted tab, redirect to questionnaire
   useEffect(() => {
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['dashboard', 'configurations', 'testing', 'users'];
+      const restrictedTabs: TabId[] = ['dashboard', 'testing'];
       if (restrictedTabs.includes(activeTab)) {
         setActiveTab('questionnaire');
       }
@@ -190,8 +189,9 @@ export const MainDashboard: React.FC = () => {
   const loadQuestionnaire = async () => {
     try {
       setLoading(true);
-      // Load the complete X12 270/271 questionnaire with all PDF fields
-      const questionnaireSections = await apiService.getQuestionnaireSections('x12-270-271-complete');
+      // Load the latest published X12 270/271 questionnaire from database
+      // Falls back to hardcoded version if no published template exists
+      const questionnaireSections = await apiService.getLatestQuestionnaireSections('270/271');
       setSections(questionnaireSections);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load questionnaire');
@@ -273,21 +273,12 @@ export const MainDashboard: React.FC = () => {
       )
     },
     {
-      id: 'configurations',
-      label: 'Payer Configurations',
+      id: 'admin',
+      label: 'Admin',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      )
-    },
-    {
-      id: 'users',
-      label: 'Users',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
         </svg>
       )
     }
@@ -295,12 +286,16 @@ export const MainDashboard: React.FC = () => {
 
   // Filter tabs based on user role - hide restricted tabs for payer users
   const tabs: Tab[] = allTabs.filter(tab => {
-    // If user is a payer, hide dashboard, configurations, testing, and users tabs
+    // Hide admin tab for non-admin users
+    if (tab.id === 'admin' && !user?.isAdmin) {
+      return false;
+    }
+    // If user is a payer, hide dashboard and testing tabs
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['dashboard', 'configurations', 'testing', 'users'];
+      const restrictedTabs: TabId[] = ['dashboard', 'testing', 'admin'];
       return !restrictedTabs.includes(tab.id);
     }
-    // Availity users see all tabs
+    // Availity users see all tabs (if admin, they see admin tab too)
     return true;
   });
 
@@ -393,10 +388,6 @@ export const MainDashboard: React.FC = () => {
         return <ImplementationsList />;
       case 'pdf-extractor':
         return <PDFExtractor />;
-      case 'configurations':
-        return <PayerConfigurations />;
-      case 'users':
-        return <UserManagement />;
       case 'testing':
         return <PayerTesting />;
       default:
@@ -424,7 +415,7 @@ export const MainDashboard: React.FC = () => {
                   Availity Dashboard
                 </h1>
                 <p className="text-sm text-gray-600 font-medium">
-                  X12 270/271 HIPAA Transaction Implementation Platform
+                  Payer Onboarding Portal
                 </p>
               </div>
             </div>
@@ -440,7 +431,13 @@ export const MainDashboard: React.FC = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'admin') {
+                    navigate('/admin');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`
                   relative flex items-center px-8 py-6 font-medium text-sm transition-all duration-200 border-b-3
                   ${activeTab === tab.id

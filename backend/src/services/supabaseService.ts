@@ -74,11 +74,35 @@ export interface User {
   phone?: string;
   organization_id?: string;
   user_type: 'payer' | 'availity';
+  is_admin?: boolean;
   status?: string;
   last_login_at?: string;
   created_at?: string;
   updated_at?: string;
   created_by?: string;
+}
+
+export interface QuestionnaireTemplate {
+  id?: string;
+  transaction_type: string;
+  version: string;
+  status: 'draft' | 'published' | 'archived';
+  config: any; // Full questionnaire JSON
+  published_at?: string;
+  published_by?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+}
+
+export interface QuestionnaireVersion {
+  id?: string;
+  template_id: string;
+  version: string;
+  config: any;
+  changes_summary?: string;
+  created_by?: string;
+  created_at?: string;
 }
 
 export interface UserRole {
@@ -324,7 +348,7 @@ export class SupabaseService {
     return data;
   }
 
-  async getUsers(filters?: { user_type?: string; status?: string; organization_id?: string }): Promise<User[]> {
+  async getUsers(filters?: { user_type?: string; status?: string; organization_id?: string; email?: string }): Promise<User[]> {
     let query = supabase
       .from('users')
       .select('*')
@@ -338,6 +362,9 @@ export class SupabaseService {
     }
     if (filters?.organization_id) {
       query = query.eq('organization_id', filters.organization_id);
+    }
+    if (filters?.email) {
+      query = query.eq('email', filters.email);
     }
 
     const { data, error } = await query;
@@ -428,6 +455,108 @@ export class SupabaseService {
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(`Failed to get users with roles: ${error.message}`);
+    return data || [];
+  }
+
+  // Questionnaire Template methods
+  async createQuestionnaireTemplate(template: QuestionnaireTemplate): Promise<QuestionnaireTemplate> {
+    const { data, error } = await supabase
+      .from('questionnaire_templates')
+      .insert(template)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to create questionnaire template: ${error.message}`);
+    return data;
+  }
+
+  async getQuestionnaireTemplate(id: string): Promise<QuestionnaireTemplate | null> {
+    const { data, error } = await supabase
+      .from('questionnaire_templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to get questionnaire template: ${error.message}`);
+    }
+    return data;
+  }
+
+  async getQuestionnaireTemplatesByType(transactionType: string): Promise<QuestionnaireTemplate[]> {
+    const { data, error } = await supabase
+      .from('questionnaire_templates')
+      .select('*')
+      .eq('transaction_type', transactionType)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(`Failed to get questionnaire templates: ${error.message}`);
+    return data || [];
+  }
+
+  async getLatestPublishedTemplate(transactionType: string): Promise<QuestionnaireTemplate | null> {
+    const { data, error } = await supabase
+      .from('questionnaire_templates')
+      .select('*')
+      .eq('transaction_type', transactionType)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to get latest published template: ${error.message}`);
+    }
+    return data;
+  }
+
+  async updateQuestionnaireTemplate(id: string, updates: Partial<QuestionnaireTemplate>): Promise<QuestionnaireTemplate> {
+    const { data, error } = await supabase
+      .from('questionnaire_templates')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to update questionnaire template: ${error.message}`);
+    return data;
+  }
+
+  async publishQuestionnaireTemplate(id: string, publishedBy: string): Promise<QuestionnaireTemplate> {
+    const { data, error } = await supabase
+      .from('questionnaire_templates')
+      .update({
+        status: 'published',
+        published_at: new Date().toISOString(),
+        published_by: publishedBy
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to publish questionnaire template: ${error.message}`);
+    return data;
+  }
+
+  async createQuestionnaireVersion(version: QuestionnaireVersion): Promise<QuestionnaireVersion> {
+    const { data, error } = await supabase
+      .from('questionnaire_versions')
+      .insert(version)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to create questionnaire version: ${error.message}`);
+    return data;
+  }
+
+  async getQuestionnaireVersions(templateId: string): Promise<QuestionnaireVersion[]> {
+    const { data, error } = await supabase
+      .from('questionnaire_versions')
+      .select('*')
+      .eq('template_id', templateId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(`Failed to get questionnaire versions: ${error.message}`);
     return data || [];
   }
 }

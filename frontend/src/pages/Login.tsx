@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface LoginProps {
-  onLogin: (user: { email: string; name: string; userType: 'payer' | 'availity' }) => void;
+  onLogin: (user: { id?: string; email: string; name: string; userType: 'payer' | 'availity'; isAdmin?: boolean }) => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -26,19 +26,16 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError(null);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       // Basic validation
       if (!email || !password) {
         setError('Please enter both email and password.');
         return;
       }
 
-      // Find user by email
-      const user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+      // Find user by email in mock users first
+      const mockUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-      if (!user) {
+      if (!mockUser) {
         setError('Invalid email or password. Please try again.');
         return;
       }
@@ -49,11 +46,29 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
       }
 
+      // Fetch actual user from database to get admin status
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+      const response = await fetch(`${API_BASE_URL}/users?email=${encodeURIComponent(email)}`);
+
+      let isAdmin = false;
+      let userId = undefined;
+
+      if (response.ok) {
+        const data = await response.json();
+        const dbUser = data.data?.[0];
+        if (dbUser) {
+          isAdmin = dbUser.is_admin || false;
+          userId = dbUser.id;
+        }
+      }
+
       // Call the onLogin callback with user data
       onLogin({
-        email: user.email,
-        name: user.name,
-        userType: user.userType
+        id: userId,
+        email: mockUser.email,
+        name: mockUser.name,
+        userType: mockUser.userType,
+        isAdmin
       });
 
       // Navigate to main page
@@ -65,18 +80,41 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
-  const handleQuickLogin = (user: typeof mockUsers[0]) => {
+  const handleQuickLogin = async (user: typeof mockUsers[0]) => {
     setEmail(user.email);
     setPassword('demo123'); // Set a demo password
-    // Auto-submit after setting email and password
-    setTimeout(() => {
+    setLoading(true);
+
+    try {
+      // Fetch actual user from database to get admin status
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+      const response = await fetch(`${API_BASE_URL}/users?email=${encodeURIComponent(user.email)}`);
+
+      let isAdmin = false;
+      let userId = undefined;
+
+      if (response.ok) {
+        const data = await response.json();
+        const dbUser = data.data?.[0];
+        if (dbUser) {
+          isAdmin = dbUser.is_admin || false;
+          userId = dbUser.id;
+        }
+      }
+
       onLogin({
+        id: userId,
         email: user.email,
         name: user.name,
-        userType: user.userType
+        userType: user.userType,
+        isAdmin
       });
       navigate('/');
-    }, 100);
+    } catch (err) {
+      setError('Quick login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

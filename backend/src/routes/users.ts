@@ -6,12 +6,13 @@ const router = Router();
 // GET /api/users - Get all users with optional filters
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { user_type, status, organization_id } = req.query;
-    
+    const { user_type, status, organization_id, email } = req.query;
+
     const filters: any = {};
     if (user_type) filters.user_type = user_type as string;
     if (status) filters.status = status as string;
     if (organization_id) filters.organization_id = organization_id as string;
+    if (email) filters.email = email as string;
 
     const users = await supabaseService.getUsers(filters);
 

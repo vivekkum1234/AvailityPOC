@@ -37,9 +37,19 @@ class ApiService {
     return this.request<Section[]>(`/questionnaires/${id}/sections${query}`);
   }
 
+  // Get latest published questionnaire by transaction type (e.g., '270/271')
+  async getLatestQuestionnaireSections(transactionType: string, mode?: string): Promise<Section[]> {
+    const query = mode ? `?mode=${encodeURIComponent(mode)}` : '';
+    // URL-encode the transaction type to handle slashes (e.g., '270/271' → '270%2F271')
+    const encodedType = encodeURIComponent(transactionType);
+    const response = await this.request<any>(`/questionnaires/${encodedType}/latest${query}`);
+    // The endpoint returns the full config, extract sections
+    return response.sections || response.data?.sections || [];
+  }
+
   async getQuestionnaireSection(
-    questionnaireId: string, 
-    sectionId: string, 
+    questionnaireId: string,
+    sectionId: string,
     mode?: string
   ): Promise<Section> {
     const query = mode ? `?mode=${encodeURIComponent(mode)}` : '';

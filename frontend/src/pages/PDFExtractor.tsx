@@ -68,7 +68,8 @@ export const PDFExtractor: React.FC = () => {
   useEffect(() => {
     const loadQuestionnaire = async () => {
       try {
-        const sections = await apiService.getQuestionnaireSections('x12-270-271-complete');
+        // Load the latest published X12 270/271 questionnaire from database
+        const sections = await apiService.getLatestQuestionnaireSections('270/271');
         setQuestionnaireSections(sections);
 
         // Build a map of questionId -> Question for quick lookup

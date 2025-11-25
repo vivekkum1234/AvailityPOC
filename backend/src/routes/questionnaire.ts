@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { QuestionnaireService } from '../services/questionnaireService';
 import { asyncHandler } from '../middleware/errorHandler';
+import { supabaseService } from '../services/supabaseService';
 
 const router = Router();
 const questionnaireService = new QuestionnaireService();
@@ -11,6 +12,48 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   return res.json({
     success: true,
     data: questionnaires
+  });
+}));
+
+// GET /api/questionnaires/:transactionType/latest - Get latest published template
+// IMPORTANT: This route must come BEFORE /:id and /:id/sections to avoid route conflicts
+router.get('/:transactionType/latest', asyncHandler(async (req: Request, res: Response) => {
+  const { transactionType } = req.params;
+
+  if (!transactionType) {
+    return res.status(400).json({
+      success: false,
+      error: 'Transaction type is required'
+    });
+  }
+
+  // Try to get from database first
+  const template = await supabaseService.getLatestPublishedTemplate(transactionType);
+
+  if (template) {
+    return res.json({
+      success: true,
+      data: template.config,
+      version: template.version,
+      published_at: template.published_at,
+      source: 'database'
+    });
+  }
+
+  // Fallback to hardcoded questionnaires
+  const questionnaire = await questionnaireService.getQuestionnaireById(`x12-${transactionType}-complete`);
+
+  if (!questionnaire) {
+    return res.status(404).json({
+      success: false,
+      error: `No questionnaire found for transaction type: ${transactionType}`
+    });
+  }
+
+  return res.json({
+    success: true,
+    data: questionnaire,
+    source: 'hardcoded'
   });
 }));
 
@@ -25,7 +68,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   }
 
   const questionnaire = await questionnaireService.getQuestionnaireById(id);
-  
+
   if (!questionnaire) {
     return res.status(404).json({
       success: false,
@@ -55,7 +98,7 @@ router.get('/:id/sections', asyncHandler(async (req: Request, res: Response) => 
     id,
     mode as string
   );
-  
+
   return res.json({
     success: true,
     data: sections
@@ -79,7 +122,7 @@ router.get('/:id/sections/:sectionId', asyncHandler(async (req: Request, res: Re
     sectionId,
     mode as string
   );
-  
+
   if (!section) {
     return res.status(404).json({
       success: false,
