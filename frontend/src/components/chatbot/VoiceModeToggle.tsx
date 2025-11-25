@@ -21,7 +21,7 @@ export const VoiceModeToggle: React.FC<VoiceModeToggleProps> = ({
     `}>
       <div className="flex items-center space-x-2">
         <span className={`text-sm font-semibold ${isVoiceMode ? 'text-white' : 'text-gray-700'}`}>
-          {isVoiceMode ? 'Voice Mode' : 'Text Mode'}
+          {isVoiceMode ? 'Voice Mode' : 'Chat Mode'}
         </span>
         {isVoiceMode && (
           <span className="flex items-center space-x-1.5 px-2 py-0.5 bg-white bg-opacity-20 rounded-full">
@@ -41,7 +41,7 @@ export const VoiceModeToggle: React.FC<VoiceModeToggleProps> = ({
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
           ${isVoiceMode ? 'bg-white bg-opacity-30' : 'bg-gray-300'}
         `}
-        title={isVoiceMode ? 'Switch to Text Mode' : 'Switch to Voice Mode'}
+        title={isVoiceMode ? 'Switch to Chat Mode' : 'Switch to Voice Mode'}
       >
         <span
           className={`

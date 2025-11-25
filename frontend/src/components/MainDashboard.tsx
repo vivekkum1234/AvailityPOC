@@ -179,7 +179,7 @@ export const MainDashboard: React.FC = () => {
   // Safety check: If payer user is on a restricted tab, redirect to questionnaire
   useEffect(() => {
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['dashboard', 'testing'];
+      const restrictedTabs: TabId[] = ['dashboard'];
       if (restrictedTabs.includes(activeTab)) {
         setActiveTab('questionnaire');
       }
@@ -290,9 +290,9 @@ export const MainDashboard: React.FC = () => {
     if (tab.id === 'admin' && !user?.isAdmin) {
       return false;
     }
-    // If user is a payer, hide dashboard and testing tabs
+    // If user is a payer, hide dashboard tab only (they can access testing)
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['dashboard', 'testing', 'admin'];
+      const restrictedTabs: TabId[] = ['dashboard', 'admin'];
       return !restrictedTabs.includes(tab.id);
     }
     // Availity users see all tabs (if admin, they see admin tab too)
