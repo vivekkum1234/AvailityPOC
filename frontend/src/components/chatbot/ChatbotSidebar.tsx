@@ -5,10 +5,12 @@ import { ChatbotInput } from './ChatbotInput';
 import { QuickActions } from './QuickActions';
 import { VoiceModeToggle } from './VoiceModeToggle';
 import { VoiceModePanel } from './VoiceModePanel';
+import { PHIWarningModal } from './PHIWarningModal';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { useVoiceCommands } from '../../hooks/useVoiceCommands';
 import { apiService } from '../../services/api'; // NEW: For X12 code lookup
+import { detectPHI, PHIDetectionResult } from '../../utils/phiDetection';
 
 interface ChatbotSidebarProps {
   context?: ChatbotContext;
@@ -33,6 +35,11 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
   const [hasGreeted, setHasGreeted] = useState(false);
   const [hasHadInteraction, setHasHadInteraction] = useState(false);
   const lastResponseRef = useRef<string>('');
+
+  // PHI detection state
+  const [showPHIModal, setShowPHIModal] = useState(false);
+  const [phiDetectionResult, setPhiDetectionResult] = useState<PHIDetectionResult | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<string>('');
 
   // Voice hooks
   const { speak, stop: stopSpeaking, isSpeaking } = useTextToSpeech();
@@ -430,7 +437,32 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
     return codeKeywords.some(keyword => lowerMessage.includes(keyword));
   };
 
+  // PHI Detection: Check message before sending
   const handleSendMessage = async (messageContent: string) => {
+    // Check for PHI in the message
+    const phiResult = detectPHI(messageContent);
+
+    if (phiResult.hasPHI) {
+      // PHI detected - show warning modal and block sending
+      setPendingMessage(messageContent);
+      setPhiDetectionResult(phiResult);
+      setShowPHIModal(true);
+      return; // Don't send - user must cancel and rephrase
+    }
+
+    // No PHI detected - send normally
+    await sendMessageInternal(messageContent);
+  };
+
+  // Handle close PHI modal
+  const handleClosePHIModal = () => {
+    setShowPHIModal(false);
+    setPendingMessage('');
+    setPhiDetectionResult(null);
+  };
+
+  // Internal function to actually send the message
+  const sendMessageInternal = async (messageContent: string) => {
     // Pause listening in voice mode while processing
     if (isVoiceMode) {
       stopListening();
@@ -672,6 +704,13 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
           )}
         </div>
       )}
+
+      {/* PHI Warning Modal */}
+      <PHIWarningModal
+        isOpen={showPHIModal}
+        detectionResult={phiDetectionResult}
+        onCancel={handleClosePHIModal}
+      />
     </>
   );
 };
