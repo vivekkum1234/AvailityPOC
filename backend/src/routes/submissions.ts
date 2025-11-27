@@ -678,4 +678,57 @@ router.post('/submission/:responseId/email-json', async (req: Request, res: Resp
   }
 });
 
+// Delete submission (hard delete)
+router.delete('/submission/:responseId', async (req: Request, res: Response) => {
+  try {
+    const { responseId } = req.params;
+
+    if (!responseId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Response ID is required'
+      });
+    }
+
+    // Get the submission before deleting (for audit trail)
+    const submission = await supabaseService.getQuestionnaireResponse(responseId);
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        error: 'Submission not found'
+      });
+    }
+
+    // Create audit trail entry before deletion
+    await supabaseService.createAuditEntry({
+      response_id: responseId,
+      action: 'submission_deleted',
+      old_value: {
+        organization_id: submission.organization_id,
+        implementation_mode: submission.implementation_mode,
+        status: submission.status,
+        submitted_by: submission.submitted_by,
+        submitted_at: submission.submitted_at
+      },
+      new_value: null,
+      user_identifier: submission.submitted_by || 'anonymous'
+    });
+
+    // Delete the submission
+    await supabaseService.deleteQuestionnaireResponse(responseId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Implementation deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting submission:', error);
+    return res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to delete submission'
+    });
+  }
+});
+
 export default router;

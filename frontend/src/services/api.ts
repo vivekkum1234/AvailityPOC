@@ -235,7 +235,14 @@ class ApiService {
     });
   }
 
-
+  async deleteSubmission(responseId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.request<any>(`/submissions/submission/${responseId}`, {
+      method: 'DELETE',
+    });
+  }
 
   // User Management endpoints
   async getUsers(): Promise<any[]> {

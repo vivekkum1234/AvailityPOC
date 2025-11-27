@@ -263,7 +263,7 @@ export class SupabaseService {
 
   // Submit completed questionnaire
   async submitQuestionnaire(
-    responseId: string, 
+    responseId: string,
     submittedBy?: string
   ): Promise<QuestionnaireResponse> {
     const updates: Partial<QuestionnaireResponse> = {
@@ -273,6 +273,16 @@ export class SupabaseService {
     };
 
     return this.updateQuestionnaireResponse(responseId, updates);
+  }
+
+  // Delete questionnaire response (hard delete)
+  async deleteQuestionnaireResponse(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('questionnaire_responses')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to delete questionnaire response: ${error.message}`);
   }
 
   // Audit trail methods
