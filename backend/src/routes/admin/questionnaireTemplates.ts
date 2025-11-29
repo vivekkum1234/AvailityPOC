@@ -279,5 +279,188 @@ router.post('/:id/publish', async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/admin/questionnaire-templates/:id/compare-versions
+ * Compare current template with a specific version
+ */
+router.get('/:id/compare-versions', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { versionId } = req.query;
+
+    if (!versionId) {
+      throw createError('versionId query parameter is required', 400);
+    }
+
+    // Get current template
+    const currentTemplate = await supabaseService.getQuestionnaireTemplate(id);
+    if (!currentTemplate) {
+      throw createError('Template not found', 404);
+    }
+
+    // Get the version to compare
+    const { data: versionData, error: versionError } = await supabase
+      .from('questionnaire_versions')
+      .select('*')
+      .eq('id', versionId)
+      .single();
+
+    if (versionError || !versionData) {
+      throw createError('Version not found', 404);
+    }
+
+    // Helper function to count sections and questions
+    const getStats = (config: any) => {
+      const sections = config?.sections || [];
+      const questions = sections.reduce((total: number, section: any) => {
+        return total + (section.questions?.length || 0);
+      }, 0);
+      return { sections: sections.length, questions };
+    };
+
+    // Helper function to find label changes
+    const findLabelChanges = (currentConfig: any, restoringConfig: any) => {
+      const changes: any[] = [];
+      const currentSections = currentConfig?.sections || [];
+      const restoringSections = restoringConfig?.sections || [];
+
+      // Create a map of questions by ID for easy lookup
+      const currentQuestionsMap = new Map();
+      currentSections.forEach((section: any) => {
+        section.questions?.forEach((q: any) => {
+          currentQuestionsMap.set(q.id, { ...q, sectionTitle: section.title });
+        });
+      });
+
+      const restoringQuestionsMap = new Map();
+      restoringSections.forEach((section: any) => {
+        section.questions?.forEach((q: any) => {
+          restoringQuestionsMap.set(q.id, { ...q, sectionTitle: section.title });
+        });
+      });
+
+      // Find label changes
+      restoringQuestionsMap.forEach((restoringQ: any, id: string) => {
+        const currentQ = currentQuestionsMap.get(id);
+        if (currentQ && currentQ.title !== restoringQ.title) {
+          changes.push({
+            section: restoringQ.sectionTitle,
+            field: id,
+            currentLabel: currentQ.title,
+            restoringLabel: restoringQ.title
+          });
+        }
+      });
+
+      return changes;
+    };
+
+    const currentStats = getStats(currentTemplate.config);
+    const restoringStats = getStats(versionData.config);
+    const labelChanges = findLabelChanges(currentTemplate.config, versionData.config);
+
+    res.json({
+      success: true,
+      data: {
+        current: {
+          version: currentTemplate.version,
+          ...currentStats
+        },
+        restoring: {
+          version: versionData.version,
+          ...restoringStats
+        },
+        changes: {
+          labelChanges,
+          sectionsAdded: Math.max(0, restoringStats.sections - currentStats.sections),
+          sectionsRemoved: Math.max(0, currentStats.sections - restoringStats.sections),
+          questionsAdded: Math.max(0, restoringStats.questions - currentStats.questions),
+          questionsRemoved: Math.max(0, currentStats.questions - restoringStats.questions)
+        }
+      }
+    });
+  } catch (error: any) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/admin/questionnaire-templates/:id/restore-version
+ * Restore a version and publish it as a new version
+ */
+router.post('/:id/restore-version', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { versionId, changesSummary } = req.body;
+    const userId = (req as any).user.id;
+
+    if (!versionId) {
+      throw createError('versionId is required', 400);
+    }
+
+    // Get the version to restore
+    const { data: versionData, error: versionError } = await supabase
+      .from('questionnaire_versions')
+      .select('*')
+      .eq('id', versionId)
+      .single();
+
+    if (versionError || !versionData) {
+      throw createError('Version not found', 404);
+    }
+
+    // Get current template
+    const currentTemplate = await supabaseService.getQuestionnaireTemplate(id);
+    if (!currentTemplate) {
+      throw createError('Template not found', 404);
+    }
+
+    // Archive current version to history
+    // Include restore information in the changes summary
+    const archiveSummary = changesSummary
+      ? `Archived before restoring v${versionData.version} - ${changesSummary}`
+      : `Archived before restoring v${versionData.version}`;
+
+    await supabaseService.createQuestionnaireVersion({
+      template_id: id,
+      version: currentTemplate.version,
+      config: currentTemplate.config,
+      changes_summary: archiveSummary,
+      created_by: userId
+    });
+
+    // Parse current version and increment minor version
+    const versionParts = currentTemplate.version.split('.');
+    const major = parseInt(versionParts[0] || '1');
+    const minor = parseInt(versionParts[1] || '0');
+    const patch = parseInt(versionParts[2] || '0');
+    const newVersion = `${major}.${minor + 1}.0`;
+
+    // Update template with restored config and new version
+    const updated = await supabaseService.updateQuestionnaireTemplate(id, {
+      version: newVersion,
+      config: versionData.config,
+      status: 'published',
+      published_at: new Date().toISOString(),
+      published_by: userId
+    });
+
+    // NOTE: We do NOT create a version history entry for the newly published version.
+    // Version history only contains ARCHIVED versions.
+    // The current published version should NOT be in the archive.
+    // The restore information is already captured in the archived version's changes_summary.
+
+    res.json({
+      success: true,
+      data: updated,
+      restoredFromVersion: versionData.version,
+      newVersion: newVersion,
+      message: `Version ${versionData.version} restored and published as ${newVersion}`
+    });
+  } catch (error: any) {
+    next(error);
+  }
+});
+
 export default router;
 

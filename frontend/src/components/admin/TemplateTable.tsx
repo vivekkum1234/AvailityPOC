@@ -141,7 +141,11 @@ export const TemplateTable: React.FC<TemplateTableProps> = ({
                 </td>
               </tr>
               {expandedRows[template.id] && (
-                <VersionHistoryRow templateId={template.id} />
+                <VersionHistoryRow
+                  templateId={template.id}
+                  currentVersion={template.version}
+                  onRestoreSuccess={() => window.location.reload()}
+                />
               )}
             </React.Fragment>
           ))}

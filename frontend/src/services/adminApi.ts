@@ -104,6 +104,38 @@ class AdminApiService {
     return this.request<QuestionnaireVersion[]>(`/admin/questionnaire-templates/${templateId}/versions`);
   }
 
+  // Compare versions
+  async compareVersions(templateId: string, versionId: string): Promise<{
+    current: { version: string; sections: number; questions: number };
+    restoring: { version: string; sections: number; questions: number };
+    changes: {
+      labelChanges: Array<{
+        section: string;
+        field: string;
+        currentLabel: string;
+        restoringLabel: string;
+      }>;
+      sectionsAdded: number;
+      sectionsRemoved: number;
+      questionsAdded: number;
+      questionsRemoved: number;
+    };
+  }> {
+    return this.request(`/admin/questionnaire-templates/${templateId}/compare-versions?versionId=${versionId}`);
+  }
+
+  // Restore version
+  async restoreVersion(templateId: string, versionId: string, changesSummary?: string): Promise<{
+    template: QuestionnaireTemplate;
+    restoredFromVersion: string;
+    newVersion: string;
+  }> {
+    return this.request(`/admin/questionnaire-templates/${templateId}/restore-version`, {
+      method: 'POST',
+      body: JSON.stringify({ versionId, changesSummary }),
+    });
+  }
+
   // Product Mappings
 
   // Get all available products (published transaction types)

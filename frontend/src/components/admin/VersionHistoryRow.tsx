@@ -2,16 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminApiService } from '../../services/adminApi';
 import { QuestionnaireVersion } from '../../types/admin';
+import { VersionComparisonModal } from './VersionComparisonModal';
+import { RestoreConfirmationDialog } from './RestoreConfirmationDialog';
 
 interface VersionHistoryRowProps {
   templateId: string;
+  currentVersion: string;
+  onRestoreSuccess?: () => void;
 }
 
-export const VersionHistoryRow: React.FC<VersionHistoryRowProps> = ({ templateId }) => {
+export const VersionHistoryRow: React.FC<VersionHistoryRowProps> = ({
+  templateId,
+  currentVersion,
+  onRestoreSuccess
+}) => {
   const navigate = useNavigate();
   const [versions, setVersions] = useState<QuestionnaireVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedVersion, setSelectedVersion] = useState<QuestionnaireVersion | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
 
   useEffect(() => {
     loadVersionHistory();
@@ -40,7 +53,59 @@ export const VersionHistoryRow: React.FC<VersionHistoryRowProps> = ({ templateId
     });
   };
 
+  const handleRestoreClick = (version: QuestionnaireVersion) => {
+    setSelectedVersion(version);
+    setShowComparisonModal(true);
+    setRestoreError(null);
+  };
+
+  const handleComparisonContinue = () => {
+    setShowComparisonModal(false);
+    setShowConfirmDialog(true);
+  };
+
+  const handleRestoreConfirm = async (changesSummary: string) => {
+    if (!selectedVersion) return;
+
+    try {
+      setIsRestoring(true);
+      setRestoreError(null);
+
+      await adminApiService.restoreVersion(
+        templateId,
+        selectedVersion.id,
+        changesSummary
+      );
+
+      // Close dialogs
+      setShowConfirmDialog(false);
+      setSelectedVersion(null);
+
+      // Reload version history
+      await loadVersionHistory();
+
+      // Notify parent component
+      if (onRestoreSuccess) {
+        onRestoreSuccess();
+      }
+
+      // Navigate to dashboard
+      navigate('/admin');
+    } catch (err: any) {
+      setRestoreError(err.message || 'Failed to restore version');
+      setIsRestoring(false);
+    }
+  };
+
+  const handleCancelRestore = () => {
+    setShowComparisonModal(false);
+    setShowConfirmDialog(false);
+    setSelectedVersion(null);
+    setRestoreError(null);
+  };
+
   return (
+    <>
     <tr className="bg-gray-50">
       <td colSpan={8} className="px-6 py-4">
         <div className="ml-14">
@@ -122,10 +187,11 @@ export const VersionHistoryRow: React.FC<VersionHistoryRowProps> = ({ templateId
                           View
                         </button>
                         <button
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Clone this version"
+                          onClick={() => handleRestoreClick(version)}
+                          className="text-amber-600 hover:text-amber-900"
+                          title="Restore this version"
                         >
-                          Clone
+                          Restore
                         </button>
                       </td>
                     </tr>
@@ -135,8 +201,45 @@ export const VersionHistoryRow: React.FC<VersionHistoryRowProps> = ({ templateId
             </div>
           )}
         </div>
+
+        {/* Restore Error */}
+        {restoreError && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-red-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h4 className="text-sm font-medium text-red-800">Failed to restore version</h4>
+                <p className="text-sm text-red-700 mt-1">{restoreError}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </td>
     </tr>
+
+    {/* Modals */}
+    {showComparisonModal && selectedVersion && (
+      <VersionComparisonModal
+        templateId={templateId}
+        versionId={selectedVersion.id}
+        versionNumber={selectedVersion.version}
+        onClose={handleCancelRestore}
+        onContinue={handleComparisonContinue}
+      />
+    )}
+
+    {showConfirmDialog && selectedVersion && (
+      <RestoreConfirmationDialog
+        versionNumber={selectedVersion.version}
+        currentVersion={currentVersion}
+        onConfirm={handleRestoreConfirm}
+        onCancel={handleCancelRestore}
+        isRestoring={isRestoring}
+      />
+    )}
+    </>
   );
 };
 
