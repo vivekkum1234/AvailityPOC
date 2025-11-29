@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { adminApiService } from '../services/adminApi';
-import { QuestionnaireTemplate } from '../types/admin';
+import { QuestionnaireTemplate, QuestionnaireVersion } from '../types/admin';
 import { SectionAccordion } from '../components/admin/SectionAccordion';
 import { QuestionEditModal } from '../components/admin/QuestionEditModal';
 
 export const TemplateEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const versionId = searchParams.get('version');
+
   const [template, setTemplate] = useState<QuestionnaireTemplate | null>(null);
+  const [viewingVersion, setViewingVersion] = useState<QuestionnaireVersion | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -25,14 +29,37 @@ export const TemplateEditor: React.FC = () => {
     if (id) {
       loadTemplate();
     }
-  }, [id]);
+  }, [id, versionId]);
 
   const loadTemplate = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await adminApiService.getTemplate(id!);
-      setTemplate(data);
+      setViewingVersion(null);
+
+      // If viewing a specific version from history
+      if (versionId) {
+        const versions = await adminApiService.getVersionHistory(id!);
+        const version = versions.find(v => v.id === versionId);
+
+        if (version) {
+          setViewingVersion(version);
+          // Create a template-like object from the version for display
+          const templateData = await adminApiService.getTemplate(id!);
+          setTemplate({
+            ...templateData,
+            config: version.config,
+            version: version.version,
+            status: 'archived' as const
+          });
+        } else {
+          setError('Version not found');
+        }
+      } else {
+        // Load current template
+        const data = await adminApiService.getTemplate(id!);
+        setTemplate(data);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load template');
     } finally {
@@ -176,6 +203,7 @@ export const TemplateEditor: React.FC = () => {
   }
 
   const isDraft = template.status === 'draft';
+  const isViewingHistoricalVersion = !!viewingVersion;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,9 +214,17 @@ export const TemplateEditor: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 X12 {template.transaction_type} - v{template.version}
+                {isViewingHistoricalVersion && (
+                  <span className="ml-3 text-sm font-normal text-gray-500">(Historical Version)</span>
+                )}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
                 Status: <span className="font-medium">{template.status}</span>
+                {viewingVersion?.created_at && (
+                  <span className="ml-2">
+                    • Archived on {new Date(viewingVersion.created_at).toLocaleDateString()}
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex space-x-3">
@@ -198,7 +234,7 @@ export const TemplateEditor: React.FC = () => {
               >
                 Back to Dashboard
               </button>
-              {isDraft ? (
+              {!isViewingHistoricalVersion && isDraft ? (
                 <>
                   <button
                     onClick={handleSave}
@@ -214,7 +250,7 @@ export const TemplateEditor: React.FC = () => {
                     Publish
                   </button>
                 </>
-              ) : (
+              ) : !isViewingHistoricalVersion ? (
                 <button
                   onClick={handleCreateNewVersion}
                   disabled={creatingNewVersion}
@@ -222,11 +258,38 @@ export const TemplateEditor: React.FC = () => {
                 >
                   {creatingNewVersion ? 'Creating...' : '✏️ Create New Version to Edit'}
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
       </header>
+
+      {/* Historical Version Banner */}
+      {isViewingHistoricalVersion && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-amber-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-800">
+                  You are viewing a historical version (v{template.version})
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  {viewingVersion.changes_summary || 'This is a read-only archived version.'}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate(`/admin/templates/${id}`)}
+                className="ml-4 px-4 py-2 text-sm font-medium text-amber-800 bg-amber-100 rounded-lg hover:bg-amber-200"
+              >
+                View Current Version
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       {error && (

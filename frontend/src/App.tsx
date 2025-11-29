@@ -11,6 +11,7 @@ import { PayerConfigurations } from './pages/admin/PayerConfigurations';
 import { UserManagement } from './pages/admin/UserManagement';
 import { ProductMappings } from './pages/admin/ProductMappings';
 import { TemplateEditor } from './pages/TemplateEditor';
+import { TemplateBuilderV2 } from './pages/admin/TemplateBuilderV2';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -296,6 +297,8 @@ function App() {
             >
               <Route index element={<Navigate to="/admin/templates" replace />} />
               <Route path="templates" element={<MasterConfiguration />} />
+              <Route path="template-builder" element={<TemplateBuilderV2 />} />
+              <Route path="template-builder/:id" element={<TemplateBuilderV2 />} />
               <Route path="payers" element={<PayerConfigurations />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="product-mappings" element={<ProductMappings />} />
