@@ -196,4 +196,76 @@ export class JsonExportService {
   static isExportSupported(implementationMode: string): boolean {
     return implementationMode === 'real_time_b2b';
   }
+
+  /**
+   * Export from PDF extraction data (without saved questionnaire response)
+   * This is used when user uploads a PDF and wants to download JSON immediately
+   *
+   * @param extractedData - Flat key-value pairs from PDF extraction (e.g., { 'organization-name': 'Aetna', 'isa05-270': '01' })
+   * @param pdfFileName - Original PDF filename for metadata
+   * @returns ExportedJsonData in client format
+   */
+  static exportFromPDFExtraction(
+    extractedData: Record<string, any>,
+    pdfFileName: string = 'extracted.pdf'
+  ): ExportedJsonData {
+    // Format organization name for ID fields
+    const organizationName = extractedData['organization-name'] || 'UNKNOWN_ORG';
+    const formattedOrgName = this.formatOrganizationName(organizationName);
+
+    // User info defaults to PDF extractor since there's no submission yet
+    const userInfo = {
+      userId: 'PDF_EXTRACTOR',
+      firstName: 'PDF',
+      lastName: 'Extractor'
+    };
+
+    return {
+      id: formattedOrgName,
+      template: 'b2b-default',
+      transactionType: '1',
+      name: organizationName,
+      clearinghouse: formattedOrgName,
+      versions: [
+        {
+          version: '005010X279A1',
+          edifecs: {},
+          edifecsProfilesByVersion: {},
+          payerSpecificEdifecsProfilesByVersion: {},
+          ace: {
+            disabled: true,
+            rcmId: '',
+            overrides: {},
+            parameters: {}
+          },
+          options: {
+            GS02: this.getFieldValue(extractedData, 'gs02-270', '030240928'),
+            GS03: this.getFieldValue(extractedData, 'gs03-270', 'A1BEN'),
+            ISA01: '00',
+            ISA03: '00',
+            ISA05: this.getFieldValue(extractedData, 'isa05-270', '01'),
+            ISA06: this.getFieldValue(extractedData, 'isa06-270', '030240928'),
+            ISA07: this.getFieldValue(extractedData, 'isa07-270', 'ZZ'),
+            ISA08: this.getFieldValue(extractedData, 'isa08-270', 'A1BEN'),
+            ISA11: this.getFieldValue(extractedData, 'isa11-270', '^'),
+            ISA14: '0',
+            guideline_270_5010A1: '5010A1_AvailityStandard270.ecs',
+            severity_270_5010A1: '5010A1_270Semantic_ClearingHouse.esf',
+            guideline_271_5010A1: '5010A1_AvailityStandard271.ecs',
+            severity_271_5010A1: '5010A1_271Semantic_ClearingHouse.esf',
+            connectorId: `ARIES.RT.DATAPOWER.${formattedOrgName}`
+          },
+          payerIds: [],
+          settings: {}
+        }
+      ],
+      inboxes: [formattedOrgName],
+      payerAriesId: 'DEFAULT',
+      submissionModeCd: 2,
+      batch: 'false',
+      lastUpdateUserId: userInfo.userId,
+      lastUpdateFirstName: userInfo.firstName,
+      lastUpdateLastName: userInfo.lastName
+    };
+  }
 }

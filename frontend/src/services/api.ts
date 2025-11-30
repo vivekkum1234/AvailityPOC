@@ -343,6 +343,42 @@ class ApiService {
     return jsonData;
   }
 
+  // Generate and download JSON from form data (for PDF-extracted data)
+  async generateJsonFromFormData(formData: Record<string, any>): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/pdf-extractor/generate-json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ formData }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to generate JSON' }));
+      throw new Error(errorData.error || 'Failed to generate JSON');
+    }
+
+    const result = await response.json();
+    const jsonData = result.data;
+
+    // Get organization name for filename
+    const orgName = jsonData.name || 'unknown_org';
+    const filename = `${orgName.replace(/[^a-zA-Z0-9]/g, '_')}_b2b_config.json`;
+
+    // Trigger download
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    return jsonData;
+  }
+
   // Email questionnaire response as JSON
   async emailQuestionnaireJson(responseId: string, emailData: {
     recipients: string[];

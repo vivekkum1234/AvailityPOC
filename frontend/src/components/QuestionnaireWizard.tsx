@@ -635,6 +635,24 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
     }
   };
 
+  // Handle download JSON for PDF-extracted data
+  const handleDownloadJson = async () => {
+    try {
+      // Collect all responses including current form data
+      const allResponses = { ...responses, ...watchedValues };
+
+      console.log('[QuestionnaireWizard] Generating JSON export from form data');
+
+      // Call API to generate and download JSON
+      await apiService.generateJsonFromFormData(allResponses);
+
+      console.log('[QuestionnaireWizard] JSON export downloaded successfully');
+    } catch (error) {
+      console.error('[QuestionnaireWizard] Failed to download JSON:', error);
+      alert('Failed to download JSON. Please try again.');
+    }
+  };
+
   // Auto-fill handler for AI chatbot
   // Helper function to simulate typing animation
   const typeText = async (element: HTMLInputElement | HTMLTextAreaElement, text: string, speed: number = 50) => {
@@ -1376,6 +1394,20 @@ export const QuestionnaireWizard: React.FC<QuestionnaireWizardProps> = ({
                 </>
               )}
             </button>
+
+            {/* Download JSON button - Only show in testing section if form was auto-populated via PDF */}
+            {currentSectionIndex === visibleSections.length - 1 && extractionData && (
+              <button
+                type="button"
+                onClick={handleDownloadJson}
+                className="flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download JSON
+              </button>
+            )}
 
             <button
               type="submit"

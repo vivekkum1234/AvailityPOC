@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import multer from 'multer';
 import { extractPDFFormFields, ExtractedField } from '../services/pdfExtractionService';
 import { getQuestionIdForPDFField, transformPDFValue, allFieldMappings, getMappingsForSection } from '../config/pdfFieldMappings';
+import { JsonExportService } from '../services/jsonExportService';
 
 const router = express.Router();
 
@@ -251,6 +252,39 @@ router.post('/extract', upload.single('pdf'), async (req: Request, res: Response
       - Mapped common: ${allCommonFields.filter(f => f.questionId).length}
       - Mapped B2B: ${allB2BFields.filter(f => f.questionId).length}`);
 
+    // Generate JSON export for B2B mode (since we're only dealing with B2B for now)
+    // Convert mapped fields to flat key-value format for JSON export
+    const flatExtractedData: Record<string, any> = {};
+
+    // Add implementation mode (hardcoded to B2B for PDF extraction)
+    flatExtractedData['implementation-mode-selection'] = 'real_time_b2b';
+
+    // Process all mapped fields (common + B2B)
+    [...allCommonFields, ...allB2BFields].forEach(field => {
+      if (field.questionId && field.mappedValue !== null && field.mappedValue !== undefined) {
+        // Handle multi-select fields (arrays)
+        if (Array.isArray(field.mappedValue)) {
+          // For multi-select, store as array
+          flatExtractedData[field.questionId] = field.mappedValue;
+        } else {
+          // For single values, store directly
+          flatExtractedData[field.questionId] = field.mappedValue;
+        }
+      }
+    });
+
+    console.log(`[PDF Extractor] Generated flat data with ${Object.keys(flatExtractedData).length} fields for JSON export`);
+
+    // Generate client JSON format
+    let exportedJson = null;
+    try {
+      exportedJson = JsonExportService.exportFromPDFExtraction(flatExtractedData, req.file.originalname);
+      console.log('[PDF Extractor] Successfully generated JSON export');
+    } catch (error) {
+      console.error('[PDF Extractor] Failed to generate JSON export:', error);
+      // Don't fail the entire request if JSON export fails
+    }
+
     res.json({
       success: true,
       data: {
@@ -261,6 +295,7 @@ router.post('/extract', upload.single('pdf'), async (req: Request, res: Response
         commonFields: allCommonFields,
         b2bFields: allB2BFields,
         allFields: allMappedFields,
+        exportedJson: exportedJson, // NEW: Include generated JSON
         summary: {
           totalExtracted: extractionResult.totalFields,
           commonExtracted: allCommonFields.length,
@@ -278,6 +313,43 @@ router.post('/extract', upload.single('pdf'), async (req: Request, res: Response
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to process PDF'
+    });
+  }
+});
+
+/**
+ * POST /api/pdf-extractor/generate-json
+ * Generate client JSON format from form data (for PDF-extracted data)
+ */
+router.post('/generate-json', async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log('[PDF Extractor] Received JSON generation request');
+
+    const { formData } = req.body;
+
+    if (!formData || typeof formData !== 'object') {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid form data provided'
+      });
+      return;
+    }
+
+    // Generate client JSON format using the export service
+    const exportedJson = JsonExportService.exportFromPDFExtraction(formData, 'form_data.pdf');
+
+    console.log('[PDF Extractor] Successfully generated JSON export');
+
+    res.json({
+      success: true,
+      data: exportedJson
+    });
+
+  } catch (error) {
+    console.error('[PDF Extractor] Error generating JSON:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate JSON'
     });
   }
 });
