@@ -184,18 +184,16 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto p-8 space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3">
+        <div className="flex flex-col items-center mb-2">
+          <div className="flex items-center space-x-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-availity-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Onboarding HQ</h1>
-              <p className="text-sm text-gray-500">Monitor payer implementations and track progress</p>
-            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Onboarding HQ</h1>
           </div>
+          <p className="text-sm text-gray-500 mb-3">Monitor payer implementations and track progress</p>
           <button
             onClick={() => setShowThresholdConfig(!showThresholdConfig)}
             className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-availity-500 hover:shadow-md transition-all duration-200 flex items-center space-x-2 group"

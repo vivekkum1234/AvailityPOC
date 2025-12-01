@@ -225,14 +225,18 @@ export const ImplementationsList: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
+          <div className="flex justify-between items-center py-4">
+            {/* Left spacer for balance */}
+            <div className="w-36"></div>
+
+            {/* Center content */}
+            <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-availity-500 rounded-xl flex items-center justify-center shadow-medium">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <div>
+              <div className="flex flex-col items-center">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                   X12 270/271 Implementations
                 </h1>
@@ -244,9 +248,11 @@ export const ImplementationsList: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-availity-700 border border-primary-200">
-                <div className="w-2 h-2 bg-availity-500 rounded-full mr-2"></div>
+
+            {/* Right badge */}
+            <div className="flex justify-end">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-availity-700 border border-primary-200 whitespace-nowrap">
+                <div className="w-1.5 h-1.5 bg-availity-500 rounded-full mr-1.5"></div>
                 {filteredImplementations.length} Implementation{filteredImplementations.length !== 1 ? 's' : ''}
               </span>
             </div>
