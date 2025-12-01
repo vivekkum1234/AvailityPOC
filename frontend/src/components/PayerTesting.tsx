@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { TestGenerationAgent } from './TestGenerationAgent';
 import { TestDataGenerationAgent } from './TestDataGenerationAgent';
+import { TestExecutionAgent } from './TestExecutionAgent';
 
 interface Implementation {
   id: string;
@@ -259,6 +260,11 @@ export const PayerTesting: React.FC = () => {
   const [showDataGenerationAgent, setShowDataGenerationAgent] = useState(false);
   const [dataGenerationStep, setDataGenerationStep] = useState<'fetching-scenarios' | 'fetching-config' | 'fetching-envelope' | 'preparing-ai' | 'generating-270' | 'generating-271' | 'validating' | 'complete' | null>(null);
 
+  // Test execution agent states
+  const [showExecutionAgent, setShowExecutionAgent] = useState(false);
+  const [executionStep, setExecutionStep] = useState<'connecting' | 'sending-requests' | 'awaiting-responses' | 'validating-responses' | 'complete' | null>(null);
+  const [completedTestCount, setCompletedTestCount] = useState(0);
+
   useEffect(() => {
     loadImplementations();
   }, []);
@@ -505,14 +511,41 @@ export const PayerTesting: React.FC = () => {
     }
 
     setLoading(true);
+    setShowExecutionAgent(true);
+    setCompletedTestCount(0);
+
     try {
       console.log('🧪 Executing tests against mock payer system...');
       console.log('Test cases to execute:', detailedTestCases.length);
       console.log('Payer endpoint:', payerEndpoint);
       console.log('Execution mode:', executionMode);
 
+      // Step 1: Connecting to payer system (1.5s)
+      setExecutionStep('connecting');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Step 2: Sending requests (2s)
+      setExecutionStep('sending-requests');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Step 3: Awaiting responses - start API call
+      setExecutionStep('awaiting-responses');
+
+      // Simulate progress while waiting for API
+      const totalTests = detailedTestCases.length;
+      let progressCount = 0;
+      const progressInterval = setInterval(() => {
+        if (progressCount < totalTests - 1) {
+          progressCount++;
+          setCompletedTestCount(progressCount);
+        }
+      }, 500);
+
       // Execute tests using the mock payer API
       const response = await apiService.executeTests(detailedTestCases, payerEndpoint);
+
+      clearInterval(progressInterval);
+      setCompletedTestCount(totalTests);
 
       console.log('🔍 Frontend received response:', response);
       console.log('🔍 Response success:', response.success);
@@ -520,6 +553,14 @@ export const PayerTesting: React.FC = () => {
 
       if (response.success) {
         const { results, summary } = response.data;
+
+        // Step 4: Validating responses (1s)
+        setExecutionStep('validating-responses');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Step 5: Complete
+        setExecutionStep('complete');
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         console.log('✅ Test execution completed');
         console.log('Results:', results);
@@ -534,10 +575,12 @@ export const PayerTesting: React.FC = () => {
       }
     } catch (error) {
       console.error('❌ Error executing tests:', error);
+      setShowExecutionAgent(false);
       // Show error to user
       alert(`Test execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
+      setShowExecutionAgent(false);
     }
   };
 
@@ -1216,6 +1259,14 @@ export const PayerTesting: React.FC = () => {
           const checkbox = document.querySelector(`input[data-test-id="${rec.id}"]`) as HTMLInputElement;
           return checkbox?.checked;
         }).length}
+      />
+
+      {/* Test Execution Agent Modal */}
+      <TestExecutionAgent
+        isExecuting={showExecutionAgent}
+        currentStep={executionStep}
+        totalTests={detailedTestCases.length}
+        completedTests={completedTestCount}
       />
 
       <div className="max-w-7xl mx-auto">
