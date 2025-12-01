@@ -566,46 +566,146 @@ export const PayerTesting: React.FC = () => {
     return implementations.find(impl => impl.id === selectedImplementation);
   };
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-between mb-12">
-      {[1, 2, 3, 4].map((step, index) => {
-        const status = getStepStatus(step as WorkflowStep);
-        const stepLabels = [
-          { title: 'Test Recommendations', subtitle: 'AI suggests test cases' },
-          { title: 'Generate Test Data', subtitle: 'Create 270/271 pairs' },
-          { title: 'Execute Tests', subtitle: 'Send to payer system' },
-          { title: 'View Results', subtitle: 'Analyze outcomes' }
-        ];
-        
-        return (
-          <div key={step} className="flex items-center">
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                status === 'completed' ? 'bg-green-500 text-white' :
-                status === 'active' ? 'bg-orange-500 text-white' :
-                'bg-gray-200 text-gray-500'
-              }`}>
-                {status === 'completed' ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : step}
-              </div>
-              <div className="mt-3 text-center">
-                <div className="text-sm font-medium text-gray-900">{stepLabels[index].title}</div>
-                <div className="text-xs text-gray-500">{stepLabels[index].subtitle}</div>
-              </div>
-            </div>
-            {index < 3 && (
-              <div className={`flex-1 h-0.5 mx-4 ${
-                step < currentStep ? 'bg-green-500' : 'bg-gray-200'
-              }`} />
-            )}
+  const renderStepIndicator = () => {
+    const stepLabels = [
+      {
+        title: 'Test Recommendations',
+        subtitle: 'AI suggests test cases',
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        )
+      },
+      {
+        title: 'Generate Test Data',
+        subtitle: 'Create 270/271 pairs',
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        )
+      },
+      {
+        title: 'Execute Tests',
+        subtitle: 'Send to payer system',
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        )
+      },
+      {
+        title: 'View Results',
+        subtitle: 'Analyze outcomes',
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        )
+      }
+    ];
+
+    return (
+      <div className="mb-12">
+        <div className="relative">
+          {/* Steps with arrows between them */}
+          <div className="relative flex items-start justify-between">
+            {[1, 2, 3, 4].map((step, index) => {
+              const status = getStepStatus(step as WorkflowStep);
+              const isCompleted = status === 'completed';
+
+              return (
+                <React.Fragment key={step}>
+                  <div className="flex flex-col items-center" style={{ width: '20%' }}>
+                    {/* Step Circle */}
+                    <div className={`
+                      relative w-20 h-20 rounded-full flex items-center justify-center font-bold text-sm
+                      transition-all duration-500 transform
+                      ${status === 'completed'
+                        ? 'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-lg shadow-green-500/50 scale-100'
+                        : status === 'active'
+                        ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-xl shadow-orange-500/50 scale-110 animate-pulse'
+                        : 'bg-white border-2 border-gray-300 text-gray-400 scale-95'
+                      }
+                    `}>
+                      {status === 'completed' ? (
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : status === 'active' ? (
+                        <div className="flex flex-col items-center">
+                          {stepLabels[index].icon}
+                          <span className="text-xs font-semibold mt-1">Active</span>
+                        </div>
+                      ) : (
+                        <div className="opacity-50">
+                          {stepLabels[index].icon}
+                        </div>
+                      )}
+
+                      {/* Step Number Badge */}
+                      <div className={`
+                        absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                        ${status === 'completed'
+                          ? 'bg-green-600 text-white'
+                          : status === 'active'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-gray-300 text-gray-600'
+                        }
+                      `}>
+                        {step}
+                      </div>
+                    </div>
+
+                    {/* Step Label + Subtitle */}
+                    <div className="mt-3 text-center px-2">
+                      <div className={`text-sm font-semibold transition-colors duration-300 ${
+                        status === 'completed' ? 'text-green-700' :
+                        status === 'active' ? 'text-orange-600' :
+                        'text-gray-500'
+                      }`}>
+                        {stepLabels[index].title}
+                      </div>
+                      <div className={`text-xs mt-0.5 transition-colors duration-300 ${
+                        status === 'completed' ? 'text-green-600' :
+                        status === 'active' ? 'text-orange-500' :
+                        'text-gray-400'
+                      }`}>
+                        {stepLabels[index].subtitle}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Line + Arrow connector (show between steps, not after last) */}
+                  {index < 3 && (
+                    <div className="flex items-center" style={{ marginTop: '30px', width: '6.67%' }}>
+                      {/* Horizontal line */}
+                      <div
+                        className={`flex-1 h-1 rounded transition-colors duration-500 ${
+                          isCompleted ? 'bg-green-500' : 'bg-gray-300'
+                        }`}
+                      ></div>
+                      {/* Arrow head - larger and more visible */}
+                      <svg
+                        className={`w-6 h-6 -ml-1 transition-colors duration-500 ${
+                          isCompleted ? 'text-green-500' : 'text-gray-400'
+                        }`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
-        );
-      })}
-    </div>
-  );
+        </div>
+      </div>
+    );
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {

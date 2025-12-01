@@ -1245,6 +1245,22 @@ EDI BATCH MODE - ONLY test features that are CONFIGURED in the questionnaire:
     }
 
     console.log('❌ Cache MISS - generating new test data...');
+
+    // ========================================
+    // 🚀 ALWAYS USE PREDEFINED TEMPLATE DATA
+    // ========================================
+    // AI code is dormant - using fast, reliable template-based test data
+    console.log('⚡ Using predefined template-based test data (AI dormant for performance)');
+    const templateData = this.getTemplateBasedTestData(payerInfo, configuration, selectedTestCases);
+    // Cache template data
+    this.testDataCache.set(cacheKey, { data: templateData, timestamp: Date.now() });
+    return templateData;
+
+    // ========================================
+    // 🤖 AI CODE (DORMANT - COMMENTED OUT)
+    // ========================================
+    // Uncomment below to re-enable AI-based test data generation
+    /*
     console.log('🤖 Using AI to generate contextual test data...');
 
     // Check if AI API key is available
@@ -1332,6 +1348,7 @@ EDI BATCH MODE - ONLY test features that are CONFIGURED in the questionnaire:
       this.testDataCache.set(cacheKey, { data: templateData, timestamp: Date.now() });
       return templateData;
     }
+    */
 
     // TODO: Re-enable AI response parsing after POC if needed
     /*
