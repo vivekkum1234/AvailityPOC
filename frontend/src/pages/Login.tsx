@@ -18,6 +18,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     { email: 'Mike.davis@aetnademo.com', name: 'Mike Davis', userType: 'payer' as const, organization: 'Aetna' },
     { email: 'admin@availity.com', name: 'Lisa Wilson', userType: 'availity' as const, organization: 'Availity' },
     { email: 'David.brown@aetnademo.com', name: 'David Brown', userType: 'payer' as const, organization: 'Aetna' },
+    { email: 'bcbs.admin@example.com', name: 'BCBS Admin', userType: 'payer' as const, organization: 'Blue Cross Blue Shield' },
+    { email: 'uhc.admin@example.com', name: 'UHC Admin', userType: 'payer' as const, organization: 'UnitedHealthcare' },
+    { email: 'cigna.admin@example.com', name: 'Cigna Admin', userType: 'payer' as const, organization: 'Cigna Health' },
+    { email: 'humana.admin@example.com', name: 'Humana Admin', userType: 'payer' as const, organization: 'Humana Inc' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

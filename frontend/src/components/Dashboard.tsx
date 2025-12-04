@@ -16,7 +16,7 @@ interface PayerData {
 interface ProductComponent {
   transactionType: string;
   transactionName: string;
-  status: 'active' | 'pending' | 'completed' | 'not_started';
+  status: 'active' | 'pending' | 'completed' | 'not_started' | 'coming_soon';
   startDate?: string;
   completionDate?: string;
 }
@@ -49,6 +49,7 @@ export const Dashboard: React.FC = () => {
     };
 
     // Mock data - replace with actual API call
+    // Only 270/271 product component is active for MVP, others are "Coming Soon"
     const mockPayers: PayerData[] = [
       {
         id: '1',
@@ -56,8 +57,8 @@ export const Dashboard: React.FC = () => {
         organizationId: 'ORG-001',
         products: [
           { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(25) },
-          { transactionType: '835', transactionName: 'Claims Payment', status: 'pending' },
-          { transactionType: '837', transactionName: 'Claims Submission', status: 'not_started' },
+          { transactionType: '835', transactionName: 'Claims Payment', status: 'coming_soon' },
+          { transactionType: '837', transactionName: 'Claims Submission', status: 'coming_soon' },
         ],
         currentStep: 'Enveloping Requirements',
         stepStartDate: getDaysAgo(5),
@@ -71,8 +72,8 @@ export const Dashboard: React.FC = () => {
         organizationId: 'ORG-002',
         products: [
           { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(30) },
-          { transactionType: '276/277', transactionName: 'Claim Status', status: 'pending' },
-          { transactionType: '278', transactionName: 'Prior Authorization', status: 'not_started' },
+          { transactionType: '276/277', transactionName: 'Claim Status', status: 'coming_soon' },
+          { transactionType: '278', transactionName: 'Prior Authorization', status: 'coming_soon' },
         ],
         currentStep: 'Connectivity (B2B)',
         stepStartDate: getDaysAgo(10),
@@ -85,9 +86,9 @@ export const Dashboard: React.FC = () => {
         name: 'UnitedHealthcare',
         organizationId: 'ORG-003',
         products: [
-          { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'completed', startDate: getDaysAgo(60), completionDate: getDaysAgo(40) },
-          { transactionType: '835', transactionName: 'Claims Payment', status: 'completed', startDate: getDaysAgo(60), completionDate: getDaysAgo(40) },
-          { transactionType: '837', transactionName: 'Claims Submission', status: 'active', startDate: getDaysAgo(20) },
+          { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(60) },
+          { transactionType: '835', transactionName: 'Claims Payment', status: 'coming_soon' },
+          { transactionType: '837', transactionName: 'Claims Submission', status: 'coming_soon' },
         ],
         currentStep: 'Testing',
         stepStartDate: getDaysAgo(4),
@@ -101,7 +102,7 @@ export const Dashboard: React.FC = () => {
         organizationId: 'ORG-004',
         products: [
           { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(45) },
-          { transactionType: '276/277', transactionName: 'Claim Status', status: 'not_started' },
+          { transactionType: '276/277', transactionName: 'Claim Status', status: 'coming_soon' },
         ],
         currentStep: 'Organization Information',
         stepStartDate: getDaysAgo(35),
@@ -115,9 +116,9 @@ export const Dashboard: React.FC = () => {
         organizationId: 'ORG-005',
         products: [
           { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(18) },
-          { transactionType: '835', transactionName: 'Claims Payment', status: 'pending' },
-          { transactionType: '837', transactionName: 'Claims Submission', status: 'pending' },
-          { transactionType: '278', transactionName: 'Prior Authorization', status: 'not_started' },
+          { transactionType: '835', transactionName: 'Claims Payment', status: 'coming_soon' },
+          { transactionType: '837', transactionName: 'Claims Submission', status: 'coming_soon' },
+          { transactionType: '278', transactionName: 'Prior Authorization', status: 'coming_soon' },
         ],
         currentStep: 'Payer Enhancements',
         stepStartDate: getDaysAgo(9),
@@ -164,6 +165,7 @@ export const Dashboard: React.FC = () => {
       case 'active': return 'bg-blue-100 text-blue-700';
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'not_started': return 'bg-gray-100 text-gray-700';
+      case 'coming_soon': return 'bg-purple-100 text-purple-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -435,7 +437,7 @@ export const Dashboard: React.FC = () => {
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-bold text-gray-900 text-sm">{product.transactionType}</span>
                           <span className={`px-3 py-1 rounded-lg text-xs font-bold ${getProductStatusColor(product.status)}`}>
-                            {product.status.replace('_', ' ').toUpperCase()}
+                            {product.status === 'coming_soon' ? 'COMING SOON' : product.status.replace('_', ' ').toUpperCase()}
                           </span>
                         </div>
                         <p className="text-xs text-gray-600 font-medium mb-2">{product.transactionName}</p>

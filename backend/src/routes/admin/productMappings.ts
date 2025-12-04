@@ -27,23 +27,46 @@ router.get('/:productType', async (req, res) => {
   try {
     const { productType } = req.params;
 
-    // Hardcoded single Aetna payer for MVP - always shown as assigned
-    const AETNA_ORG_ID = '4bc8476a-3dd0-4830-8704-ad98b26f8f82';
-
-    // Single Aetna payer - always assigned for demo
-    const payers: Payer[] = [{
-      id: AETNA_ORG_ID,
-      name: 'Aetna',
-      organizationId: AETNA_ORG_ID,
-      isAssigned: true // Always assigned for MVP demo
-    }];
+    // Hardcoded payers matching the Dashboard - all shown as assigned for MVP
+    const payers: Payer[] = [
+      {
+        id: '1',
+        name: 'Aetna Health Insurance',
+        organizationId: 'ORG-001',
+        isAssigned: true
+      },
+      {
+        id: '2',
+        name: 'Blue Cross Blue Shield',
+        organizationId: 'ORG-002',
+        isAssigned: true
+      },
+      {
+        id: '3',
+        name: 'UnitedHealthcare',
+        organizationId: 'ORG-003',
+        isAssigned: true
+      },
+      {
+        id: '4',
+        name: 'Cigna Health',
+        organizationId: 'ORG-004',
+        isAssigned: true
+      },
+      {
+        id: '5',
+        name: 'Humana Inc',
+        organizationId: 'ORG-005',
+        isAssigned: true
+      }
+    ];
 
     const response: ProductMappingResponse = {
       productType,
       payers,
       stats: {
-        total: 1,
-        assigned: 1 // Always 1 for MVP demo
+        total: 5,
+        assigned: 5 // All 5 payers assigned for MVP demo
       }
     };
 

@@ -232,8 +232,9 @@ export class MockPayerService {
     console.log(`🔍 Validating business rules for testId: "${testId}"`);
 
     // Determine test case type based on test ID
-    const isActiveTest = testId.includes('ACTIVE') || (testId.includes('001') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE'));
+    // IMPORTANT: Check INACTIVE before ACTIVE (since "INACTIVE" contains "ACTIVE")
     const isInactiveTest = testId.includes('INACTIVE') || (testId.includes('002') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE'));
+    const isActiveTest = !isInactiveTest && (testId.includes('ACTIVE') || (testId.includes('001') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE')));
     const isNotFoundTest = testId.includes('NOT_FOUND') || (testId.includes('003') && !testId.includes('PHARMACY') && !testId.includes('INVALID_ID') && !testId.includes('FAMILY_COVERAGE'));
     const isPharmacyTest = testId.includes('PHARMACY') || testId.includes('004');
     const isInvalidIdTest = testId.includes('INVALID_ID') || testId.includes('005');

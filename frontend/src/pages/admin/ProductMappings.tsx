@@ -167,8 +167,12 @@ export const ProductMappings: React.FC = () => {
           >
             <option value="">Choose a product...</option>
             {products.map((product) => (
-              <option key={product.type} value={product.type}>
-                {product.name}
+              <option
+                key={product.type}
+                value={product.type}
+                disabled={product.type !== '270/271'}
+              >
+                {product.name}{product.type !== '270/271' ? ' (Coming Soon)' : ''}
               </option>
             ))}
           </select>
