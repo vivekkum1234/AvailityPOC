@@ -32,6 +32,7 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [payers, setPayers] = useState<PayerData[]>([]);
   const [selectedPayer, setSelectedPayer] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'stuck' | 'abandoned' | 'completed'>('all');
   const [thresholds, setThresholds] = useState<ThresholdConfig>({
     stuckDays: 7,
     abandonedDays: 30
@@ -243,9 +244,12 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const filteredPayers = selectedPayer === 'all' 
-    ? payers 
-    : payers.filter(p => p.id === selectedPayer);
+  // Filter by both payer and status
+  const filteredPayers = payers.filter(p => {
+    const matchesPayer = selectedPayer === 'all' || p.id === selectedPayer;
+    const matchesStatus = selectedStatus === 'all' || p.status === selectedStatus;
+    return matchesPayer && matchesStatus;
+  });
 
   const stats = {
     total: payers.length,
@@ -330,7 +334,14 @@ export const Dashboard: React.FC = () => {
         {/* Summary Cards - Professional Modern Design with Vibrant Colors */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Total Payers Card */}
-          <div className="group bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-slate-200 hover:border-slate-300">
+          <button
+            onClick={() => setSelectedStatus('all')}
+            className={`group bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border-2 text-left w-full ${
+              selectedStatus === 'all'
+                ? 'border-slate-500 ring-2 ring-slate-300'
+                : 'border-slate-200 hover:border-slate-300'
+            }`}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -346,10 +357,17 @@ export const Dashboard: React.FC = () => {
                 <p className="text-3xl font-bold text-slate-800">{stats.total}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Active Card */}
-          <div className="group bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-blue-300 hover:border-blue-400">
+          <button
+            onClick={() => setSelectedStatus('active')}
+            className={`group bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border-2 text-left w-full ${
+              selectedStatus === 'active'
+                ? 'border-blue-600 ring-2 ring-blue-300'
+                : 'border-blue-300 hover:border-blue-400'
+            }`}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -365,10 +383,17 @@ export const Dashboard: React.FC = () => {
                 <p className="text-3xl font-bold text-blue-900">{stats.active}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Stuck Card */}
-          <div className="group bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-amber-300 hover:border-amber-400">
+          <button
+            onClick={() => setSelectedStatus('stuck')}
+            className={`group bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border-2 text-left w-full ${
+              selectedStatus === 'stuck'
+                ? 'border-amber-600 ring-2 ring-amber-300'
+                : 'border-amber-300 hover:border-amber-400'
+            }`}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -385,10 +410,17 @@ export const Dashboard: React.FC = () => {
                 <p className="text-xs text-amber-700 mt-2 font-medium">≥ {thresholds.stuckDays} days in step</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Abandoned Card */}
-          <div className="group bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-rose-300 hover:border-rose-400">
+          <button
+            onClick={() => setSelectedStatus('abandoned')}
+            className={`group bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border-2 text-left w-full ${
+              selectedStatus === 'abandoned'
+                ? 'border-rose-600 ring-2 ring-rose-300'
+                : 'border-rose-300 hover:border-rose-400'
+            }`}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -405,10 +437,17 @@ export const Dashboard: React.FC = () => {
                 <p className="text-xs text-rose-700 mt-2 font-medium">≥ {thresholds.abandonedDays} days inactive</p>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Completed Card */}
-          <div className="group bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-emerald-300 hover:border-emerald-400">
+          <button
+            onClick={() => setSelectedStatus('completed')}
+            className={`group bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border-2 text-left w-full ${
+              selectedStatus === 'completed'
+                ? 'border-emerald-600 ring-2 ring-emerald-300'
+                : 'border-emerald-300 hover:border-emerald-400'
+            }`}
+          >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -424,7 +463,7 @@ export const Dashboard: React.FC = () => {
                 <p className="text-3xl font-bold text-emerald-900">{stats.completed}</p>
               </div>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Payer Filter */}
