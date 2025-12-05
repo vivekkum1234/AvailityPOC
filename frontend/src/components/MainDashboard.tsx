@@ -116,7 +116,10 @@ export const MainDashboard: React.FC = () => {
   const isEditMode = location.pathname.includes('/edit/');
   const { user } = useAuth(); // Get current user for role-based access
 
-  const [activeTab, setActiveTab] = useState<TabId>('questionnaire');
+  // Default tab: 'dashboard' for admin users, 'questionnaire' for payer users
+  const [activeTab, setActiveTab] = useState<TabId>(
+    user?.isAdmin ? 'dashboard' : 'questionnaire'
+  );
 
   // Questionnaire state (from QuestionnaireApp)
   const [sections, setSections] = useState<Section[]>([]);

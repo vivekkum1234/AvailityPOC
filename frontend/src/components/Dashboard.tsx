@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { apiService } from '../services/api';
 
 // Types
 interface PayerData {
@@ -27,6 +29,7 @@ interface ThresholdConfig {
 }
 
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [payers, setPayers] = useState<PayerData[]>([]);
   const [selectedPayer, setSelectedPayer] = useState<string>('all');
   const [thresholds, setThresholds] = useState<ThresholdConfig>({
@@ -34,11 +37,81 @@ export const Dashboard: React.FC = () => {
     abandonedDays: 30
   });
   const [showThresholdConfig, setShowThresholdConfig] = useState(false);
+  const [showReminderComposeModal, setShowReminderComposeModal] = useState(false);
+  const [showReminderSuccessModal, setShowReminderSuccessModal] = useState(false);
+  const [reminderPayer, setReminderPayer] = useState<PayerData | null>(null);
+  const [reminderMessage, setReminderMessage] = useState('');
 
   // Load payer data
   useEffect(() => {
     loadPayerData();
   }, [thresholds]);
+
+  // Map display organization IDs to actual database UUIDs
+  const orgIdMap: Record<string, string> = {
+    'ORG-001': 'ORG-001', // Aetna (keeping as is)
+    'ORG-002': '41af8ad1-5f5d-4e60-982e-3ce4e13fc48c', // BCBS
+    'ORG-003': '0e17c2fa-5561-4b60-8bec-21f4eb177a42', // UHC
+    'ORG-004': 'f176f4a7-1f61-4414-8fcd-d6162ee2a41d', // Cigna
+    'ORG-005': '3bf568de-5ae7-4c1f-aa21-8f4e379d09e3', // Humana
+  };
+
+  // Generate default reminder message based on payer status
+  const getDefaultReminderMessage = (payer: PayerData): string => {
+    const daysInStep = Math.floor((new Date().getTime() - new Date(payer.stepStartDate).getTime()) / (1000 * 60 * 60 * 24));
+    const daysSinceActivity = Math.floor((new Date().getTime() - new Date(payer.lastActivityDate).getTime()) / (1000 * 60 * 60 * 24));
+
+    if (payer.status === 'stuck') {
+      return `Hi ${payer.name} Team,\n\nI noticed that your implementation has been in the "${payer.currentStep}" step for ${daysInStep} days, with no activity in the last ${daysSinceActivity} days.\n\nWe're here to help! If you're facing any challenges or need assistance to move forward, please don't hesitate to reach out.\n\nLooking forward to hearing from you.\n\nBest regards,\nAvailty Team`;
+    } else if (payer.status === 'abandoned') {
+      return `Hi ${payer.name} Team,\n\nWe noticed that your implementation has been inactive for ${daysSinceActivity} days. We understand that priorities can shift, but we'd love to help you complete this integration.\n\nIs there anything blocking your progress? We're here to support you every step of the way.\n\nPlease let us know how we can assist.\n\nBest regards,\nAvailty Team`;
+    } else {
+      return `Hi ${payer.name} Team,\n\nJust checking in on your implementation progress. You're currently at ${payer.completionPercentage}% completion in the "${payer.currentStep}" step.\n\nIf you need any assistance or have questions, we're here to help!\n\nBest regards,\nAvailty Team`;
+    }
+  };
+
+  // Handle Send Reminder button click
+  const handleSendReminder = (payer: PayerData) => {
+    setReminderPayer(payer);
+    setReminderMessage(getDefaultReminderMessage(payer));
+    setShowReminderComposeModal(true);
+  };
+
+  // Handle sending the reminder
+  const handleConfirmSendReminder = () => {
+    setShowReminderComposeModal(false);
+    setShowReminderSuccessModal(true);
+  };
+
+  // Handle View Details button click
+  const handleViewDetails = async (organizationId: string) => {
+    try {
+      // Map display ID to actual database ID
+      const actualOrgId = orgIdMap[organizationId] || organizationId;
+
+      // Fetch submissions for this specific organization using filter
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:3002/api'}/submissions/submissions?organization_id=${actualOrgId}`
+      );
+      const data = await response.json();
+
+      if (data.success && data.data && data.data.length > 0) {
+        // Get the first submission (most recent) for this organization
+        const submission = data.data[0];
+
+        // Navigate to edit page with the submission ID
+        navigate(`/questionnaire/edit/${submission.id}`);
+      } else {
+        // No submission found, navigate to implementations list
+        console.log('No submission found for organization:', organizationId);
+        navigate('/implementations');
+      }
+    } catch (error) {
+      console.error('Error fetching submission:', error);
+      // Fallback to implementations list
+      navigate('/implementations');
+    }
+  };
 
   const loadPayerData = () => {
     // Helper function to get date X days ago
@@ -69,7 +142,7 @@ export const Dashboard: React.FC = () => {
       {
         id: '2',
         name: 'Blue Cross Blue Shield',
-        organizationId: 'ORG-002',
+        organizationId: 'ORG-002', // Display ID (mapped to actual UUID in handleViewDetails)
         products: [
           { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(30) },
           { transactionType: '276/277', transactionName: 'Claim Status', status: 'coming_soon' },
@@ -78,7 +151,7 @@ export const Dashboard: React.FC = () => {
         currentStep: 'Connectivity (B2B)',
         stepStartDate: getDaysAgo(10),
         lastActivityDate: getDaysAgo(8),
-        completionPercentage: 60,
+        completionPercentage: 90,
         status: 'stuck'
       },
       {
@@ -685,13 +758,19 @@ export const Dashboard: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="space-y-3 pt-2">
-                      <button className="w-full px-5 py-3 bg-gradient-to-r from-availity-600 to-primary-600 text-white rounded-xl hover:from-availity-700 hover:to-primary-700 text-sm font-bold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                      <button
+                        onClick={() => handleSendReminder(payer)}
+                        className="w-full px-5 py-3 bg-gradient-to-r from-availity-600 to-primary-600 text-white rounded-xl hover:from-availity-700 hover:to-primary-700 text-sm font-bold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                         <span>Send Reminder</span>
                       </button>
-                      <button className="w-full px-5 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-availity-500 text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2">
+                      <button
+                        onClick={() => handleViewDetails(payer.organizationId)}
+                        className="w-full px-5 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-availity-500 text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -706,6 +785,219 @@ export const Dashboard: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Reminder Compose Modal */}
+      {showReminderComposeModal && reminderPayer && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-scale-in">
+            {/* Gradient Header */}
+            <div className="bg-gradient-to-r from-availity-600 to-primary-600 px-8 py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center justify-center h-14 w-14 rounded-full bg-white bg-opacity-20 backdrop-blur-sm">
+                    <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">
+                      Send Reminder
+                    </h3>
+                    <p className="text-blue-100 text-sm mt-1">
+                      Customize your message before sending
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowReminderComposeModal(false)}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-8 py-6">
+              {/* Payer Info Card */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 mb-6 border border-gray-200">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-availity-500 to-primary-600 rounded-xl flex items-center justify-center shadow-md">
+                        <span className="text-white font-bold text-lg">{reminderPayer.name.charAt(0)}</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Recipient Organization</p>
+                      <p className="text-lg font-bold text-gray-900">{reminderPayer.name}</p>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                          reminderPayer.status === 'stuck' ? 'bg-yellow-100 text-yellow-800' :
+                          reminderPayer.status === 'abandoned' ? 'bg-red-100 text-red-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {reminderPayer.status.charAt(0).toUpperCase() + reminderPayer.status.slice(1)}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {reminderPayer.completionPercentage}% Complete
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Editor */}
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-3">
+                  Message
+                </label>
+                <textarea
+                  value={reminderMessage}
+                  onChange={(e) => setReminderMessage(e.target.value)}
+                  rows={10}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-availity-500 focus:border-availity-500 transition-all duration-200 resize-none font-sans text-sm"
+                  placeholder="Enter your reminder message..."
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  {reminderMessage.length} characters
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowReminderComposeModal(false)}
+                  className="flex-1 px-6 py-3.5 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-bold transition-all duration-200 shadow-md hover:shadow-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmSendReminder}
+                  className="flex-1 px-6 py-3.5 bg-gradient-to-r from-availity-600 to-primary-600 text-white rounded-xl hover:from-availity-700 hover:to-primary-700 font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  <span>Send Reminder</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reminder Success Modal */}
+      {showReminderSuccessModal && reminderPayer && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden animate-scale-in">
+            {/* Gradient Header */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {/* Animated Success Icon */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-white opacity-20 rounded-full animate-ping"></div>
+                    <div className="relative flex items-center justify-center h-14 w-14 rounded-full bg-white shadow-lg">
+                      <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">
+                      Reminder Sent Successfully!
+                    </h3>
+                    <p className="text-green-100 text-sm mt-1">
+                      Your message is on its way
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-8 py-6">
+              {/* Payer Info Card */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-5 mb-6 border border-gray-200">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-availity-500 to-primary-600 rounded-xl flex items-center justify-center shadow-md">
+                      <span className="text-white font-bold text-lg">{reminderPayer.name.charAt(0)}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Recipient Organization</p>
+                    <p className="text-lg font-bold text-gray-900">{reminderPayer.name}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Details */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center space-x-3 text-sm">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Email Notification</p>
+                    <p className="text-gray-500">Sent to primary contact</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 text-sm">
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Timestamp</p>
+                    <p className="text-gray-500">{new Date().toLocaleString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 text-sm">
+                  <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Delivery Status</p>
+                    <p className="text-green-600 font-semibold">Successfully Delivered</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowReminderSuccessModal(false)}
+                  className="flex-1 px-6 py-3.5 bg-gradient-to-r from-availity-600 to-primary-600 text-white rounded-xl hover:from-availity-700 hover:to-primary-700 font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Got it, Thanks!</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

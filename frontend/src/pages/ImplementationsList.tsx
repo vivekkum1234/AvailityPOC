@@ -156,7 +156,23 @@ export const ImplementationsList: React.FC = () => {
   };
 
   const formatLastModifiedDate = (impl: Implementation) => {
-    // Check if the item was modified after submission
+    // For drafts, show updated_at date
+    if (impl.status === 'draft' && impl.updated_at) {
+      try {
+        const date = new Date(impl.updated_at);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (error) {
+        return '—';
+      }
+    }
+
+    // For submitted items, check if the item was modified after submission
     const wasModified = impl.updated_at && impl.submitted_at &&
       new Date(impl.updated_at) > new Date(impl.submitted_at);
 
@@ -361,7 +377,7 @@ export const ImplementationsList: React.FC = () => {
                           {getStatusBadge(impl.status)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatDate(impl.submitted_at, impl.status)}
+                          {formatDate(impl.status === 'draft' ? impl.created_at : impl.submitted_at, impl.status)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {impl.submitted_by_name || impl.created_by_user?.name || impl.submitted_by || '—'}

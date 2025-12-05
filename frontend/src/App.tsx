@@ -24,19 +24,23 @@ import './App.css';
 const HeaderActions: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     window.location.href = '/login';
   };
 
+  // Hide admin button on questionnaire edit pages
+  const isQuestionnaireEditPage = location.pathname.includes('/questionnaire/edit/');
+
   return (
     <div className="flex items-center space-x-4">
       {/* User Welcome & Logout */}
       {user && (
         <div className="flex items-center space-x-4">
-          {/* Admin Button (only for admin users) */}
-          {user.isAdmin && (
+          {/* Admin Button (only for admin users and not on edit pages) */}
+          {user.isAdmin && !isQuestionnaireEditPage && (
             <button
               onClick={() => navigate('/admin')}
               className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white border border-purple-700 hover:bg-purple-700 transition-all duration-200 shadow-sm"
@@ -87,6 +91,7 @@ const LoginWrapper: React.FC = () => {
 // Main questionnaire component
 const QuestionnaireApp: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isEditMode = location.pathname.includes('/edit/');
 
   const [sections, setSections] = useState<Section[]>([]);
@@ -182,6 +187,19 @@ const QuestionnaireApp: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
+              {/* Back to Dashboard button - only show on edit pages */}
+              {isEditMode && (
+                <button
+                  onClick={() => navigate('/')}
+                  className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-availity-500 transition-all duration-200 shadow-sm"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Back to Dashboard
+                </button>
+              )}
+
               <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-availity-500 rounded-xl flex items-center justify-center shadow-medium">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
