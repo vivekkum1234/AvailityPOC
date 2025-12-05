@@ -182,7 +182,7 @@ export const MainDashboard: React.FC = () => {
   // Safety check: If payer user is on a restricted tab, redirect to questionnaire
   useEffect(() => {
     if (user?.userType === 'payer') {
-      const restrictedTabs: TabId[] = ['dashboard'];
+      const restrictedTabs: TabId[] = ['dashboard', 'pdf-extractor'];
       if (restrictedTabs.includes(activeTab)) {
         setActiveTab('questionnaire');
       }
@@ -291,6 +291,10 @@ export const MainDashboard: React.FC = () => {
   const tabs: Tab[] = allTabs.filter(tab => {
     // Hide admin tab for non-admin users
     if (tab.id === 'admin' && !user?.isAdmin) {
+      return false;
+    }
+    // Hide PDF Extractor for payer users (only Availity admin can access)
+    if (tab.id === 'pdf-extractor' && user?.userType === 'payer') {
       return false;
     }
     // If user is a payer, hide dashboard tab only (they can access testing)
