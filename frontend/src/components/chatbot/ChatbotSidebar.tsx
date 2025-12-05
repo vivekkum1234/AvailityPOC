@@ -510,7 +510,7 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
       } else {
         // EXISTING chatbot logic (UNCHANGED)
         await new Promise(resolve => setTimeout(resolve, 1500));
-        const result = generateSampleResponse(messageContent, context);
+        const result = generateSampleResponse(messageContent, context, messages);
         aiResponse = typeof result === 'string' ? result : result.response;
         autoFillAction = typeof result === 'object' ? result.autoFillAction : undefined;
       }
@@ -719,7 +719,8 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
 // Returns both the response text and optional auto-fill action
 function generateSampleResponse(
   message: string,
-  context?: ChatbotContext
+  context?: ChatbotContext,
+  messages?: ChatMessage[]
 ): { response: string; autoFillAction?: AutoFillOptions } {
   const lowerMessage = message.toLowerCase();
 
@@ -1370,6 +1371,42 @@ Need help with any specific organization field?`
 ${context?.currentSection ? `**Current Section:** ${context.currentSection}` : ''}
 
 Which contact type do you need help with?`
+    };
+  }
+
+  // Handle SLA and internal Availity process questions (out of scope)
+  if (lowerMessage.includes('sla') ||
+      (lowerMessage.includes('how long') && (lowerMessage.includes('availity') || lowerMessage.includes('approve') || lowerMessage.includes('review'))) ||
+      (lowerMessage.includes('how many days') && (lowerMessage.includes('availity') || lowerMessage.includes('approve') || lowerMessage.includes('review'))) ||
+      (lowerMessage.includes('timeline') && lowerMessage.includes('approval')) ||
+      (lowerMessage.includes('testing environment') && lowerMessage.includes('approval'))) {
+    return {
+      response: `I don't have information about Availity's internal SLA timelines or approval processes.
+
+Would you like me to forward this question to the Availity admin team for a response?`
+    };
+  }
+
+  // Handle "yes" response to escalation
+  if ((lowerMessage === 'yes' || lowerMessage === 'yeah' || lowerMessage === 'sure' || lowerMessage === 'ok' || lowerMessage === 'okay') &&
+      messages && messages.length > 0 &&
+      messages[messages.length - 1]?.content?.includes('forward this question to the Availity admin')) {
+    // Get the original question (2 messages back - user's question before the escalation prompt)
+    const originalQuestion = messages.length >= 2 ? messages[messages.length - 2]?.content : 'User question';
+
+    return {
+      response: `✅ I've forwarded your question to the Availity admin team. They will respond to you shortly.
+
+Your question: "${originalQuestion}"`
+    };
+  }
+
+  // Handle "no" response to escalation
+  if ((lowerMessage === 'no' || lowerMessage === 'nope' || lowerMessage === 'no thanks') &&
+      messages && messages.length > 0 &&
+      messages[messages.length - 1]?.content?.includes('forward this question to the Availity admin')) {
+    return {
+      response: `Okay, no problem. Is there anything else I can help you with?`
     };
   }
 

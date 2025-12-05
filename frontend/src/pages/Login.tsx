@@ -24,6 +24,17 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     { email: 'humana.admin@example.com', name: 'Humana Admin', userType: 'payer' as const, organization: 'Humana Inc' },
   ];
 
+  // Hidden admin users (not shown in quick login)
+  const hiddenAdminEmails = [
+    'bcbs.admin@example.com',
+    'uhc.admin@example.com',
+    'cigna.admin@example.com',
+    'humana.admin@example.com'
+  ];
+
+  // Filter out hidden admin users for quick login display
+  const visibleMockUsers = mockUsers.filter(user => !hiddenAdminEmails.includes(user.email));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -227,7 +238,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
                 Payer Users
               </div>
-              {mockUsers.filter(u => u.userType === 'payer').map((user) => (
+              {visibleMockUsers.filter(u => u.userType === 'payer').map((user) => (
                 <button
                   key={user.email}
                   onClick={() => handleQuickLogin(user)}
@@ -253,7 +264,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 mt-3">
                 Availity Users
               </div>
-              {mockUsers.filter(u => u.userType === 'availity').map((user) => (
+              {visibleMockUsers.filter(u => u.userType === 'availity').map((user) => (
                 <button
                   key={user.email}
                   onClick={() => handleQuickLogin(user)}
