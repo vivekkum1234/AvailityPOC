@@ -19,6 +19,26 @@ interface ChatbotSidebarProps {
   onFieldUpdate?: FieldUpdateCallback;
 }
 
+// FAQ Questions
+interface FAQQuestion {
+  id: string;
+  question: string;
+  icon: string;
+}
+
+const FAQ_QUESTIONS: FAQQuestion[] = [
+  {
+    id: 'sla-testing',
+    question: 'What is the SLA for testing environment approval?',
+    icon: '📋'
+  },
+  {
+    id: 'member-data',
+    question: 'Can you give me the member data for Ramki Sridhar?',
+    icon: '👤'
+  }
+];
+
 export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
   context,
   onAutoFillRequest,
@@ -28,6 +48,7 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
+  const [isFAQExpanded, setIsFAQExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
   // Voice mode state
@@ -461,6 +482,14 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
     setPhiDetectionResult(null);
   };
 
+  // Handle FAQ question click
+  const handleFAQClick = (question: string) => {
+    // Send the FAQ question as a message
+    handleSendMessage(question);
+    // Auto-collapse the FAQ section
+    setIsFAQExpanded(false);
+  };
+
   // Internal function to actually send the message
   const sendMessageInternal = async (messageContent: string) => {
     // Pause listening in voice mode while processing
@@ -697,6 +726,49 @@ export const ChatbotSidebar: React.FC<ChatbotSidebarProps> = ({
 
           {/* Messages */}
           <ChatbotMessages messages={messages} />
+
+          {/* FAQ Section - Collapsible (hide in voice mode) */}
+          {!isVoiceMode && (
+            <div className="border-t border-gray-200 flex-shrink-0">
+              <button
+                onClick={() => setIsFAQExpanded(!isFAQExpanded)}
+                className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
+              >
+                <span className="text-sm font-medium text-gray-700 flex items-center">
+                  <span className="mr-2">💡</span>
+                  Quick Questions
+                </span>
+                <svg
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isFAQExpanded ? '' : 'rotate-180'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* FAQ Questions - Expandable */}
+              {isFAQExpanded && (
+                <div className="px-4 pb-3 space-y-2 animate-slide-down">
+                  {FAQ_QUESTIONS.map((faq) => (
+                    <button
+                      key={faq.id}
+                      onClick={() => handleFAQClick(faq.question)}
+                      className="w-full text-left px-3 py-2.5 rounded-lg border border-gray-200 hover:border-availity-400 hover:bg-availity-50 transition-all duration-200 group"
+                    >
+                      <div className="flex items-start space-x-2">
+                        <span className="text-lg flex-shrink-0 mt-0.5">{faq.icon}</span>
+                        <span className="text-sm text-gray-700 group-hover:text-availity-700 font-medium">
+                          {faq.question}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Input - disabled in voice mode */}
           {!isVoiceMode && (
