@@ -129,15 +129,15 @@ export const Dashboard: React.FC = () => {
         name: 'Aetna Health Insurance',
         organizationId: 'ORG-001',
         products: [
-          { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'active', startDate: getDaysAgo(25) },
+          { transactionType: '270/271', transactionName: 'Eligibility & Benefits', status: 'completed', startDate: getDaysAgo(25), completionDate: getDaysAgo(0) },
           { transactionType: '835', transactionName: 'Claims Payment', status: 'coming_soon' },
           { transactionType: '837', transactionName: 'Claims Submission', status: 'coming_soon' },
         ],
-        currentStep: 'Enveloping Requirements',
-        stepStartDate: getDaysAgo(5),
-        lastActivityDate: getDaysAgo(2),
-        completionPercentage: 45,
-        status: 'active'
+        currentStep: 'Completed',
+        stepStartDate: getDaysAgo(0),
+        lastActivityDate: getDaysAgo(0),
+        completionPercentage: 100,
+        status: 'completed'
       },
       {
         id: '2',
